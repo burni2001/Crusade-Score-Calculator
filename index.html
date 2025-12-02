@@ -253,27 +253,26 @@
         <div class="mission-params">
             <label>Objective Completion</label>
             <select id="global-objective" onchange="calculate()">
-                <option value="0" selected>No</option>
-                <option value="1">Yes</option>
+                <option value="0">No (0)</option>
+                <option value="1" selected>Yes (1)</option>
             </select>
         </div>
         <div class="mission-params">
             <label>Geneseed Retrieved</label>
             <select id="global-geneseed" onchange="calculate()">
-                <option value="0" selected>No</option>
-                <option value="1">Yes</option>
+                <option value="0">No (0)</option>
+                <option value="1" selected>Yes (1)</option>
             </select>
         </div>
         <div class="mission-params">
             <label>Armoury Data Retrieved</label>
             <select id="global-armoury" onchange="calculate()">
-                <option value="0" selected>0</option>
+                <option value="0">0</option>
                 <option value="1">1</option>
-                <option value="2">2</option>
+                <option value="2" selected>2</option>
                 <option value="3">3</option>
             </select>
         </div>
-</div>
     </div><!-- Main Data Table -->
     <div class="section">
         <div class="section-header">SQUADRON PERFORMANCE MATRIX</div>
@@ -281,9 +280,9 @@
             <thead>
                 <tr>
                     <th class="empty-header"></th> <!-- Invisible Top Left -->
-                    <th><input type="text" value="" placeholder="Name"></th>
-                    <th><input type="text" value="" placeholder="Name"></th>
-                    <th><input type="text" value="" placeholder="Name"></th>
+                    <th><input type="text" value="BB1 (Gideon)" placeholder="Name"></th>
+                    <th><input type="text" value="BB2" placeholder="Name"></th>
+                    <th><input type="text" value="BB3" placeholder="Name"></th>
                     <th>TOTAL</th>
                 </tr>
             </thead>
@@ -291,62 +290,62 @@
                 <!-- Kills -->
                 <tr>
                     <td class="row-label">Kills</td>
-                    <td class="input-cell"><input type="number" class="p1-input" id="p1-kills" value="" onchange="calculate()"></td>
-                    <td class="input-cell"><input type="number" class="p2-input" id="p2-kills" value="" onchange="calculate()"></td>
-                    <td class="input-cell"><input type="number" class="p3-input" id="p3-kills" value="" onchange="calculate()"></td>
-                    <td class="total-cell" id="total-kills"></td>
+                    <td class="input-cell"><input type="number" class="p1-input" id="p1-kills" value="347" onchange="calculate()"></td>
+                    <td class="input-cell"><input type="number" class="p2-input" id="p2-kills" value="207" onchange="calculate()"></td>
+                    <td class="input-cell"><input type="number" class="p3-input" id="p3-kills" value="127" onchange="calculate()"></td>
+                    <td class="total-cell" id="total-kills">681</td>
                 </tr>
                 <!-- Elite Kills -->
                 <tr>
                     <td class="row-label">Elite Kills</td>
-                    <td class="input-cell"><input type="number" class="p1-input" id="p1-elite" value="" onchange="calculate()"></td>
-                    <td class="input-cell"><input type="number" class="p2-input" id="p2-elite" value="" onchange="calculate()"></td>
-                    <td class="input-cell"><input type="number" class="p3-input" id="p3-elite" value="" onchange="calculate()"></td>
-                    <td class="total-cell" id="total-elite"></td>
+                    <td class="input-cell"><input type="number" class="p1-input" id="p1-elite" value="2" onchange="calculate()"></td>
+                    <td class="input-cell"><input type="number" class="p2-input" id="p2-elite" value="1" onchange="calculate()"></td>
+                    <td class="input-cell"><input type="number" class="p3-input" id="p3-elite" value="1" onchange="calculate()"></td>
+                    <td class="total-cell" id="total-elite">4</td>
                 </tr>
                 
                 <!-- Base Score Result -->
                 <tr class="base-score-row">
                     <td class="row-label">Base Score</td>
-                    <td id="p1-base"></td>
-                    <td id="p2-base"></td>
-                    <td id="p3-base"></td>
-                    <td id="total-base"></td>
+                    <td id="p1-base">487</td>
+                    <td id="p2-base">327</td>
+                    <td id="p3-base">247</td>
+                    <td id="total-base">861</td>
                 </tr><!-- Spacer -->
                 <tr style="height: 20px;"></tr><!-- Deaths -->
                 <tr>
                     <td class="row-label">Deaths</td>
-                    <td class="input-cell"><input type="number" class="p1-input" id="p1-death" value="" onchange="calculate()"></td>
-                    <td class="input-cell"><input type="number" class="p2-input" id="p2-death" value="" onchange="calculate()"></td>
-                    <td class="input-cell"><input type="number" class="p3-input" id="p3-death" value="" onchange="calculate()"></td>
-                    <td class="total-cell" id="total-death"></td>
+                    <td class="input-cell"><input type="number" class="p1-input" id="p1-death" value="0" onchange="calculate()"></td>
+                    <td class="input-cell"><input type="number" class="p2-input" id="p2-death" value="0" onchange="calculate()"></td>
+                    <td class="input-cell"><input type="number" class="p3-input" id="p3-death" value="1" onchange="calculate()"></td>
+                    <td class="total-cell" id="total-death">1</td>
                 </tr>
                 <!-- Damage -->
                 <tr>
                     <td class="row-label">Damage</td>
-                    <td class="input-cell"><input type="number" class="p1-input" id="p1-damage" value="" onchange="calculate()"></td>
-                    <td class="input-cell"><input type="number" class="p2-input" id="p2-damage" value="" onchange="calculate()"></td>
-                    <td class="input-cell"><input type="number" class="p3-input" id="p3-damage" value="" onchange="calculate()"></td>
-                    <td class="total-cell" id="total-damage"></td>
+                    <td class="input-cell"><input type="number" class="p1-input" id="p1-damage" value="266" onchange="calculate()"></td>
+                    <td class="input-cell"><input type="number" class="p2-input" id="p2-damage" value="335" onchange="calculate()"></td>
+                    <td class="input-cell"><input type="number" class="p3-input" id="p3-damage" value="340" onchange="calculate()"></td>
+                    <td class="total-cell" id="total-damage">941</td>
                 </tr>
                 
                 <!-- Modifier Score Result -->
                 <tr class="mod-score-row">
                     <td class="row-label">Modifier Score</td>
-                    <td id="p1-mod"></td>
-                    <td id="p2-mod"></td>
-                    <td id="p3-mod"></td>
-                    <td id="total-mod"></td>
+                    <td id="p1-mod">123.4</td>
+                    <td id="p2-mod">116.5</td>
+                    <td id="p3-mod">16</td>
+                    <td id="total-mod">-44.1</td>
                 </tr><!-- Spacer -->
                  <tr style="height: 10px;"></tr>
 
                 <!-- TOTAL SCORE -->
                 <tr class="final-score-row">
                     <td class="row-label" style="color: #afffa6;">TOTAL SCORE</td>
-                    <td id="p1-final"></td>
-                    <td id="p2-final"></td>
-                    <td id="p3-final"></td>
-                    <td id="total-final"></td>
+                    <td id="p1-final">610</td>
+                    <td id="p2-final">444</td>
+                    <td id="p3-final">263</td>
+                    <td id="total-final">817</td>
                 </tr>
 
             </tbody>
