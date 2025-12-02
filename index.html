@@ -118,12 +118,20 @@
         /* To make labels and selects align */
         .mission-params {
             display: grid;
-            grid-template-columns: 200px 1fr; /* Label width, Select/Input width */
+            /* Fixed width for label column for alignment.
+               minmax ensures input has at least 140px, then takes 1fr. */
+            grid-template-columns: 160px minmax(140px, 1fr);
             gap: 10px;
             margin-bottom: 10px;
             align-items: center; /* Vertically align label and select */
             font-size: 1.1rem;
         }
+        /* Ensure labels wrap if they are longer than the fixed column width */
+        .mission-params label {
+            word-wrap: break-word; /* For older browsers */
+            overflow-wrap: break-word; /* Standard property for breaking words */
+        }
+
 
         /* NEW: Container for Dropdowns and Description (side-by-side) */
         .mission-info-area {
@@ -234,9 +242,7 @@
         /* Style for disabled/hidden placeholder option */
         select option[disabled][selected][hidden] {
             color: rgba(0, 255, 0, 0.5); /* Lighter green for placeholder */
-        }
-
-        /* Export Buttons Container */
+        }/* Export Buttons Container */
         .export-buttons-container {
             display: flex;
             flex-wrap: wrap; /* Allow buttons to wrap on smaller screens */
@@ -274,7 +280,6 @@
             body {
                 padding: 10px; /* Reduce overall padding */
             }
-
             .cogitator-frame {
                 padding: 10px; /* Reduce frame padding */
                 border-width: 2px; /* Thinner border */
@@ -304,7 +309,6 @@
                 padding: 10px; /* Reduce section padding */
                 margin-bottom: 15px; /* Adjust margin */
             }
-
             /* Modifiers Grid */
             .modifier-grid {
                 /* Auto-fit items into available space, minimum 100px. Can result in 2 or 3 columns depending on screen. */
@@ -337,6 +341,7 @@
             .mission-params label {
                 text-align: left; /* Align labels left when stacked */
                 margin-bottom: 2px;
+                /* On small screens (stacked), labels will naturally take full width, so word-wrap isn't strictly needed here but doesn't hurt */
             }
             
             /* App Description */
@@ -409,11 +414,12 @@
     <div class="header-decor">
         <div>
             <div>REF: SM-2/CRUSADE</div>
-            <div style="font-size: 0.8em; opacity: 0.7;">V 0.4.20 - ADEPTUS ADMINISTRATUM</div>
+            <div style="font-size: 0.8em; opacity: 0.7;">V 0.4.23 - ADEPTUS ADMINISTRATUM</div>
         </div>
         <h1>Mission Debrief</h1>
         <div>DAT: M42.024</div>
-    </div><!-- Modifiers Section -->
+    </div>
+    <!-- Modifiers Section -->
     <div class="section">
         <div class="modifier-grid">
             <div style="text-align: left; font-weight: bold;">MODIFIERS</div>
@@ -447,7 +453,8 @@
                 <input type="number" id="mod-obj" value="100" onchange="calculate()">
             </div>
         </div>
-    </div><!-- NEW: Mission Info Area: Dropdowns (left) and Description (right) -->
+    </div>
+    <!-- NEW: Mission Info Area: Dropdowns (left) and Description (right) -->
     <div class="mission-info-area">
         <!-- Global Toggles Section (your dropdowns) -->
         <div class="section" style="margin-bottom: 0;"> <!-- Remove bottom margin as parent handles spacing -->
@@ -497,7 +504,8 @@
                     <option value="3">3</option>
                 </select>
             </div>
-        </div><!-- THIS IS WHERE YOU WRITE YOUR DESCRIPTION TEXT! -->
+        </div>
+        <!-- THIS IS WHERE YOU WRITE YOUR DESCRIPTION TEXT! -->
         <div class="app-description">
             Welcome, Brothers and Sisters! Use this debriefing tool to calculate your mission scores.
             Select the Mission parameters. Enter your mission statistics
@@ -506,7 +514,8 @@
             <br><br>
             *Glory to the Imperium!*
         </div>
-    </div><!-- Main Data Table (Squadron Performance Matrix) -->
+    </div>
+    <!-- Main Data Table (Squadron Performance Matrix) -->
     <div class="section" style="margin-bottom: 0;"> <!-- Last section, no bottom margin -->
         <div class="section-header">SQUADRON PERFORMANCE MATRIX</div>
         <div class="score-table-container"> <!-- ADD THIS WRAPPER -->
@@ -579,8 +588,9 @@
                     <td id="p2-final">0</td>
                     <td id="p3-final">0</td>
                     <td id="total-final">0</td>
-                </tr></tbody>
-            </table>
+                </tr>
+            </tbody>
+        </table>
         </div> <!-- END OF WRAPPER -->
     </div>
     <!-- Export Buttons -->
