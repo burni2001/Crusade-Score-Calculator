@@ -424,31 +424,31 @@
             
             <div>
                 <label>Kills</label>
-                <input type="number" id="mod-kills" value="1" onchange="calculate()">
+                <input type="number" id="mod-kills" value="1" inputmode="numeric" onchange="calculate(); saveData();">
             </div>
             <div>
                 <label>Elite Kills</label>
-                <input type="number" id="mod-elite" value="20" onchange="calculate()">
+                <input type="number" id="mod-elite" value="20" inputmode="numeric" onchange="calculate(); saveData();">
             </div>
             <div>
                 <label>Death</label>
-                <input type="number" id="mod-death" value="-100" onchange="calculate()">
+                <input type="number" id="mod-death" value="-100" inputmode="numeric" onchange="calculate(); saveData();">
             </div>
             <div>
                 <label>Damage</label>
-                <input type="number" id="mod-damage" value="-0.1" step="0.1" onchange="calculate()">
+                <input type="number" id="mod-damage" value="-0.1" step="0.1" inputmode="decimal" onchange="calculate(); saveData();">
             </div>
             <div>
                 <label>Geneseed</label>
-                <input type="number" id="mod-gene" value="100" onchange="calculate()">
+                <input type="number" id="mod-gene" value="100" inputmode="numeric" onchange="calculate(); saveData();">
             </div>
             <div>
                 <label>Armoury</label>
-                <input type="number" id="mod-armoury" value="25" onchange="calculate()">
+                <input type="number" id="mod-armoury" value="25" inputmode="numeric" onchange="calculate(); saveData();">
             </div>
             <div>
                 <label>Objective</label>
-                <input type="number" id="mod-obj" value="100" onchange="calculate()">
+                <input type="number" id="mod-obj" value="100" inputmode="numeric" onchange="calculate(); saveData();">
             </div>
         </div>
     </div>
@@ -459,12 +459,11 @@
             <!-- NEW: Mission Played input field -->
             <div class="mission-params">
                 <label for="mission-name">Mission Played</label>
-                <input type="text" id="mission-name" value="" placeholder="e.g., Hive City Infiltration">
+                <input type="text" id="mission-name" value="" placeholder="e.g., Hive City Infiltration" onchange="saveData();">
             </div>
-            <!-- NEW: Difficulty dropdown-menu -->
             <div class="mission-params">
                 <label for="mission-difficulty">Difficulty</label>
-                <select id="mission-difficulty" onchange="calculate()">
+                <select id="mission-difficulty" onchange="calculate(); saveData();">
                     <option value="" disabled selected hidden>Select Difficulty</option>
                     <option value="Minimal">Minimal</option>
                     <option value="Average">Average</option>
@@ -478,24 +477,24 @@
             </div>
             <div class="mission-params">
                 <label>Objective Completion</label>
-                <select id="global-objective" onchange="calculate()">
-                    <option value="" disabled selected hidden>Select</option> <!-- Placeholder -->
+                <select id="global-objective" onchange="calculate(); saveData();">
+                    <option value="" disabled selected hidden>Select</option>
                     <option value="0">No</option>
                     <option value="1">Yes</option>
                 </select>
             </div>
             <div class="mission-params">
                 <label>Geneseed Retrieved</label>
-                <select id="global-geneseed" onchange="calculate()">
-                    <option value="" disabled selected hidden>Select</option> <!-- Placeholder -->
+                <select id="global-geneseed" onchange="calculate(); saveData();">
+                    <option value="" disabled selected hidden>Select</option>
                     <option value="0">No</option>
                     <option value="1">Yes</option>
                 </select>
             </div>
             <div class="mission-params">
                 <label>Armoury Data Retrieved</label>
-                <select id="global-armoury" onchange="calculate()">
-                    <option value="" disabled selected hidden>Select</option> <!-- Placeholder -->
+                <select id="global-armoury" onchange="calculate(); saveData();">
+                    <option value="" disabled selected hidden>Select</option>
                     <option value="0">0</option>
                     <option value="1">1</option>
                     <option value="2">2</option>
@@ -520,10 +519,10 @@
         <table class="score-table">
             <thead>
                 <tr>
-                    <th class="empty-header"></th> <!-- Invisible Top Left -->
-                    <th><input type="text" value="" placeholder="Name" class="player-name-input" id="p1-name"></th>
-                    <th><input type="text" value="" placeholder="Name" class="player-name-input" id="p2-name"></th>
-                    <th><input type="text" value="" placeholder="Name" class="player-name-input" id="p3-name"></th>
+                    <th class="empty-header"></th>
+                    <th><input type="text" value="" placeholder="Name" class="player-name-input" id="p1-name" onchange="saveData();"></th>
+                    <th><input type="text" value="" placeholder="Name" class="player-name-input" id="p2-name" onchange="saveData();"></th>
+                    <th><input type="text" value="" placeholder="Name" class="player-name-input" id="p3-name" onchange="saveData();"></th>
                     <th>TOTAL</th>
                 </tr>
             </thead>
@@ -531,17 +530,17 @@
                 <!-- Kills -->
                 <tr>
                     <td class="row-label">Kills</td>
-                    <td class="input-cell"><input type="number" class="p1-input" id="p1-kills" value="0" onchange="calculate()"></td>
-                    <td class="input-cell"><input type="number" class="p2-input" id="p2-kills" value="0" onchange="calculate()"></td>
-                    <td class="input-cell"><input type="number" class="p3-input" id="p3-kills" value="0" onchange="calculate()"></td>
+                    <td class="input-cell"><input type="number" class="p1-input" id="p1-kills" value="0" min="0" inputmode="numeric" onchange="calculate(); saveData();"></td>
+                    <td class="input-cell"><input type="number" class="p2-input" id="p2-kills" value="0" min="0" inputmode="numeric" onchange="calculate(); saveData();"></td>
+                    <td class="input-cell"><input type="number" class="p3-input" id="p3-kills" value="0" min="0" inputmode="numeric" onchange="calculate(); saveData();"></td>
                     <td class="total-cell" id="total-kills">0</td>
                 </tr>
                 <!-- Elite Kills -->
                 <tr>
                     <td class="row-label">Elite Kills</td>
-                    <td class="input-cell"><input type="number" class="p1-input" id="p1-elite" value="0" onchange="calculate()"></td>
-                    <td class="input-cell"><input type="number" class="p2-input" id="p2-elite" value="0" onchange="calculate()"></td>
-                    <td class="input-cell"><input type="number" class="p3-input" id="p3-elite" value="0" onchange="calculate()"></td>
+                    <td class="input-cell"><input type="number" class="p1-input" id="p1-elite" value="0" min="0" inputmode="numeric" onchange="calculate(); saveData();"></td>
+                    <td class="input-cell"><input type="number" class="p2-input" id="p2-elite" value="0" min="0" inputmode="numeric" onchange="calculate(); saveData();"></td>
+                    <td class="input-cell"><input type="number" class="p3-input" id="p3-elite" value="0" min="0" inputmode="numeric" onchange="calculate(); saveData();"></td>
                     <td class="total-cell" id="total-elite">0</td>
                 </tr>
                  <!-- Base Score Result -->
@@ -555,17 +554,17 @@
                 <!-- Death -->
                 <tr>
                     <td class="row-label">Death</td>
-                    <td class="input-cell"><input type="number" class="p1-input" id="p1-death" value="0" onchange="calculate()"></td>
-                    <td class="input-cell"><input type="number" class="p2-input" id="p2-death" value="0" onchange="calculate()"></td>
-                    <td class="input-cell"><input type="number" class="p3-input" id="p3-death" value="0" onchange="calculate()"></td>
+                    <td class="input-cell"><input type="number" class="p1-input" id="p1-death" value="0" min="0" inputmode="numeric" onchange="calculate(); saveData();"></td>
+                    <td class="input-cell"><input type="number" class="p2-input" id="p2-death" value="0" min="0" inputmode="numeric" onchange="calculate(); saveData();"></td>
+                    <td class="input-cell"><input type="number" class="p3-input" id="p3-death" value="0" min="0" inputmode="numeric" onchange="calculate(); saveData();"></td>
                     <td class="total-cell" id="total-death">0</td>
                 </tr>
                 <!-- Damage -->
                 <tr>
                     <td class="row-label">Damage</td>
-                    <td class="input-cell"><input type="number" class="p1-input" id="p1-damage" value="0" step="0.1" onchange="calculate()"></td>
-                    <td class="input-cell"><input type="number" class="p2-input" id="p2-damage" value="0" step="0.1" onchange="calculate()"></td>
-                    <td class="input-cell"><input type="number" class="p3-input" id="p3-damage" value="0" step="0.1" onchange="calculate()"></td>
+                    <td class="input-cell"><input type="number" class="p1-input" id="p1-damage" value="0" min="0" step="0.1" inputmode="decimal" onchange="calculate(); saveData();"></td>
+                    <td class="input-cell"><input type="number" class="p2-input" id="p2-damage" value="0" min="0" step="0.1" inputmode="decimal" onchange="calculate(); saveData();"></td>
+                    <td class="input-cell"><input type="number" class="p3-input" id="p3-damage" value="0" min="0" step="0.1" inputmode="decimal" onchange="calculate(); saveData();"></td>
                     <td class="total-cell" id="total-damage">0</td>
                 </tr>
                 
@@ -601,6 +600,53 @@
 <!-- html2canvas library for PNG export -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <script>
+    const STORAGE_KEY = 'missionDebriefData';
+
+    // List of all input/select IDs to save
+    const inputIds = [
+        'mod-kills', 'mod-elite', 'mod-death', 'mod-damage', 'mod-gene', 'mod-armoury', 'mod-obj',
+        'mission-name', 'mission-difficulty', 'global-objective', 'global-geneseed', 'global-armoury',
+        'p1-name', 'p2-name', 'p3-name',
+        'p1-kills', 'p2-kills', 'p3-kills',
+        'p1-elite', 'p2-elite', 'p3-elite',
+        'p1-death', 'p2-death', 'p3-death',
+        'p1-damage', 'p2-damage', 'p3-damage'
+    ];
+
+    // Save all form data to localStorage
+    function saveData() {
+        const data = {};
+        inputIds.forEach(id => {
+            const el = document.getElementById(id);
+            if (el) {
+                data[id] = el.value;
+            }
+        });
+        try {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+        } catch (e) {
+            console.warn('Could not save to localStorage:', e);
+        }
+    }
+
+    // Load all form data from localStorage
+    function loadData() {
+        try {
+            const saved = localStorage.getItem(STORAGE_KEY);
+            if (saved) {
+                const data = JSON.parse(saved);
+                inputIds.forEach(id => {
+                    const el = document.getElementById(id);
+                    if (el && data[id] !== undefined && data[id] !== '') {
+                        el.value = data[id];
+                    }
+                });
+            }
+        } catch (e) {
+            console.warn('Could not load from localStorage:', e);
+        }
+    }
+
     // Helper to get float value from input ID, defaults to 0
     function getVal(id) {
         const el = document.getElementById(id);
@@ -763,23 +809,67 @@
         document.body.removeChild(downloadLink);
     }
 
-    // Function to save the entire cogitator-frame as PNG
+    // Function to save the entire cogitator-frame as PNG (always renders in wide desktop view)
     function saveAsPNG() {
-        const element = document.querySelector('.cogitator-frame'); // Capture the whole app frame
-        html2canvas(element, { 
-            scale: 2, // Increase resolution for better quality
-            backgroundColor: '#000', // Ensure background is black if transparent
-            useCORS: true // Important for images loaded from different origins if any
-        }).then(canvas => {
-            const link = document.createElement('a');
-            link.download = 'Mission_Debrief_Display.png';
-            link.href = canvas.toDataURL('image/png');
-            link.click();
+        const element = document.querySelector('.cogitator-frame');
+        const body = document.body;
+        
+        // Store original styles
+        const originalElementWidth = element.style.width;
+        const originalElementMaxWidth = element.style.maxWidth;
+        const originalElementMinWidth = element.style.minWidth;
+        const originalBodyWidth = body.style.width;
+        const originalBodyMinWidth = body.style.minWidth;
+        const originalBodyOverflow = body.style.overflow;
+        
+        // Force wide desktop layout for screenshot
+        element.style.width = '1100px';
+        element.style.maxWidth = 'none';
+        element.style.minWidth = '1100px';
+        body.style.width = '1140px';
+        body.style.minWidth = '1140px';
+        body.style.overflow = 'visible';
+        
+        // Wait for layout to settle, then capture
+        requestAnimationFrame(() => {
+            html2canvas(element, { 
+                scale: 2,
+                backgroundColor: '#000',
+                useCORS: true,
+                width: 1100,
+                windowWidth: 1200
+            }).then(canvas => {
+                // Restore original styles
+                element.style.width = originalElementWidth;
+                element.style.maxWidth = originalElementMaxWidth;
+                element.style.minWidth = originalElementMinWidth;
+                body.style.width = originalBodyWidth;
+                body.style.minWidth = originalBodyMinWidth;
+                body.style.overflow = originalBodyOverflow;
+                
+                const link = document.createElement('a');
+                link.download = 'Mission_Debrief_Display.png';
+                link.href = canvas.toDataURL('image/png');
+                link.click();
+            }).catch(err => {
+                // Restore styles on error too
+                element.style.width = originalElementWidth;
+                element.style.maxWidth = originalElementMaxWidth;
+                element.style.minWidth = originalElementMinWidth;
+                body.style.width = originalBodyWidth;
+                body.style.minWidth = originalBodyMinWidth;
+                body.style.overflow = originalBodyOverflow;
+                console.error('PNG export failed:', err);
+                alert('Failed to capture screenshot. Please try again.');
+            });
         });
     }
 
-    // Initialize
-    calculate();
+    // Initialize: load saved data and calculate when DOM is ready
+    document.addEventListener('DOMContentLoaded', function() {
+        loadData();
+        calculate();
+    });
 </script>
 
 <!-- Service Worker Registration -->
