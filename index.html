@@ -1,891 +1,1235 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Adeptus Astartes - Mission Debrief</title>
-    <link rel="manifest" href="manifest.json">
-    <meta name="theme-color" content="#050a05"> <!-- Matches background_color from manifest -->
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=VT323&display=swap');
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Adeptus Astartes - Mission Debrief</title>
+        <link rel="manifest" href="manifest.json" />
+        <meta name="theme-color" content="#050a05" />
+        <!-- Matches background_color from manifest -->
+        <style>
+            @import url("https://fonts.googleapis.com/css2?family=VT323&display=swap");
 
-        :root {
-            --pip-green: #33ff00;
-            --pip-dim: #1a8000;
-            --bg-color: #050a05;
-            --panel-bg: #0c140c;
-            --border-color: #1f3a1f;
-        }
-        body {
-            background-color: #000;
-            color: var(--pip-green);
-            font-family: 'VT323', monospace;
-            margin: 0;
-            padding: 20px;
-            display: flex;
-            justify-content: center;
-            min-height: 100vh;
-            background-image: repeating-linear-gradient(
-                0deg,
-                rgba(0, 0, 0, 0.15),
-                rgba(0, 0, 0, 0.15) 1px,
-                transparent 1px,
-                transparent 2px
-            );
-        }
-        /* CRT Screen Effect */
-        .cogitator-frame {
-            width: 100%;
-            max-width: 1100px;
-            background-color: var(--bg-color);
-            border: 4px solid #3d4c3d;
-            box-shadow: 0 0 20px rgba(51, 255, 0, 0.2), inset 0 0 50px rgba(0,0,0,0.8);
-            padding: 20px;
-            position: relative;
-        }
-        .cogitator-frame::before {
-            content: " ";
-            display: block;
-            position: absolute;
-            top: 0;
-            left: 0;
-            bottom: 0;
-            right: 0;
-            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
-            z-index: 2;
-            background-size: 100% 2px, 3px 100%;
-            pointer-events: none;
-        }
-        h1, h2, h3 {
-            text-transform: uppercase;
-            text-align: center;
-            margin: 5px 0;
-            text-shadow: 0 0 5px var(--pip-green);
-            letter-spacing: 2px;
-        }
-
-        .header-decor {
-            border-bottom: 2px solid var(--pip-green);
-            margin-bottom: 20px;
-            padding-bottom: 10px;
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-end;
-        }
-        /* Inputs and Selects Styling */
-        input, select {
-            background-color: #000;
-            color: var(--pip-green);
-            border: 1px solid var(--pip-green);
-            font-family: 'VT323', monospace;
-            font-size: 1.2rem;
-            text-align: center;
-            padding: 2px;
-            width: 100%;
-            box-sizing: border-box;
-        }
-        input:focus, select:focus {
-            outline: none;
-            box-shadow: 0 0 8px var(--pip-green);
-            background-color: #0f240f;
-        }
-
-        /* Layout Sections */
-        .section {
-            background-color: rgba(20, 40, 20, 0.3);
-            border: 1px solid var(--border-color);
-            padding: 15px;
-            margin-bottom: 20px;
-        }
-
-        /* Modifier Grid */
-        .modifier-grid {
-            display: grid;
-            grid-template-columns: 100px repeat(7, 1fr);
-            gap: 10px;
-            align-items: center;
-            text-align: center;
-            font-size: 1.1rem;
-        }
-        
-        .modifier-grid label {
-            font-size: 0.9rem;
-            opacity: 0.8;
-        }
-        /* Global Toggles (Dropdowns) styling inside .section */
-        /* To make labels and selects align */
-        .mission-params {
-            display: grid;
-            /* Fixed width for label column for alignment.
-               minmax ensures input has at least 140px, then takes 1fr. */
-            grid-template-columns: 160px minmax(140px, 1fr);
-            gap: 10px;
-            margin-bottom: 10px;
-            align-items: center; /* Vertically align label and select */
-            font-size: 1.1rem;
-        }
-        /* Ensure labels wrap if they are longer than the fixed column width */
-        .mission-params label {
-            word-wrap: break-word; /* For older browsers */
-            overflow-wrap: break-word; /* Standard property for breaking words */
-        }
-
-
-        /* NEW: Container for Dropdowns and Description (side-by-side) */
-        .mission-info-area {
-            display: grid;
-            grid-template-columns: 1fr 2fr; /* Dropdowns (smaller) and Description (larger) */
-            gap: 20px; /* Space between the two columns */
-            margin-bottom: 20px;
-        }
-
-        /* NEW: Styling for the description text area */
-        .app-description {
-            background-color: rgba(20, 40, 20, 0.3);
-            border: 1px solid var(--border-color);
-            padding: 15px;
-            line-height: 1.5; /* Readability */
-            font-size: 1.1rem;
-            text-align: left;
-            overflow-y: auto; /* In case text is too long */
-        }
-
-
-        /* Main Score Table */
-        .score-table {
-            width: 100%;
-            border-collapse: separate;
-            border-spacing: 5px;
-        }
-
-        .score-table th {
-            text-align: center;
-            padding: 10px;
-            background-color: #000;
-            border: 1px solid var(--pip-dim);
-        }
-        /* Specific style for empty header to remove it visually */
-        .score-table th.empty-header {
-            background-color: transparent;
-            border: none;
-            box-shadow: none;
-        }
-
-        .score-table td {
-            padding: 4px;
-            vertical-align: middle;
-            border: 1px solid var(--border-color); /* Add border to cells */
-            background-color: var(--panel-bg); /* Add background to cells */
-        }
-
-        .row-label {
-            text-align: right;
-            padding-right: 15px !important;
-            font-weight: bold;
-            width: 180px; /* Fixed width for labels */
-            background-color: #000; /* Darker background for labels */
-        }
-        .input-cell {
-            width: 120px; /* Fixed width for input cells */
-        }
-
-        .total-cell {
-            width: 120px; /* Fixed width for total cells */
-            text-align: center;
-            font-weight: bold;
-            background-color: #000; /* Darker background for totals */
-        }
-        .section-header {
-            background-color: #000;
-            color: var(--pip-green);
-            padding: 5px;
-            font-weight: bold;
-            text-align: center;
-            margin-bottom: 15px;
-            border: 1px solid var(--pip-green);
-        }
-        /* Specific Rows styling based on screenshot logic */
-        .base-score-row td, .mod-score-row td {
-            font-weight: bold;
-            text-align: center;
-            padding-top: 15px;
-            padding-bottom: 15px;
-        }
-        .final-score-row td {
-            border-top: 2px solid var(--pip-green);
-            border-bottom: 2px double var(--pip-green);
-            font-size: 1.5rem;
-            font-weight: bold;
-            color: #afffa6; /* Brighter green */
-            text-align: center;
-            padding: 15px 0;
-            text-shadow: 0 0 8px var(--pip-green);
-        }
-        /* Chrome styling for number inputs (hide spinners) */
-        input::-webkit-outer-spin-button,
-        input::-webkit-inner-spin-button {
-            -webkit-appearance: none;
-            margin: 0;
-        }
-        input[type=number] {
-            -moz-appearance: textfield;
-        }
-        
-        /* Styling for selected options in dropdowns */
-        select option {
-            background-color: #000; /* Dark background for dropdown options */
-            color: #0f0; /* Green text for options */
-        }
-        /* Style for disabled/hidden placeholder option */
-        select option[disabled][selected][hidden] {
-            color: rgba(0, 255, 0, 0.5); /* Lighter green for placeholder */
-        }
-        /* Export Buttons Container */
-        .export-buttons-container {
-            display: flex;
-            flex-wrap: wrap; /* Allow buttons to wrap on smaller screens */
-            justify-content: center;
-            gap: 20px;
-            margin-top: 25px;
-            padding-top: 15px;
-            border-top: 1px solid var(--border-color);
-        }
-
-        .export-buttons-container button {
-            background-color: var(--panel-bg);
-            color: var(--pip-green);
-            border: 1px solid var(--pip-green);
-            padding: 10px 20px;
-            font-family: 'VT323', monospace;
-            font-size: 1.1rem;
-            cursor: pointer;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            transition: all 0.2s ease-in-out;
-            box-shadow: 0 0 5px rgba(51, 255, 0, 0.2);
-            flex: 1 1 auto; /* Allow buttons to grow/shrink, maintain aspect */
-            min-width: 180px; /* Minimum width before wrapping */
-        }
-
-        .export-buttons-container button:hover {
-            background-color: var(--pip-green);
-            color: var(--bg-color);
-            box-shadow: 0 0 15px var(--pip-green);
-        }
-        
-        /* --- Responsive Design Adjustments --- */
-        @media (max-width: 768px) {
-            body {
-                padding: 10px; /* Reduce overall padding */
+            :root {
+                --pip-green: #33ff00;
+                --pip-dim: #1a8000;
+                --bg-color: #050a05;
+                --panel-bg: #0c140c;
+                --border-color: #1f3a1f;
             }
+            body {
+                background-color: #000;
+                color: var(--pip-green);
+                font-family: "VT323", monospace;
+                margin: 0;
+                padding: 20px;
+                display: flex;
+                justify-content: center;
+                min-height: 100vh;
+                background-image: repeating-linear-gradient(
+                    0deg,
+                    rgba(0, 0, 0, 0.15),
+                    rgba(0, 0, 0, 0.15) 1px,
+                    transparent 1px,
+                    transparent 2px
+                );
+            }
+            /* CRT Screen Effect */
             .cogitator-frame {
-                padding: 10px; /* Reduce frame padding */
-                border-width: 2px; /* Thinner border */
-                box-shadow: 0 0 10px rgba(51, 255, 0, 0.2), inset 0 0 25px rgba(0,0,0,0.8);
+                width: 100%;
+                max-width: 1100px;
+                background-color: var(--bg-color);
+                border: 4px solid #3d4c3d;
+                box-shadow:
+                    0 0 20px rgba(51, 255, 0, 0.2),
+                    inset 0 0 50px rgba(0, 0, 0, 0.8);
+                padding: 20px;
+                position: relative;
+            }
+            .cogitator-frame::before {
+                content: " ";
+                display: block;
+                position: absolute;
+                top: 0;
+                left: 0;
+                bottom: 0;
+                right: 0;
+                background:
+                    linear-gradient(
+                        rgba(18, 16, 16, 0) 50%,
+                        rgba(0, 0, 0, 0.25) 50%
+                    ),
+                    linear-gradient(
+                        90deg,
+                        rgba(255, 0, 0, 0.06),
+                        rgba(0, 255, 0, 0.02),
+                        rgba(0, 0, 255, 0.06)
+                    );
+                z-index: 2;
+                background-size:
+                    100% 2px,
+                    3px 100%;
+                pointer-events: none;
+            }
+            h1,
+            h2,
+            h3 {
+                text-transform: uppercase;
+                text-align: center;
+                margin: 5px 0;
+                text-shadow: 0 0 5px var(--pip-green);
+                letter-spacing: 2px;
             }
 
             .header-decor {
-                flex-direction: column; /* Stack items vertically */
-                align-items: center; /* Center items */
+                border-bottom: 2px solid var(--pip-green);
+                margin-bottom: 20px;
+                padding-bottom: 10px;
+                display: flex;
+                justify-content: space-between;
+                align-items: flex-end;
+            }
+            /* Inputs and Selects Styling */
+            input,
+            select {
+                background-color: #000;
+                color: var(--pip-green);
+                border: 1px solid var(--pip-green);
+                font-family: "VT323", monospace;
+                font-size: 1.2rem;
                 text-align: center;
-                margin-bottom: 10px;
+                padding: 2px;
+                width: 100%;
+                box-sizing: border-box;
             }
-            .header-decor > div {
-                margin-bottom: 5px; /* Add some space between stacked header elements */
-            }
-
-            h1 {
-                font-size: 1.5em; /* Smaller mission debrief title */
-            }
-
-            input, select {
-                font-size: 1rem; /* Smaller font size for inputs/selects */
-                padding: 1px;
+            input:focus,
+            select:focus {
+                outline: none;
+                box-shadow: 0 0 8px var(--pip-green);
+                background-color: #0f240f;
             }
 
+            /* Layout Sections */
             .section {
-                padding: 10px; /* Reduce section padding */
-                margin-bottom: 15px; /* Adjust margin */
+                background-color: rgba(20, 40, 20, 0.3);
+                border: 1px solid var(--border-color);
+                padding: 15px;
+                margin-bottom: 20px;
             }
-            /* Modifiers Grid */
+
+            /* Modifier Grid */
             .modifier-grid {
-                /* Auto-fit items into available space, minimum 100px. Can result in 2 or 3 columns depending on screen. */
-                grid-template-columns: repeat(auto-fit, minmax(100px, 1fr)); 
-                gap: 5px; /* Reduce gap */
-            }
-            /* Make the 'MODIFIERS' label span all columns and center it */
-            .modifier-grid div:first-child { 
-                grid-column: 1 / -1; 
-                text-align: center !important;
-                margin-bottom: 5px;
+                display: grid;
+                grid-template-columns: 100px repeat(7, 1fr);
+                gap: 10px;
+                align-items: center;
+                text-align: center;
+                font-size: 1.1rem;
             }
 
-            /* Mission Info Area (Dropdowns + Description) */
-            .mission-info-area {
-                grid-template-columns: 1fr; /* Stack dropdowns and description vertically */
-                gap: 15px; /* Space between stacked sections */
+            .modifier-grid label {
+                font-size: 0.9rem;
+                opacity: 0.8;
             }
-            .mission-info-area .section {
-                margin-bottom: 0; /* No extra margin for the inner section */
-            }
-
-            /* Mission Params (individual dropdowns) */
+            /* Global Toggles (Dropdowns) styling inside .section */
+            /* To make labels and selects align */
             .mission-params {
-                grid-template-columns: 1fr; /* Stack label and select vertically */
-                gap: 2px; /* Reduce gap */
-                margin-bottom: 8px; /* Reduce margin */
-                font-size: 1rem;
+                display: grid;
+                /* Fixed width for label column for alignment.
+               minmax ensures input has at least 140px, then takes 1fr. */
+                grid-template-columns: 160px minmax(140px, 1fr);
+                gap: 10px;
+                margin-bottom: 10px;
+                align-items: center; /* Vertically align label and select */
+                font-size: 1.1rem;
             }
+            /* Ensure labels wrap if they are longer than the fixed column width */
             .mission-params label {
-                text-align: left; /* Align labels left when stacked */
-                margin-bottom: 2px;
-                /* On small screens (stacked), labels will naturally take full width, so word-wrap isn't strictly needed here but doesn't hurt */
+                word-wrap: break-word; /* For older browsers */
+                overflow-wrap: break-word; /* Standard property for breaking words */
             }
-            
-            /* App Description */
+
+            /* NEW: Container for Dropdowns and Description (side-by-side) */
+            .mission-info-area {
+                display: grid;
+                grid-template-columns: 1fr 2fr; /* Dropdowns (smaller) and Description (larger) */
+                gap: 20px; /* Space between the two columns */
+                margin-bottom: 20px;
+            }
+
+            /* NEW: Styling for the description text area */
             .app-description {
-                font-size: 1rem;
+                background-color: rgba(20, 40, 20, 0.3);
+                border: 1px solid var(--border-color);
+                padding: 15px;
+                line-height: 1.5; /* Readability */
+                font-size: 1.1rem;
+                text-align: left;
+                overflow-y: auto; /* In case text is too long */
             }
 
-            /* Score Table - Handle horizontal scrolling for wide content */
-            /* This div will be added to your HTML to wrap the table */
-            .score-table-container {
-                overflow-x: auto; /* Enable horizontal scrolling */
-                -webkit-overflow-scrolling: touch; /* Smoother scrolling on iOS */
-            }
+            /* Main Score Table */
             .score-table {
-                min-width: 600px; /* Ensures the table is at least this wide, forcing scroll if container is smaller */
-                width: max-content; /* Allows the table to be wider than its container */
+                width: 100%;
+                border-collapse: separate;
+                border-spacing: 5px;
             }
 
-            .score-table th, .score-table td {
-                padding: 5px; /* Smaller padding in table cells */
+            .score-table th {
+                text-align: center;
+                padding: 10px;
+                background-color: #000;
+                border: 1px solid var(--pip-dim);
+            }
+            /* Specific style for empty header to remove it visually */
+            .score-table th.empty-header {
+                background-color: transparent;
+                border: none;
+                box-shadow: none;
+            }
+
+            .score-table td {
+                padding: 4px;
+                vertical-align: middle;
+                border: 1px solid var(--border-color); /* Add border to cells */
+                background-color: var(--panel-bg); /* Add background to cells */
             }
 
             .row-label {
-                width: 120px; /* Make row labels smaller */
-                padding-right: 5px !important;
-                font-size: 0.9em;
+                text-align: right;
+                padding-right: 15px !important;
+                font-weight: bold;
+                width: 180px; /* Fixed width for labels */
+                background-color: #000; /* Darker background for labels */
             }
-
             .input-cell {
-                width: 90px; /* Make input cells smaller */
+                width: 120px; /* Fixed width for input cells */
             }
+
             .total-cell {
-                width: 90px;
+                width: 120px; /* Fixed width for total cells */
+                text-align: center;
+                font-weight: bold;
+                background-color: #000; /* Darker background for totals */
+            }
+            .section-header {
+                background-color: #000;
+                color: var(--pip-green);
+                padding: 5px;
+                font-weight: bold;
+                text-align: center;
+                margin-bottom: 15px;
+                border: 1px solid var(--pip-green);
+            }
+            /* Specific Rows styling based on screenshot logic */
+            .base-score-row td,
+            .mod-score-row td {
+                font-weight: bold;
+                text-align: center;
+                padding-top: 15px;
+                padding-bottom: 15px;
+            }
+            .final-score-row td {
+                border-top: 2px solid var(--pip-green);
+                border-bottom: 2px double var(--pip-green);
+                font-size: 1.5rem;
+                font-weight: bold;
+                color: #afffa6; /* Brighter green */
+                text-align: center;
+                padding: 15px 0;
+                text-shadow: 0 0 8px var(--pip-green);
+            }
+            /* Chrome styling for number inputs (hide spinners) */
+            input::-webkit-outer-spin-button,
+            input::-webkit-inner-spin-button {
+                -webkit-appearance: none;
+                margin: 0;
+            }
+            input[type="number"] {
+                -moz-appearance: textfield;
             }
 
-            .score-table th input[type="text"] { /* Player name inputs */
-                font-size: 0.9rem;
-                padding: 1px;
+            /* Styling for selected options in dropdowns */
+            select option {
+                background-color: #000; /* Dark background for dropdown options */
+                color: #0f0; /* Green text for options */
             }
-
-            .base-score-row td, .mod-score-row td, .final-score-row td {
-                padding-top: 8px;
-                padding-bottom: 8px;
-                font-size: 1.2rem; /* Slightly smaller for total row */
+            /* Style for disabled/hidden placeholder option */
+            select option[disabled][selected][hidden] {
+                color: rgba(0, 255, 0, 0.5); /* Lighter green for placeholder */
             }
-            /* Export buttons */
+            /* Export Buttons Container */
             .export-buttons-container {
-                flex-direction: column;
-                gap: 10px;
+                display: flex;
+                flex-wrap: wrap; /* Allow buttons to wrap on smaller screens */
+                justify-content: center;
+                gap: 20px;
+                margin-top: 25px;
+                padding-top: 15px;
+                border-top: 1px solid var(--border-color);
             }
+
             .export-buttons-container button {
-                width: 100%;
-                font-size: 1rem;
-                padding: 8px 15px;
+                background-color: var(--panel-bg);
+                color: var(--pip-green);
+                border: 1px solid var(--pip-green);
+                padding: 10px 20px;
+                font-family: "VT323", monospace;
+                font-size: 1.1rem;
+                cursor: pointer;
+                text-transform: uppercase;
+                letter-spacing: 1px;
+                transition: all 0.2s ease-in-out;
+                box-shadow: 0 0 5px rgba(51, 255, 0, 0.2);
+                flex: 1 1 auto; /* Allow buttons to grow/shrink, maintain aspect */
+                min-width: 180px; /* Minimum width before wrapping */
             }
-        }
-        /* Further adjustments for very small screens (e.g., typical smartphone portrait) */
-        @media (max-width: 480px) {
-            .modifier-grid {
-                grid-template-columns: 1fr; /* Stack all modifiers vertically */
+
+            .export-buttons-container button:hover {
+                background-color: var(--pip-green);
+                color: var(--bg-color);
+                box-shadow: 0 0 15px var(--pip-green);
             }
-            .modifier-grid div:first-child { /* The 'MODIFIERS' label */
-                grid-column: auto; /* Reset grid-column to normal flow */
+
+            /* --- Responsive Design Adjustments --- */
+            @media (max-width: 768px) {
+                body {
+                    padding: 10px; /* Reduce overall padding */
+                }
+                .cogitator-frame {
+                    padding: 10px; /* Reduce frame padding */
+                    border-width: 2px; /* Thinner border */
+                    box-shadow:
+                        0 0 10px rgba(51, 255, 0, 0.2),
+                        inset 0 0 25px rgba(0, 0, 0, 0.8);
+                }
+
+                .header-decor {
+                    flex-direction: column; /* Stack items vertically */
+                    align-items: center; /* Center items */
+                    text-align: center;
+                    margin-bottom: 10px;
+                }
+                .header-decor > div {
+                    margin-bottom: 5px; /* Add some space between stacked header elements */
+                }
+
+                h1 {
+                    font-size: 1.5em; /* Smaller mission debrief title */
+                }
+
+                input,
+                select {
+                    font-size: 1rem; /* Smaller font size for inputs/selects */
+                    padding: 1px;
+                }
+
+                .section {
+                    padding: 10px; /* Reduce section padding */
+                    margin-bottom: 15px; /* Adjust margin */
+                }
+                /* Modifiers Grid */
+                .modifier-grid {
+                    /* Auto-fit items into available space, minimum 100px. Can result in 2 or 3 columns depending on screen. */
+                    grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+                    gap: 5px; /* Reduce gap */
+                }
+                /* Make the 'MODIFIERS' label span all columns and center it */
+                .modifier-grid div:first-child {
+                    grid-column: 1 / -1;
+                    text-align: center !important;
+                    margin-bottom: 5px;
+                }
+
+                /* Mission Info Area (Dropdowns + Description) */
+                .mission-info-area {
+                    grid-template-columns: 1fr; /* Stack dropdowns and description vertically */
+                    gap: 15px; /* Space between stacked sections */
+                }
+                .mission-info-area .section {
+                    margin-bottom: 0; /* No extra margin for the inner section */
+                }
+
+                /* Mission Params (individual dropdowns) */
+                .mission-params {
+                    grid-template-columns: 1fr; /* Stack label and select vertically */
+                    gap: 2px; /* Reduce gap */
+                    margin-bottom: 8px; /* Reduce margin */
+                    font-size: 1rem;
+                }
+                .mission-params label {
+                    text-align: left; /* Align labels left when stacked */
+                    margin-bottom: 2px;
+                    /* On small screens (stacked), labels will naturally take full width, so word-wrap isn't strictly needed here but doesn't hurt */
+                }
+
+                /* App Description */
+                .app-description {
+                    font-size: 1rem;
+                }
+
+                /* Score Table - Handle horizontal scrolling for wide content */
+                /* This div will be added to your HTML to wrap the table */
+                .score-table-container {
+                    overflow-x: auto; /* Enable horizontal scrolling */
+                    -webkit-overflow-scrolling: touch; /* Smoother scrolling on iOS */
+                }
+                .score-table {
+                    min-width: 600px; /* Ensures the table is at least this wide, forcing scroll if container is smaller */
+                    width: max-content; /* Allows the table to be wider than its container */
+                }
+
+                .score-table th,
+                .score-table td {
+                    padding: 5px; /* Smaller padding in table cells */
+                }
+
+                .row-label {
+                    width: 120px; /* Make row labels smaller */
+                    padding-right: 5px !important;
+                    font-size: 0.9em;
+                }
+
+                .input-cell {
+                    width: 90px; /* Make input cells smaller */
+                }
+                .total-cell {
+                    width: 90px;
+                }
+
+                .score-table th input[type="text"] {
+                    /* Player name inputs */
+                    font-size: 0.9rem;
+                    padding: 1px;
+                }
+
+                .base-score-row td,
+                .mod-score-row td,
+                .final-score-row td {
+                    padding-top: 8px;
+                    padding-bottom: 8px;
+                    font-size: 1.2rem; /* Slightly smaller for total row */
+                }
+                /* Export buttons */
+                .export-buttons-container {
+                    flex-direction: column;
+                    gap: 10px;
+                }
+                .export-buttons-container button {
+                    width: 100%;
+                    font-size: 1rem;
+                    padding: 8px 15px;
+                }
             }
-        }
-    </style>
-</head>
-<body>
-<div class="cogitator-frame">
-    <div class="header-decor">
-        <div>
-            <div>REF: SM-2/CRUSADE</div>
-            <div style="font-size: 0.8em; opacity: 0.7;">V 0.4.25 - ADEPTUS ADMINISTRATUM</div>
-        </div>
-        <h1>Mission Debrief</h1>
-        <div>DAT: M42.024</div>
-    </div>
-    <!-- Modifiers Section -->
-    <div class="section">
-        <div class="modifier-grid">
-            <div style="text-align: left; font-weight: bold;">MODIFIERS</div>
-            
-            <div>
-                <label>Kills</label>
-                <input type="number" id="mod-kills" value="1" inputmode="numeric" onchange="calculate(); saveData();">
-            </div>
-            <div>
-                <label>Elite Kills</label>
-                <input type="number" id="mod-elite" value="20" inputmode="numeric" onchange="calculate(); saveData();">
-            </div>
-            <div>
-                <label>Death</label>
-                <input type="number" id="mod-death" value="-100" inputmode="numeric" onchange="calculate(); saveData();">
-            </div>
-            <div>
-                <label>Damage</label>
-                <input type="number" id="mod-damage" value="-0.1" step="0.1" inputmode="decimal" onchange="calculate(); saveData();">
-            </div>
-            <div>
-                <label>Geneseed</label>
-                <input type="number" id="mod-gene" value="100" inputmode="numeric" onchange="calculate(); saveData();">
-            </div>
-            <div>
-                <label>Armoury</label>
-                <input type="number" id="mod-armoury" value="25" inputmode="numeric" onchange="calculate(); saveData();">
-            </div>
-            <div>
-                <label>Objective</label>
-                <input type="number" id="mod-obj" value="100" inputmode="numeric" onchange="calculate(); saveData();">
-            </div>
-        </div>
-    </div>
-    <!-- NEW: Mission Info Area: Dropdowns (left) and Description (right) -->
-    <div class="mission-info-area">
-        <!-- Global Toggles Section (your dropdowns) -->
-        <div class="section" style="margin-bottom: 0;"> <!-- Remove bottom margin as parent handles spacing -->
-            <!-- NEW: Mission Played input field -->
-            <div class="mission-params">
-                <label for="mission-name">Mission Played</label>
-                <input type="text" id="mission-name" value="" placeholder="e.g., Hive City Infiltration" onchange="saveData();">
-            </div>
-            <div class="mission-params">
-                <label for="mission-difficulty">Difficulty</label>
-                <select id="mission-difficulty" onchange="calculate(); saveData();">
-                    <option value="" disabled selected hidden>Select Difficulty</option>
-                    <option value="Minimal">Minimal</option>
-                    <option value="Average">Average</option>
-                    <option value="Substantial">Substantial</option>
-                    <option value="Ruthless">Ruthless</option>
-                    <option value="Lethal">Lethal</option>
-                    <option value="Absolute">Absolute</option>
-                    <option value="Normal">Normal</option>
-                    <option value="Hard">Hard</option>
-                </select>
-            </div>
-            <div class="mission-params">
-                <label>Objective Completion</label>
-                <select id="global-objective" onchange="calculate(); saveData();">
-                    <option value="" disabled selected hidden>Select</option>
-                    <option value="0">No</option>
-                    <option value="1">Yes</option>
-                </select>
-            </div>
-            <div class="mission-params">
-                <label>Geneseed Retrieved</label>
-                <select id="global-geneseed" onchange="calculate(); saveData();">
-                    <option value="" disabled selected hidden>Select</option>
-                    <option value="0">No</option>
-                    <option value="1">Yes</option>
-                </select>
-            </div>
-            <div class="mission-params">
-                <label>Armoury Data Retrieved</label>
-                <select id="global-armoury" onchange="calculate(); saveData();">
-                    <option value="" disabled selected hidden>Select</option>
-                    <option value="0">0</option>
-                    <option value="1">1</option>
-                    <option value="2">2</option>
-                    <option value="3">3</option>
-                </select>
-            </div>
-        </div>
-        <!-- THIS IS WHERE YOU WRITE YOUR DESCRIPTION TEXT! -->
-        <div class="app-description">
-            Welcome, Brothers and Sisters! Use this debriefing tool to calculate your mission scores.
-            Select the Mission parameters. Enter your mission statistics
-            (Kills, Deaths, etc.) below. The Modifier section allows customization of score values
-            if necessary. Ensure all fields are filled for an accurate debrief.
-            <br><br>
-            *Glory to the Imperium!*
-        </div>
-    </div>
-    <!-- Main Data Table (Squadron Performance Matrix) -->
-    <div class="section" style="margin-bottom: 0;"> <!-- Last section, no bottom margin -->
-        <div class="section-header">SQUADRON PERFORMANCE MATRIX</div>
-        <div class="score-table-container"> <!-- ADD THIS WRAPPER -->
-        <table class="score-table">
-            <thead>
-                <tr>
-                    <th class="empty-header"></th>
-                    <th><input type="text" value="" placeholder="Name" class="player-name-input" id="p1-name" onchange="saveData();"></th>
-                    <th><input type="text" value="" placeholder="Name" class="player-name-input" id="p2-name" onchange="saveData();"></th>
-                    <th><input type="text" value="" placeholder="Name" class="player-name-input" id="p3-name" onchange="saveData();"></th>
-                    <th>TOTAL</th>
-                </tr>
-            </thead>
-            <tbody>
-                <!-- Kills -->
-                <tr>
-                    <td class="row-label">Kills</td>
-                    <td class="input-cell"><input type="number" class="p1-input" id="p1-kills" value="0" min="0" inputmode="numeric" onchange="calculate(); saveData();"></td>
-                    <td class="input-cell"><input type="number" class="p2-input" id="p2-kills" value="0" min="0" inputmode="numeric" onchange="calculate(); saveData();"></td>
-                    <td class="input-cell"><input type="number" class="p3-input" id="p3-kills" value="0" min="0" inputmode="numeric" onchange="calculate(); saveData();"></td>
-                    <td class="total-cell" id="total-kills">0</td>
-                </tr>
-                <!-- Elite Kills -->
-                <tr>
-                    <td class="row-label">Elite Kills</td>
-                    <td class="input-cell"><input type="number" class="p1-input" id="p1-elite" value="0" min="0" inputmode="numeric" onchange="calculate(); saveData();"></td>
-                    <td class="input-cell"><input type="number" class="p2-input" id="p2-elite" value="0" min="0" inputmode="numeric" onchange="calculate(); saveData();"></td>
-                    <td class="input-cell"><input type="number" class="p3-input" id="p3-elite" value="0" min="0" inputmode="numeric" onchange="calculate(); saveData();"></td>
-                    <td class="total-cell" id="total-elite">0</td>
-                </tr>
-                 <!-- Base Score Result -->
-                <tr class="base-score-row">
-                    <td class="row-label">Base Score</td>
-                    <td id="p1-base">0</td>
-                    <td id="p2-base">0</td>
-                    <td id="p3-base">0</td>
-                    <td id="total-base">0</td>
-                </tr>
-                <!-- Death -->
-                <tr>
-                    <td class="row-label">Death</td>
-                    <td class="input-cell"><input type="number" class="p1-input" id="p1-death" value="0" min="0" inputmode="numeric" onchange="calculate(); saveData();"></td>
-                    <td class="input-cell"><input type="number" class="p2-input" id="p2-death" value="0" min="0" inputmode="numeric" onchange="calculate(); saveData();"></td>
-                    <td class="input-cell"><input type="number" class="p3-input" id="p3-death" value="0" min="0" inputmode="numeric" onchange="calculate(); saveData();"></td>
-                    <td class="total-cell" id="total-death">0</td>
-                </tr>
-                <!-- Damage -->
-                <tr>
-                    <td class="row-label">Damage</td>
-                    <td class="input-cell"><input type="number" class="p1-input" id="p1-damage" value="0" min="0" step="0.1" inputmode="decimal" onchange="calculate(); saveData();"></td>
-                    <td class="input-cell"><input type="number" class="p2-input" id="p2-damage" value="0" min="0" step="0.1" inputmode="decimal" onchange="calculate(); saveData();"></td>
-                    <td class="input-cell"><input type="number" class="p3-input" id="p3-damage" value="0" min="0" step="0.1" inputmode="decimal" onchange="calculate(); saveData();"></td>
-                    <td class="total-cell" id="total-damage">0</td>
-                </tr>
-                
-                <!-- Modifier Score Result -->
-                <tr class="mod-score-row">
-                    <td class="row-label">Modifier Score</td>
-                    <td id="p1-mod">0</td>
-                    <td id="p2-mod">0</td>
-                    <td id="p3-mod">0</td>
-                    <td id="total-mod">0</td>
-                </tr>
-                <!-- Spacer -->
-                 <tr style="height: 10px;"></tr>
-                <!-- TOTAL SCORE -->
-                <tr class="final-score-row">
-                    <td class="row-label" style="color: #afffa6;">TOTAL SCORE</td>
-                    <td id="p1-final">0</td>
-                    <td id="p2-final">0</td>
-                    <td id="p3-final">0</td>
-                    <td id="total-final">0</td>
-                </tr>
-            </tbody>
-        </table>
-        </div> <!-- END OF WRAPPER -->
-    </div>
-    <!-- Export Buttons -->
-    <div class="export-buttons-container">
-        <button onclick="exportToCSV()">Export to Data Slate (CSV)</button>
-        <button onclick="saveAsPNG()">Record Cogitator Display (PNG)</button>
-    </div>
-</div>
-
-<!-- html2canvas library for PNG export -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-<script>
-    const STORAGE_KEY = 'missionDebriefData';
-
-    // List of all input/select IDs to save
-    const inputIds = [
-        'mod-kills', 'mod-elite', 'mod-death', 'mod-damage', 'mod-gene', 'mod-armoury', 'mod-obj',
-        'mission-name', 'mission-difficulty', 'global-objective', 'global-geneseed', 'global-armoury',
-        'p1-name', 'p2-name', 'p3-name',
-        'p1-kills', 'p2-kills', 'p3-kills',
-        'p1-elite', 'p2-elite', 'p3-elite',
-        'p1-death', 'p2-death', 'p3-death',
-        'p1-damage', 'p2-damage', 'p3-damage'
-    ];
-
-    // Save all form data to localStorage
-    function saveData() {
-        const data = {};
-        inputIds.forEach(id => {
-            const el = document.getElementById(id);
-            if (el) {
-                data[id] = el.value;
+            /* Further adjustments for very small screens (e.g., typical smartphone portrait) */
+            @media (max-width: 480px) {
+                .modifier-grid {
+                    grid-template-columns: 1fr; /* Stack all modifiers vertically */
+                }
+                .modifier-grid div:first-child {
+                    /* The 'MODIFIERS' label */
+                    grid-column: auto; /* Reset grid-column to normal flow */
+                }
             }
-        });
-        try {
-            localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
-        } catch (e) {
-            console.warn('Could not save to localStorage:', e);
-        }
-    }
+        </style>
+    </head>
+    <body>
+        <div class="cogitator-frame">
+            <div class="header-decor">
+                <div>
+                    <div>REF: SM-2/CRUSADE</div>
+                    <div style="font-size: 0.8em; opacity: 0.7">
+                        V 0.4.25 - ADEPTUS ADMINISTRATUM
+                    </div>
+                </div>
+                <h1>Mission Debrief</h1>
+                <div>DAT: M42.024</div>
+            </div>
+            <!-- Modifiers Section -->
+            <div class="section">
+                <div class="modifier-grid">
+                    <div style="text-align: left; font-weight: bold">
+                        MODIFIERS
+                    </div>
 
-    // Load all form data from localStorage
-    function loadData() {
-        try {
-            const saved = localStorage.getItem(STORAGE_KEY);
-            if (saved) {
-                const data = JSON.parse(saved);
-                inputIds.forEach(id => {
+                    <div>
+                        <label>Kills</label>
+                        <input
+                            type="number"
+                            id="mod-kills"
+                            value="1"
+                            inputmode="numeric"
+                            onchange="calculate(); saveData();"
+                        />
+                    </div>
+                    <div>
+                        <label>Elite Kills</label>
+                        <input
+                            type="number"
+                            id="mod-elite"
+                            value="20"
+                            inputmode="numeric"
+                            onchange="calculate(); saveData();"
+                        />
+                    </div>
+                    <div>
+                        <label>Death</label>
+                        <input
+                            type="number"
+                            id="mod-death"
+                            value="-100"
+                            inputmode="numeric"
+                            onchange="calculate(); saveData();"
+                        />
+                    </div>
+                    <div>
+                        <label>Damage</label>
+                        <input
+                            type="number"
+                            id="mod-damage"
+                            value="-0.1"
+                            step="0.1"
+                            inputmode="decimal"
+                            onchange="calculate(); saveData();"
+                        />
+                    </div>
+                    <div>
+                        <label>Geneseed</label>
+                        <input
+                            type="number"
+                            id="mod-gene"
+                            value="100"
+                            inputmode="numeric"
+                            onchange="calculate(); saveData();"
+                        />
+                    </div>
+                    <div>
+                        <label>Armoury</label>
+                        <input
+                            type="number"
+                            id="mod-armoury"
+                            value="25"
+                            inputmode="numeric"
+                            onchange="calculate(); saveData();"
+                        />
+                    </div>
+                    <div>
+                        <label>Objective</label>
+                        <input
+                            type="number"
+                            id="mod-obj"
+                            value="100"
+                            inputmode="numeric"
+                            onchange="calculate(); saveData();"
+                        />
+                    </div>
+                </div>
+            </div>
+            <!-- NEW: Mission Info Area: Dropdowns (left) and Description (right) -->
+            <div class="mission-info-area">
+                <!-- Global Toggles Section (your dropdowns) -->
+                <div class="section" style="margin-bottom: 0">
+                    <!-- Remove bottom margin as parent handles spacing -->
+                    <!-- NEW: Mission Played input field -->
+                    <div class="mission-params">
+                        <label for="mission-name">Mission Played</label>
+                        <input
+                            type="text"
+                            id="mission-name"
+                            value=""
+                            placeholder="e.g., Hive City Infiltration"
+                            onchange="saveData();"
+                        />
+                    </div>
+                    <div class="mission-params">
+                        <label for="mission-difficulty">Difficulty</label>
+                        <select
+                            id="mission-difficulty"
+                            onchange="calculate(); saveData();"
+                        >
+                            <option value="" disabled selected hidden>
+                                Select Difficulty
+                            </option>
+                            <option value="Minimal">Minimal</option>
+                            <option value="Average">Average</option>
+                            <option value="Substantial">Substantial</option>
+                            <option value="Ruthless">Ruthless</option>
+                            <option value="Lethal">Lethal</option>
+                            <option value="Absolute">Absolute</option>
+                            <option value="Normal">Normal</option>
+                            <option value="Hard">Hard</option>
+                        </select>
+                    </div>
+                    <div class="mission-params">
+                        <label>Objective Completion</label>
+                        <select
+                            id="global-objective"
+                            onchange="calculate(); saveData();"
+                        >
+                            <option value="" disabled selected hidden>
+                                Select
+                            </option>
+                            <option value="0">No</option>
+                            <option value="1">Yes</option>
+                        </select>
+                    </div>
+                    <div class="mission-params">
+                        <label>Geneseed Retrieved</label>
+                        <select
+                            id="global-geneseed"
+                            onchange="calculate(); saveData();"
+                        >
+                            <option value="" disabled selected hidden>
+                                Select
+                            </option>
+                            <option value="0">No</option>
+                            <option value="1">Yes</option>
+                        </select>
+                    </div>
+                    <div class="mission-params">
+                        <label>Armoury Data Retrieved</label>
+                        <select
+                            id="global-armoury"
+                            onchange="calculate(); saveData();"
+                        >
+                            <option value="" disabled selected hidden>
+                                Select
+                            </option>
+                            <option value="0">0</option>
+                            <option value="1">1</option>
+                            <option value="2">2</option>
+                            <option value="3">3</option>
+                        </select>
+                    </div>
+                </div>
+                <!-- THIS IS WHERE YOU WRITE YOUR DESCRIPTION TEXT! -->
+                <div class="app-description">
+                    Welcome, Brothers and Sisters! Use this debriefing tool to
+                    calculate your mission scores. Select the Mission
+                    parameters. Enter your mission statistics (Kills, Deaths,
+                    etc.) below. The Modifier section allows customization of
+                    score values if necessary. Ensure all fields are filled for
+                    an accurate debrief.
+                    <br /><br />
+                    *Glory to the Imperium!*
+                </div>
+            </div>
+            <!-- Main Data Table (Squad Performance Matrix) -->
+            <div class="section" style="margin-bottom: 0">
+                <!-- Last section, no bottom margin -->
+                <div class="section-header">SQUAD PERFORMANCE MATRIX</div>
+                <div class="score-table-container">
+                    <!-- ADD THIS WRAPPER -->
+                    <table class="score-table">
+                        <thead>
+                            <tr>
+                                <th class="empty-header"></th>
+                                <th>
+                                    <input
+                                        type="text"
+                                        value=""
+                                        placeholder="Name"
+                                        class="player-name-input"
+                                        id="p1-name"
+                                        onchange="saveData();"
+                                    />
+                                </th>
+                                <th>
+                                    <input
+                                        type="text"
+                                        value=""
+                                        placeholder="Name"
+                                        class="player-name-input"
+                                        id="p2-name"
+                                        onchange="saveData();"
+                                    />
+                                </th>
+                                <th>
+                                    <input
+                                        type="text"
+                                        value=""
+                                        placeholder="Name"
+                                        class="player-name-input"
+                                        id="p3-name"
+                                        onchange="saveData();"
+                                    />
+                                </th>
+                                <th>TOTAL</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- Kills -->
+                            <tr>
+                                <td class="row-label">Kills</td>
+                                <td class="input-cell">
+                                    <input
+                                        type="number"
+                                        class="p1-input"
+                                        id="p1-kills"
+                                        value="0"
+                                        min="0"
+                                        inputmode="numeric"
+                                        onchange="calculate(); saveData();"
+                                    />
+                                </td>
+                                <td class="input-cell">
+                                    <input
+                                        type="number"
+                                        class="p2-input"
+                                        id="p2-kills"
+                                        value="0"
+                                        min="0"
+                                        inputmode="numeric"
+                                        onchange="calculate(); saveData();"
+                                    />
+                                </td>
+                                <td class="input-cell">
+                                    <input
+                                        type="number"
+                                        class="p3-input"
+                                        id="p3-kills"
+                                        value="0"
+                                        min="0"
+                                        inputmode="numeric"
+                                        onchange="calculate(); saveData();"
+                                    />
+                                </td>
+                                <td class="total-cell" id="total-kills">0</td>
+                            </tr>
+                            <!-- Elite Kills -->
+                            <tr>
+                                <td class="row-label">Elite Kills</td>
+                                <td class="input-cell">
+                                    <input
+                                        type="number"
+                                        class="p1-input"
+                                        id="p1-elite"
+                                        value="0"
+                                        min="0"
+                                        inputmode="numeric"
+                                        onchange="calculate(); saveData();"
+                                    />
+                                </td>
+                                <td class="input-cell">
+                                    <input
+                                        type="number"
+                                        class="p2-input"
+                                        id="p2-elite"
+                                        value="0"
+                                        min="0"
+                                        inputmode="numeric"
+                                        onchange="calculate(); saveData();"
+                                    />
+                                </td>
+                                <td class="input-cell">
+                                    <input
+                                        type="number"
+                                        class="p3-input"
+                                        id="p3-elite"
+                                        value="0"
+                                        min="0"
+                                        inputmode="numeric"
+                                        onchange="calculate(); saveData();"
+                                    />
+                                </td>
+                                <td class="total-cell" id="total-elite">0</td>
+                            </tr>
+                            <!-- Base Score Result -->
+                            <tr class="base-score-row">
+                                <td class="row-label">Base Score</td>
+                                <td id="p1-base">0</td>
+                                <td id="p2-base">0</td>
+                                <td id="p3-base">0</td>
+                                <td id="total-base">0</td>
+                            </tr>
+                            <!-- Death -->
+                            <tr>
+                                <td class="row-label">Death</td>
+                                <td class="input-cell">
+                                    <input
+                                        type="number"
+                                        class="p1-input"
+                                        id="p1-death"
+                                        value="0"
+                                        min="0"
+                                        inputmode="numeric"
+                                        onchange="calculate(); saveData();"
+                                    />
+                                </td>
+                                <td class="input-cell">
+                                    <input
+                                        type="number"
+                                        class="p2-input"
+                                        id="p2-death"
+                                        value="0"
+                                        min="0"
+                                        inputmode="numeric"
+                                        onchange="calculate(); saveData();"
+                                    />
+                                </td>
+                                <td class="input-cell">
+                                    <input
+                                        type="number"
+                                        class="p3-input"
+                                        id="p3-death"
+                                        value="0"
+                                        min="0"
+                                        inputmode="numeric"
+                                        onchange="calculate(); saveData();"
+                                    />
+                                </td>
+                                <td class="total-cell" id="total-death">0</td>
+                            </tr>
+                            <!-- Damage -->
+                            <tr>
+                                <td class="row-label">Damage</td>
+                                <td class="input-cell">
+                                    <input
+                                        type="number"
+                                        class="p1-input"
+                                        id="p1-damage"
+                                        value="0"
+                                        min="0"
+                                        step="0.1"
+                                        inputmode="decimal"
+                                        onchange="calculate(); saveData();"
+                                    />
+                                </td>
+                                <td class="input-cell">
+                                    <input
+                                        type="number"
+                                        class="p2-input"
+                                        id="p2-damage"
+                                        value="0"
+                                        min="0"
+                                        step="0.1"
+                                        inputmode="decimal"
+                                        onchange="calculate(); saveData();"
+                                    />
+                                </td>
+                                <td class="input-cell">
+                                    <input
+                                        type="number"
+                                        class="p3-input"
+                                        id="p3-damage"
+                                        value="0"
+                                        min="0"
+                                        step="0.1"
+                                        inputmode="decimal"
+                                        onchange="calculate(); saveData();"
+                                    />
+                                </td>
+                                <td class="total-cell" id="total-damage">0</td>
+                            </tr>
+
+                            <!-- Modifier Score Result -->
+                            <tr class="mod-score-row">
+                                <td class="row-label">Modifier Score</td>
+                                <td id="p1-mod">0</td>
+                                <td id="p2-mod">0</td>
+                                <td id="p3-mod">0</td>
+                                <td id="total-mod">0</td>
+                            </tr>
+                            <!-- Spacer -->
+                            <tr style="height: 10px"></tr>
+                            <!-- TOTAL SCORE -->
+                            <tr class="final-score-row">
+                                <td class="row-label" style="color: #afffa6">
+                                    TOTAL SCORE
+                                </td>
+                                <td id="p1-final">0</td>
+                                <td id="p2-final">0</td>
+                                <td id="p3-final">0</td>
+                                <td id="total-final">0</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <!-- END OF WRAPPER -->
+            </div>
+            <!-- Export Buttons -->
+            <div class="export-buttons-container">
+                <button onclick="exportToCSV()">
+                    Export to Data Slate (CSV)
+                </button>
+                <button onclick="saveAsPNG()">
+                    Record Cogitator Display (PNG)
+                </button>
+            </div>
+        </div>
+
+        <!-- html2canvas library for PNG export -->
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+        <script>
+            const STORAGE_KEY = "missionDebriefData";
+
+            // List of all input/select IDs to save
+            const inputIds = [
+                "mod-kills",
+                "mod-elite",
+                "mod-death",
+                "mod-damage",
+                "mod-gene",
+                "mod-armoury",
+                "mod-obj",
+                "mission-name",
+                "mission-difficulty",
+                "global-objective",
+                "global-geneseed",
+                "global-armoury",
+                "p1-name",
+                "p2-name",
+                "p3-name",
+                "p1-kills",
+                "p2-kills",
+                "p3-kills",
+                "p1-elite",
+                "p2-elite",
+                "p3-elite",
+                "p1-death",
+                "p2-death",
+                "p3-death",
+                "p1-damage",
+                "p2-damage",
+                "p3-damage",
+            ];
+
+            // Save all form data to localStorage
+            function saveData() {
+                const data = {};
+                inputIds.forEach((id) => {
                     const el = document.getElementById(id);
-                    if (el && data[id] !== undefined && data[id] !== '') {
-                        el.value = data[id];
+                    if (el) {
+                        data[id] = el.value;
                     }
                 });
+                try {
+                    localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+                } catch (e) {
+                    console.warn("Could not save to localStorage:", e);
+                }
             }
-        } catch (e) {
-            console.warn('Could not load from localStorage:', e);
-        }
-    }
 
-    // Helper to get float value from input ID, defaults to 0
-    function getVal(id) {
-        const el = document.getElementById(id);
-        if (!el) return 0;
-        const val = parseFloat(el.value);
-        return isNaN(val) ? 0 : val;
-    }
-    // Helper to get string value from input ID, defaults to empty
-    function getStr(id) {
-        const el = document.getElementById(id);
-        return el ? el.value.trim() : "";
-    }
-
-    // Helper to set text content of element
-    function setTxt(id, txt) {
-        const el = document.getElementById(id);
-        if (el) el.textContent = txt;
-    }
-
-    function calculate() {
-        // 1. Get Modifiers
-        const modKills = getVal('mod-kills');
-        const modElite = getVal('mod-elite');
-        const modDeath = getVal('mod-death');
-        const modDamage = getVal('mod-damage');
-        const modGene = getVal('mod-gene');
-        const modArmoury = getVal('mod-armoury');
-        const modObj = getVal('mod-obj');
-
-        // 2. Get Global statuses (handling empty string from placeholder)
-        const globalObj = document.getElementById('global-objective').value === "" ? 0 : getVal('global-objective');
-        const globalGene = document.getElementById('global-geneseed').value === "" ? 0 : getVal('global-geneseed');
-        const globalArmoury = document.getElementById('global-armoury').value === "" ? 0 : getVal('global-armoury');
-        
-        // Initialize Total Accumulators for individual stats (for the TOTAL column)
-        let sumKills = 0;
-        let sumElite = 0;
-        let sumDeath = 0;
-        let sumDamage = 0;
-
-        // --- Calculate for each player and accumulate individual sums for the total column ---
-        for (let i = 1; i <= 3; i++) {
-            // Player Inputs
-            const kills = getVal(`p${i}-kills`);
-            const elite = getVal(`p${i}-elite`);
-            const death = getVal(`p${i}-death`);
-            const damage = getVal(`p${i}-damage`);
-
-            // Accumulate individual stats for the TOTAL column
-            sumKills += kills;
-            sumElite += elite;
-            sumDeath += death;
-            sumDamage += damage;
-
-            // Calculate Player's Base Score (individual kills + global objective)
-            const playerBaseScore = (kills * modKills) + (elite * modElite) + (globalObj * modObj);
-
-            // Calculate Player's Modifier Score (individual death/damage + global geneseed/armoury)
-            const playerModifierScore = (death * modDeath) + (damage * modDamage) + (globalGene * modGene) + (globalArmoury * modArmoury);
-
-            // Calculate Player's Final Score
-            const playerFinalScore = Math.round(playerBaseScore + playerModifierScore);
-
-            // Update DOM for Player
-            setTxt(`p${i}-base`, Math.round(playerBaseScore * 10) / 10); 
-            setTxt(`p${i}-mod`, parseFloat(playerModifierScore.toFixed(1))); 
-            setTxt(`p${i}-final`, playerFinalScore);
-        }
-        
-        // --- Calculate and Update Total Column (ensuring global objectives are counted ONCE for the total) ---
-
-        // Update total individual stats
-        setTxt('total-kills', sumKills);
-        setTxt('total-elite', sumElite);
-        setTxt('total-death', sumDeath);
-        setTxt('total-damage', sumDamage);
-
-        // Calculate TOTAL Base Score for the squad
-        // This is the sum of all individual kill-based scores PLUS the global objective score ONCE
-        const totalSquadBaseScore = (sumKills * modKills) + (sumElite * modElite) + (globalObj * modObj);
-
-        // Calculate TOTAL Modifier Score for the squad
-        // This is the sum of all individual death/damage-based scores PLUS the global geneseed/armoury scores ONCE
-        const totalSquadModifierScore = (sumDeath * modDeath) + (sumDamage * modDamage) + (globalGene * modGene) + (globalArmoury * modArmoury);
-
-        // Calculate TOTAL Final Score for the squad
-        const totalSquadFinalScore = Math.round(totalSquadBaseScore + totalSquadModifierScore);
-
-        // Update DOM for Total Column
-        setTxt('total-base', Math.round(totalSquadBaseScore * 10) / 10);
-        setTxt('total-mod', parseFloat(totalSquadModifierScore.toFixed(1)));
-        setTxt('total-final', totalSquadFinalScore);
-    }
-    
-    // Function to export table data to CSV
-    function exportToCSV() {
-        const missionName = getStr('mission-name');
-        const missionDifficulty = document.getElementById('mission-difficulty').value; // Get value here
-
-        let filename = 'Mission_Debrief_Data';
-        if (missionName) {
-            filename = `${missionName.replace(/[^a-zA-Z0-9]/g, '_')}_Debrief_Data`;
-        }
-        filename += '.csv';
-
-        const table = document.querySelector('.score-table');
-        const rows = table.querySelectorAll('tr');
-        const csv = [];
-
-        // Add Mission Name and Global Parameters
-        csv.push(`Mission Played:,${getStr('mission-name')}`);
-        csv.push(`Difficulty:,${missionDifficulty}`); // NEW LINE HERE
-        csv.push(`Objective Completion:,${document.getElementById('global-objective').value === "1" ? "Yes" : "No"}`);
-        csv.push(`Geneseed Retrieved:,${document.getElementById('global-geneseed').value === "1" ? "Yes" : "No"}`);
-        csv.push(`Armoury Data Retrieved:,${getVal('global-armoury')}`);
-        csv.push(''); // Empty line for separation
-
-        // Add Modifiers
-        csv.push('MODIFIERS,,,,,'); // Header for modifiers row
-        csv.push(`Kills:,${getVal('mod-kills')}`);
-        csv.push(`Elite Kills:,${getVal('mod-elite')}`);
-        csv.push(`Death:,${getVal('mod-death')}`);
-        csv.push(`Damage:,${getVal('mod-damage')}`);
-        csv.push(`Geneseed:,${getVal('mod-gene')}`);
-        csv.push(`Armoury:,${getVal('mod-armoury')}`);
-        csv.push(`Objective:,${getVal('mod-obj')}`);
-        csv.push(''); // Empty line for separation
-
-        // Iterate over table rows
-        rows.forEach((row, rowIndex) => {
-            const rowData = [];
-            const cells = row.querySelectorAll('th, td');
-            
-            cells.forEach((cell, cellIndex) => {
-                let cellValue = '';
-                // For input fields in headers (player names)
-                if (rowIndex === 0 && cell.querySelector('input[type="text"]')) {
-                    cellValue = cell.querySelector('input[type="text"]').value || cell.querySelector('input[type="text"]').placeholder;
+            // Load all form data from localStorage
+            function loadData() {
+                try {
+                    const saved = localStorage.getItem(STORAGE_KEY);
+                    if (saved) {
+                        const data = JSON.parse(saved);
+                        inputIds.forEach((id) => {
+                            const el = document.getElementById(id);
+                            if (
+                                el &&
+                                data[id] !== undefined &&
+                                data[id] !== ""
+                            ) {
+                                el.value = data[id];
+                            }
+                        });
+                    }
+                } catch (e) {
+                    console.warn("Could not load from localStorage:", e);
                 }
-                // For input fields in data cells
-                else if (cell.querySelector('input[type="number"]')) {
-                    cellValue = cell.querySelector('input[type="number"]').value;
+            }
+
+            // Helper to get float value from input ID, defaults to 0
+            function getVal(id) {
+                const el = document.getElementById(id);
+                if (!el) return 0;
+                const val = parseFloat(el.value);
+                return isNaN(val) ? 0 : val;
+            }
+            // Helper to get string value from input ID, defaults to empty
+            function getStr(id) {
+                const el = document.getElementById(id);
+                return el ? el.value.trim() : "";
+            }
+
+            // Helper to set text content of element
+            function setTxt(id, txt) {
+                const el = document.getElementById(id);
+                if (el) el.textContent = txt;
+            }
+
+            function calculate() {
+                // 1. Get Modifiers
+                const modKills = getVal("mod-kills");
+                const modElite = getVal("mod-elite");
+                const modDeath = getVal("mod-death");
+                const modDamage = getVal("mod-damage");
+                const modGene = getVal("mod-gene");
+                const modArmoury = getVal("mod-armoury");
+                const modObj = getVal("mod-obj");
+
+                // 2. Get Global statuses (handling empty string from placeholder)
+                const globalObj =
+                    document.getElementById("global-objective").value === ""
+                        ? 0
+                        : getVal("global-objective");
+                const globalGene =
+                    document.getElementById("global-geneseed").value === ""
+                        ? 0
+                        : getVal("global-geneseed");
+                const globalArmoury =
+                    document.getElementById("global-armoury").value === ""
+                        ? 0
+                        : getVal("global-armoury");
+
+                // Initialize Total Accumulators for individual stats (for the TOTAL column)
+                let sumKills = 0;
+                let sumElite = 0;
+                let sumDeath = 0;
+                let sumDamage = 0;
+
+                // --- Calculate for each player and accumulate individual sums for the total column ---
+                for (let i = 1; i <= 3; i++) {
+                    // Player Inputs
+                    const kills = getVal(`p${i}-kills`);
+                    const elite = getVal(`p${i}-elite`);
+                    const death = getVal(`p${i}-death`);
+                    const damage = getVal(`p${i}-damage`);
+
+                    // Accumulate individual stats for the TOTAL column
+                    sumKills += kills;
+                    sumElite += elite;
+                    sumDeath += death;
+                    sumDamage += damage;
+
+                    // Calculate Player's Base Score (individual kills + global objective)
+                    const playerBaseScore =
+                        kills * modKills +
+                        elite * modElite +
+                        globalObj * modObj;
+
+                    // Calculate Player's Modifier Score (individual death/damage + global geneseed/armoury)
+                    const playerModifierScore =
+                        death * modDeath +
+                        damage * modDamage +
+                        globalGene * modGene +
+                        globalArmoury * modArmoury;
+
+                    // Calculate Player's Final Score
+                    const playerFinalScore = Math.round(
+                        playerBaseScore + playerModifierScore,
+                    );
+
+                    // Update DOM for Player
+                    setTxt(`p${i}-base`, Math.round(playerBaseScore * 10) / 10);
+                    setTxt(
+                        `p${i}-mod`,
+                        parseFloat(playerModifierScore.toFixed(1)),
+                    );
+                    setTxt(`p${i}-final`, playerFinalScore);
                 }
-                // For text content
-                else {
-                    cellValue = cell.textContent.trim();
+
+                // --- Calculate and Update Total Column (ensuring global objectives are counted ONCE for the total) ---
+
+                // Update total individual stats
+                setTxt("total-kills", sumKills);
+                setTxt("total-elite", sumElite);
+                setTxt("total-death", sumDeath);
+                setTxt("total-damage", sumDamage);
+
+                // Calculate TOTAL Base Score for the squad
+                // This is the sum of all individual kill-based scores PLUS the global objective score ONCE
+                const totalSquadBaseScore =
+                    sumKills * modKills +
+                    sumElite * modElite +
+                    globalObj * modObj;
+
+                // Calculate TOTAL Modifier Score for the squad
+                // This is the sum of all individual death/damage-based scores PLUS the global geneseed/armoury scores ONCE
+                const totalSquadModifierScore =
+                    sumDeath * modDeath +
+                    sumDamage * modDamage +
+                    globalGene * modGene +
+                    globalArmoury * modArmoury;
+
+                // Calculate TOTAL Final Score for the squad
+                const totalSquadFinalScore = Math.round(
+                    totalSquadBaseScore + totalSquadModifierScore,
+                );
+
+                // Update DOM for Total Column
+                setTxt("total-base", Math.round(totalSquadBaseScore * 10) / 10);
+                setTxt(
+                    "total-mod",
+                    parseFloat(totalSquadModifierScore.toFixed(1)),
+                );
+                setTxt("total-final", totalSquadFinalScore);
+            }
+
+            // Function to export table data to CSV
+            function exportToCSV() {
+                const missionName = getStr("mission-name");
+                const missionDifficulty =
+                    document.getElementById("mission-difficulty").value; // Get value here
+
+                let filename = "Mission_Debrief_Data";
+                if (missionName) {
+                    filename = `${missionName.replace(/[^a-zA-Z0-9]/g, "_")}_Debrief_Data`;
                 }
-                rowData.push(`"${cellValue.replace(/"/g, '""')}"`); // Quote and escape double quotes
-            });
-            csv.push(rowData.join(','));
-        });
+                filename += ".csv";
 
-        const csvFile = new Blob([csv.join('\n')], { type: 'text/csv;charset=utf-8;' });
-        const downloadLink = document.createElement('a');
-        downloadLink.download = filename;
-        downloadLink.href = window.URL.createObjectURL(csvFile);
-        downloadLink.style.display = 'none';
-        document.body.appendChild(downloadLink);
-        downloadLink.click();
-        document.body.removeChild(downloadLink);
-    }
+                const table = document.querySelector(".score-table");
+                const rows = table.querySelectorAll("tr");
+                const csv = [];
 
-    // Function to save the entire cogitator-frame as PNG (always renders in wide desktop view)
-    function saveAsPNG() {
-        const element = document.querySelector('.cogitator-frame');
-        const body = document.body;
-        
-        // Store original styles
-        const originalElementWidth = element.style.width;
-        const originalElementMaxWidth = element.style.maxWidth;
-        const originalElementMinWidth = element.style.minWidth;
-        const originalBodyWidth = body.style.width;
-        const originalBodyMinWidth = body.style.minWidth;
-        const originalBodyOverflow = body.style.overflow;
-        
-        // Force wide desktop layout for screenshot
-        element.style.width = '1100px';
-        element.style.maxWidth = 'none';
-        element.style.minWidth = '1100px';
-        body.style.width = '1140px';
-        body.style.minWidth = '1140px';
-        body.style.overflow = 'visible';
-        
-        // Wait for layout to settle, then capture
-        requestAnimationFrame(() => {
-            html2canvas(element, { 
-                scale: 2,
-                backgroundColor: '#000',
-                useCORS: true,
-                width: 1100,
-                windowWidth: 1200
-            }).then(canvas => {
-                // Restore original styles
-                element.style.width = originalElementWidth;
-                element.style.maxWidth = originalElementMaxWidth;
-                element.style.minWidth = originalElementMinWidth;
-                body.style.width = originalBodyWidth;
-                body.style.minWidth = originalBodyMinWidth;
-                body.style.overflow = originalBodyOverflow;
-                
-                const link = document.createElement('a');
-                link.download = 'Mission_Debrief_Display.png';
-                link.href = canvas.toDataURL('image/png');
-                link.click();
-            }).catch(err => {
-                // Restore styles on error too
-                element.style.width = originalElementWidth;
-                element.style.maxWidth = originalElementMaxWidth;
-                element.style.minWidth = originalElementMinWidth;
-                body.style.width = originalBodyWidth;
-                body.style.minWidth = originalBodyMinWidth;
-                body.style.overflow = originalBodyOverflow;
-                console.error('PNG export failed:', err);
-                alert('Failed to capture screenshot. Please try again.');
-            });
-        });
-    }
+                // Add Mission Name and Global Parameters
+                csv.push(`Mission Played:,${getStr("mission-name")}`);
+                csv.push(`Difficulty:,${missionDifficulty}`); // NEW LINE HERE
+                csv.push(
+                    `Objective Completion:,${document.getElementById("global-objective").value === "1" ? "Yes" : "No"}`,
+                );
+                csv.push(
+                    `Geneseed Retrieved:,${document.getElementById("global-geneseed").value === "1" ? "Yes" : "No"}`,
+                );
+                csv.push(`Armoury Data Retrieved:,${getVal("global-armoury")}`);
+                csv.push(""); // Empty line for separation
 
-    // Initialize: load saved data and calculate when DOM is ready
-    document.addEventListener('DOMContentLoaded', function() {
-        loadData();
-        calculate();
-    });
-</script>
+                // Add Modifiers
+                csv.push("MODIFIERS,,,,,"); // Header for modifiers row
+                csv.push(`Kills:,${getVal("mod-kills")}`);
+                csv.push(`Elite Kills:,${getVal("mod-elite")}`);
+                csv.push(`Death:,${getVal("mod-death")}`);
+                csv.push(`Damage:,${getVal("mod-damage")}`);
+                csv.push(`Geneseed:,${getVal("mod-gene")}`);
+                csv.push(`Armoury:,${getVal("mod-armoury")}`);
+                csv.push(`Objective:,${getVal("mod-obj")}`);
+                csv.push(""); // Empty line for separation
 
-<!-- Service Worker Registration -->
-<script>
-    if ('serviceWorker' in navigator) {
-        window.addEventListener('load', () => {
-            navigator.serviceWorker.register('/service-worker.js')
-                .then(registration => {
-                    console.log('Service Worker registered! Scope:', registration.scope);
-                })
-                .catch(err => {
-                    console.log('Service Worker registration failed:', err);
+                // Iterate over table rows
+                rows.forEach((row, rowIndex) => {
+                    const rowData = [];
+                    const cells = row.querySelectorAll("th, td");
+
+                    cells.forEach((cell, cellIndex) => {
+                        let cellValue = "";
+                        // For input fields in headers (player names)
+                        if (
+                            rowIndex === 0 &&
+                            cell.querySelector('input[type="text"]')
+                        ) {
+                            cellValue =
+                                cell.querySelector('input[type="text"]')
+                                    .value ||
+                                cell.querySelector('input[type="text"]')
+                                    .placeholder;
+                        }
+                        // For input fields in data cells
+                        else if (cell.querySelector('input[type="number"]')) {
+                            cellValue = cell.querySelector(
+                                'input[type="number"]',
+                            ).value;
+                        }
+                        // For text content
+                        else {
+                            cellValue = cell.textContent.trim();
+                        }
+                        rowData.push(`"${cellValue.replace(/"/g, '""')}"`); // Quote and escape double quotes
+                    });
+                    csv.push(rowData.join(","));
                 });
-        });
-    }
-</script>
 
-</body>
+                const csvFile = new Blob([csv.join("\n")], {
+                    type: "text/csv;charset=utf-8;",
+                });
+                const downloadLink = document.createElement("a");
+                downloadLink.download = filename;
+                downloadLink.href = window.URL.createObjectURL(csvFile);
+                downloadLink.style.display = "none";
+                document.body.appendChild(downloadLink);
+                downloadLink.click();
+                document.body.removeChild(downloadLink);
+            }
+
+            // Function to save the entire cogitator-frame as PNG (always renders in wide desktop view)
+            function saveAsPNG() {
+                const element = document.querySelector(".cogitator-frame");
+                const body = document.body;
+
+                // Store original styles
+                const originalElementWidth = element.style.width;
+                const originalElementMaxWidth = element.style.maxWidth;
+                const originalElementMinWidth = element.style.minWidth;
+                const originalBodyWidth = body.style.width;
+                const originalBodyMinWidth = body.style.minWidth;
+                const originalBodyOverflow = body.style.overflow;
+
+                // Force wide desktop layout for screenshot
+                element.style.width = "1100px";
+                element.style.maxWidth = "none";
+                element.style.minWidth = "1100px";
+                body.style.width = "1140px";
+                body.style.minWidth = "1140px";
+                body.style.overflow = "visible";
+
+                // Wait for layout to settle, then capture
+                requestAnimationFrame(() => {
+                    html2canvas(element, {
+                        scale: 2,
+                        backgroundColor: "#000",
+                        useCORS: true,
+                        width: 1100,
+                        windowWidth: 1200,
+                    })
+                        .then((canvas) => {
+                            // Restore original styles
+                            element.style.width = originalElementWidth;
+                            element.style.maxWidth = originalElementMaxWidth;
+                            element.style.minWidth = originalElementMinWidth;
+                            body.style.width = originalBodyWidth;
+                            body.style.minWidth = originalBodyMinWidth;
+                            body.style.overflow = originalBodyOverflow;
+
+                            const link = document.createElement("a");
+                            link.download = "Mission_Debrief_Display.png";
+                            link.href = canvas.toDataURL("image/png");
+                            link.click();
+                        })
+                        .catch((err) => {
+                            // Restore styles on error too
+                            element.style.width = originalElementWidth;
+                            element.style.maxWidth = originalElementMaxWidth;
+                            element.style.minWidth = originalElementMinWidth;
+                            body.style.width = originalBodyWidth;
+                            body.style.minWidth = originalBodyMinWidth;
+                            body.style.overflow = originalBodyOverflow;
+                            console.error("PNG export failed:", err);
+                            alert(
+                                "Failed to capture screenshot. Please try again.",
+                            );
+                        });
+                });
+            }
+
+            // Initialize: load saved data and calculate when DOM is ready
+            document.addEventListener("DOMContentLoaded", function () {
+                loadData();
+                calculate();
+            });
+        </script>
+
+        <!-- Service Worker Registration -->
+        <script>
+            if ("serviceWorker" in navigator) {
+                window.addEventListener("load", () => {
+                    navigator.serviceWorker
+                        .register("/service-worker.js")
+                        .then((registration) => {
+                            console.log(
+                                "Service Worker registered! Scope:",
+                                registration.scope,
+                            );
+                        })
+                        .catch((err) => {
+                            console.log(
+                                "Service Worker registration failed:",
+                                err,
+                            );
+                        });
+                });
+            }
+        </script>
+    </body>
 </html>
