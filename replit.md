@@ -44,6 +44,13 @@ A Progressive Web App (PWA) calculator for Warhammer 40K Space Marine 2 mission 
 The application is served using Python's built-in HTTP server on port 5000. No build step is required.
 
 ## Recent Changes
+- 2024-12-02: Added localStorage, input validation, and improved PNG export
+  - Added localStorage to automatically save and restore all form inputs
+  - Added input validation with min=0 constraints on player stat fields
+  - Added inputmode="numeric" for better mobile keyboard experience
+  - Updated PNG export to always render in wide desktop view (1100px) regardless of screen size
+  - Incremented service worker cache version to v2
+
 - 2024-12-02: Initial import and Replit environment setup
   - Configured Python HTTP server to serve static files
   - Set up workflow for automatic server start
