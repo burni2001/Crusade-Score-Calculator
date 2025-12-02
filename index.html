@@ -1157,27 +1157,21 @@
                 const originalBodyOverflow = body.style.overflow;
 
                 // Force wide desktop layout for screenshot
-                // 1100px content + 40px padding + 8px border = 1148px total element width
                 element.style.width = "1100px";
                 element.style.maxWidth = "none";
                 element.style.minWidth = "1100px";
-                body.style.width = "1200px";
-                body.style.minWidth = "1200px";
+                body.style.width = "1140px";
+                body.style.minWidth = "1140px";
                 body.style.overflow = "visible";
 
                 // Wait for layout to settle, then capture
                 requestAnimationFrame(() => {
-                    // Get actual element dimensions after layout change
-                    const actualWidth = element.offsetWidth;
-                    const actualHeight = element.offsetHeight;
-                    
                     html2canvas(element, {
                         scale: 2,
                         backgroundColor: "#000",
                         useCORS: true,
-                        width: actualWidth,
-                        height: actualHeight,
-                        windowWidth: 1300,
+                        width: 1100,
+                        windowWidth: 1200,
                     })
                         .then((canvas) => {
                             // Restore original styles
