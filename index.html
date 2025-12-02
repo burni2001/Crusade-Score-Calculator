@@ -1,0 +1,460 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Adeptus Astartes - Mission Debrief</title>
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#050a05"> <!-- Matches background_color from manifest -->
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=VT323&display=swap');
+
+        :root {
+            --pip-green: #33ff00;
+            --pip-dim: #1a8000;
+            --bg-color: #050a05;
+            --panel-bg: #0c140c;
+            --border-color: #1f3a1f;
+        }
+
+        body {
+            background-color: #000;
+            color: var(--pip-green);
+            font-family: 'VT323', monospace;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            min-height: 100vh;
+            background-image: repeating-linear-gradient(
+                0deg,
+                rgba(0, 0, 0, 0.15),
+                rgba(0, 0, 0, 0.15) 1px,
+                transparent 1px,
+                transparent 2px
+            );
+        }
+
+        /* CRT Screen Effect */
+        .cogitator-frame {
+            width: 100%;
+            max-width: 1100px;
+            background-color: var(--bg-color);
+            border: 4px solid #3d4c3d;
+            box-shadow: 0 0 20px rgba(51, 255, 0, 0.2), inset 0 0 50px rgba(0,0,0,0.8);
+            padding: 20px;
+            position: relative;
+        }.cogitator-frame::before {
+            content: " ";
+            display: block;
+            position: absolute;
+            top: 0;
+            left: 0;
+            bottom: 0;
+            right: 0;
+            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
+            z-index: 2;
+            background-size: 100% 2px, 3px 100%;
+            pointer-events: none;
+        }
+
+        h1, h2, h3 {
+            text-transform: uppercase;
+            text-align: center;
+            margin: 5px 0;
+            text-shadow: 0 0 5px var(--pip-green);
+            letter-spacing: 2px;
+        }
+
+        .header-decor {
+            border-bottom: 2px solid var(--pip-green);
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+        }
+
+        /* Inputs and Selects Styling */
+        input, select {
+            background-color: #000;
+            color: var(--pip-green);
+            border: 1px solid var(--pip-green);
+            font-family: 'VT323', monospace;
+            font-size: 1.2rem;
+            text-align: center;
+            padding: 2px;
+            width: 100%;
+            box-sizing: border-box;
+        }input:focus, select:focus {
+            outline: none;
+            box-shadow: 0 0 8px var(--pip-green);
+            background-color: #0f240f;
+        }
+
+        /* Layout Sections */
+        .section {
+            background-color: rgba(20, 40, 20, 0.3);
+            border: 1px solid var(--border-color);
+            padding: 15px;
+            margin-bottom: 20px;
+        }
+
+        /* Modifier Grid */
+        .modifier-grid {
+            display: grid;
+            grid-template-columns: 100px repeat(7, 1fr);
+            gap: 10px;
+            align-items: center;
+            text-align: center;
+            font-size: 1.1rem;
+        }
+        
+        .modifier-grid label {
+            font-size: 0.9rem;
+            opacity: 0.8;
+        }
+
+        /* Mission Parameters (Dropdowns) */
+        .mission-params {
+            display: grid;
+            grid-template-columns: 200px 100px;
+            gap: 10px;
+            margin-bottom: 10px;
+            align-items: center;
+        }
+
+        /* Main Score Table */
+        .score-table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 5px;
+        }
+
+        .score-table th {
+            text-align: center;
+            padding: 10px;
+            background-color: #000;
+            border: 1px solid var(--pip-dim);
+        }/* Specific style for empty header to remove it visually */
+        .score-table th.empty-header {
+            background-color: transparent;
+            border: none;
+            box-shadow: none;
+        }
+
+        .score-table td {
+            padding: 4px;
+            vertical-align: middle;
+        }
+
+        .row-label {
+            text-align: right;
+            padding-right: 15px !important;
+            font-weight: bold;
+            width: 180px;
+        }
+
+        .input-cell {
+            width: 120px;
+        }
+
+        .total-cell {
+            width: 120px;
+            text-align: center;
+            font-weight: bold;
+        }
+
+        .section-header {
+            background-color: #000;
+            color: var(--pip-green);
+            padding: 5px;
+            font-weight: bold;
+            text-align: center;
+            margin-bottom: 15px;
+            border: 1px solid var(--pip-green);
+        }
+
+        /* Specific Rows styling based on screenshot logic */
+        .base-score-row td, .mod-score-row td {
+            font-weight: bold;
+            text-align: center;
+            padding-top: 15px;
+            padding-bottom: 15px;
+        }.final-score-row td {
+            border-top: 2px solid var(--pip-green);
+            border-bottom: 2px double var(--pip-green);
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #afffa6; /* Brighter green */
+            text-align: center;
+            padding: 15px 0;
+            text-shadow: 0 0 8px var(--pip-green);
+        }
+
+        /* Chrome styling for number inputs (hide spinners) */
+        input::-webkit-outer-spin-button,
+        input::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+        input[type=number] {
+            -moz-appearance: textfield;
+        }
+
+    </style>
+</head>
+<body>
+
+<div class="cogitator-frame">
+    <div class="header-decor">
+        <div>
+            <div>REF: SM-2/CRUSADE</div>
+            <div style="font-size: 0.8em; opacity: 0.7;">V 1.0.5 - ADEPTUS ADMINISTRATUM</div>
+        </div>
+        <h1>Mission Debrief</h1>
+        <div>DAT: M42.024</div>
+    </div><!-- Modifiers Section -->
+    <div class="section">
+        <div class="modifier-grid">
+            <div style="text-align: left; font-weight: bold;">MODIFIERS</div>
+            
+            <div>
+                <label>Kills</label>
+                <input type="number" id="mod-kills" value="1" onchange="calculate()">
+            </div>
+            <div>
+                <label>Elite Kills</label>
+                <input type="number" id="mod-elite" value="20" onchange="calculate()">
+            </div>
+            <div>
+                <label>Death</label>
+                <input type="number" id="mod-death" value="-100" onchange="calculate()">
+            </div>
+            <div>
+                <label>Damage</label>
+                <input type="number" id="mod-damage" value="-0.1" step="0.1" onchange="calculate()">
+            </div>
+            <div>
+                <label>Geneseed</label>
+                <input type="number" id="mod-gene" value="100" onchange="calculate()">
+            </div>
+            <div>
+                <label>Armoury</label>
+                <input type="number" id="mod-armoury" value="25" onchange="calculate()">
+            </div>
+            <div>
+                <label>Objective</label>
+                <input type="number" id="mod-obj" value="100" onchange="calculate()">
+            </div>
+        </div>
+    </div><!-- Global Toggles Section -->
+    <div class="section" style="width: 350px;">
+        <div class="mission-params">
+            <label>Objective Completion</label>
+            <select id="global-objective" onchange="calculate()">
+                <option value="0">No (0)</option>
+                <option value="1" selected>Yes (1)</option>
+            </select>
+        </div>
+        <div class="mission-params">
+            <label>Geneseed Retrieved</label>
+            <select id="global-geneseed" onchange="calculate()">
+                <option value="0">No (0)</option>
+                <option value="1" selected>Yes (1)</option>
+            </select>
+        </div>
+        <div class="mission-params">
+            <label>Armoury Data Retrieved</label>
+            <select id="global-armoury" onchange="calculate()">
+                <option value="0">0</option>
+                <option value="1">1</option>
+                <option value="2" selected>2</option>
+                <option value="3">3</option>
+            </select>
+        </div>
+    </div><!-- Main Data Table -->
+    <div class="section">
+        <div class="section-header">SQUADRON PERFORMANCE MATRIX</div>
+        <table class="score-table">
+            <thead>
+                <tr>
+                    <th class="empty-header"></th> <!-- Invisible Top Left -->
+                    <th><input type="text" value="BB1 (Gideon)" placeholder="Name"></th>
+                    <th><input type="text" value="BB2" placeholder="Name"></th>
+                    <th><input type="text" value="BB3" placeholder="Name"></th>
+                    <th>TOTAL</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- Kills -->
+                <tr>
+                    <td class="row-label">Kills</td>
+                    <td class="input-cell"><input type="number" class="p1-input" id="p1-kills" value="347" onchange="calculate()"></td>
+                    <td class="input-cell"><input type="number" class="p2-input" id="p2-kills" value="207" onchange="calculate()"></td>
+                    <td class="input-cell"><input type="number" class="p3-input" id="p3-kills" value="127" onchange="calculate()"></td>
+                    <td class="total-cell" id="total-kills">681</td>
+                </tr>
+                <!-- Elite Kills -->
+                <tr>
+                    <td class="row-label">Elite Kills</td>
+                    <td class="input-cell"><input type="number" class="p1-input" id="p1-elite" value="2" onchange="calculate()"></td>
+                    <td class="input-cell"><input type="number" class="p2-input" id="p2-elite" value="1" onchange="calculate()"></td>
+                    <td class="input-cell"><input type="number" class="p3-input" id="p3-elite" value="1" onchange="calculate()"></td>
+                    <td class="total-cell" id="total-elite">4</td>
+                </tr>
+                
+                <!-- Base Score Result -->
+                <tr class="base-score-row">
+                    <td class="row-label">Base Score</td>
+                    <td id="p1-base">487</td>
+                    <td id="p2-base">327</td>
+                    <td id="p3-base">247</td>
+                    <td id="total-base">861</td>
+                </tr><!-- Spacer -->
+                <tr style="height: 20px;"></tr><!-- Deaths -->
+                <tr>
+                    <td class="row-label">Deaths</td>
+                    <td class="input-cell"><input type="number" class="p1-input" id="p1-death" value="0" onchange="calculate()"></td>
+                    <td class="input-cell"><input type="number" class="p2-input" id="p2-death" value="0" onchange="calculate()"></td>
+                    <td class="input-cell"><input type="number" class="p3-input" id="p3-death" value="1" onchange="calculate()"></td>
+                    <td class="total-cell" id="total-death">1</td>
+                </tr>
+                <!-- Damage -->
+                <tr>
+                    <td class="row-label">Damage</td>
+                    <td class="input-cell"><input type="number" class="p1-input" id="p1-damage" value="266" onchange="calculate()"></td>
+                    <td class="input-cell"><input type="number" class="p2-input" id="p2-damage" value="335" onchange="calculate()"></td>
+                    <td class="input-cell"><input type="number" class="p3-input" id="p3-damage" value="340" onchange="calculate()"></td>
+                    <td class="total-cell" id="total-damage">941</td>
+                </tr>
+                
+                <!-- Modifier Score Result -->
+                <tr class="mod-score-row">
+                    <td class="row-label">Modifier Score</td>
+                    <td id="p1-mod">123.4</td>
+                    <td id="p2-mod">116.5</td>
+                    <td id="p3-mod">16</td>
+                    <td id="total-mod">-44.1</td>
+                </tr><!-- Spacer -->
+                 <tr style="height: 10px;"></tr>
+
+                <!-- TOTAL SCORE -->
+                <tr class="final-score-row">
+                    <td class="row-label" style="color: #afffa6;">TOTAL SCORE</td>
+                    <td id="p1-final">610</td>
+                    <td id="p2-final">444</td>
+                    <td id="p3-final">263</td>
+                    <td id="total-final">817</td>
+                </tr>
+
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<script>
+    // Helper to get float value from input ID, defaults to 0
+    function getVal(id) {
+        const el = document.getElementById(id);
+        if (!el) return 0;
+        const val = parseFloat(el.value);
+        return isNaN(val) ? 0 : val;
+    }
+
+    // Helper to set text content of element
+    function setTxt(id, txt) {
+        const el = document.getElementById(id);
+        if (el) el.textContent = txt;
+    }
+
+    function calculate() {
+        // 1. Get Modifiers
+        const modKills = getVal('mod-kills');
+        const modElite = getVal('mod-elite');
+        const modDeath = getVal('mod-death');
+        const modDamage = getVal('mod-damage');
+        const modGene = getVal('mod-gene');
+        const modArmoury = getVal('mod-armoury');
+        const modObj = getVal('mod-obj');// 2. Get Global statuses
+        const globalObj = getVal('global-objective');
+        const globalGene = getVal('global-geneseed');
+        const globalArmoury = getVal('global-armoury');
+
+        // Initialize Total Accumulators
+        let sumKills = 0;
+        let sumElite = 0;
+        let sumDeath = 0;
+        let sumDamage = 0;
+
+        // 3. Process each player
+        for (let i = 1; i <= 3; i++) {
+            // Inputs
+            const kills = getVal(`p${i}-kills`);
+            const elite = getVal(`p${i}-elite`);
+            const death = getVal(`p${i}-death`);
+            const damage = getVal(`p${i}-damage`);
+
+            // Add to totals
+            sumKills += kills;
+            sumElite += elite;
+            sumDeath += death;
+            sumDamage += damage;
+
+            // Calculate Base Score: (Kills * Mod) + (Elite * Mod) + (Obj_Status * Mod)
+            const baseScore = (kills * modKills) + (elite * modElite) + (globalObj * modObj);
+
+            // Calculate Modifier Score: (Death * Mod) + (Damage * Mod) + (Gene_Status * Mod) + (Armoury_Count * Mod)
+            const modifierScore = (death * modDeath) + (damage * modDamage) + (globalGene * modGene) + (globalArmoury * modArmoury);
+
+            // Total Score
+            const totalScore = Math.round(baseScore + modifierScore);
+
+            // Update DOM for Player
+            setTxt(`p${i}-base`, Math.round(baseScore * 10) / 10); 
+            setTxt(`p${i}-mod`, parseFloat(modifierScore.toFixed(1))); 
+            setTxt(`p${i}-final`, totalScore);
+        }
+
+        // 4. Calculate and Update Total Column
+        setTxt('total-kills', sumKills);
+        setTxt('total-elite', sumElite);
+        setTxt('total-death', sumDeath);
+        setTxt('total-damage', sumDamage);
+
+        // Calculate Total Column Scores
+        // Total Base: (SumKills * Mod) + (SumElite * Mod) + (GlobalObj * Mod) 
+        // Note: Global Objectives are applied once to the team total calculation based on original logic
+        const totalBaseScore = (sumKills * modKills) + (sumElite * modElite) + (globalObj * modObj);
+
+        // Total Mod Score: (SumDeath * Mod) + (SumDamage * Mod) + (GlobalGene * Mod) + (GlobalArmoury * Mod)
+        const totalModifierScore = (sumDeath * modDeath) + (sumDamage * modDamage) + (globalGene * modGene) + (globalArmoury * modArmoury);
+
+        // Final Total
+        const finalTotalScore = Math.round(totalBaseScore + totalModifierScore);
+
+        // Update DOM for Total Column
+        setTxt('total-base', Math.round(totalBaseScore * 10) / 10);
+        setTxt('total-mod', parseFloat(totalModifierScore.toFixed(1)));
+        setTxt('total-final', finalTotalScore);
+    }// Initialize
+    calculate();
+</script>
+
+<!-- Service Worker Registration -->
+<script>
+    if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+            navigator.serviceWorker.register('/service-worker.js')
+                .then(registration => {
+                    console.log('Service Worker registered! Scope:', registration.scope);
+                })
+                .catch(err => {
+                    console.log('Service Worker registration failed:', err);
+                });
+        });
+    }
+</script>
+
+</body>
+</html>
