@@ -16,7 +16,6 @@
             --panel-bg: #0c140c;
             --border-color: #1f3a1f;
         }
-
         body {
             background-color: #000;
             color: var(--pip-green);
@@ -57,7 +56,6 @@
             background-size: 100% 2px, 3px 100%;
             pointer-events: none;
         }
-
         h1, h2, h3 {
             text-transform: uppercase;
             text-align: center;
@@ -187,7 +185,6 @@
             width: 180px; /* Fixed width for labels */
             background-color: #000; /* Darker background for labels */
         }
-
         .input-cell {
             width: 120px; /* Fixed width for input cells */
         }
@@ -242,7 +239,8 @@
         /* Style for disabled/hidden placeholder option */
         select option[disabled][selected][hidden] {
             color: rgba(0, 255, 0, 0.5); /* Lighter green for placeholder */
-        }/* Export Buttons Container */
+        }
+        /* Export Buttons Container */
         .export-buttons-container {
             display: flex;
             flex-wrap: wrap; /* Allow buttons to wrap on smaller screens */
@@ -414,7 +412,7 @@
     <div class="header-decor">
         <div>
             <div>REF: SM-2/CRUSADE</div>
-            <div style="font-size: 0.8em; opacity: 0.7;">V 0.4.23 - ADEPTUS ADMINISTRATUM</div>
+            <div style="font-size: 0.8em; opacity: 0.7;">V 0.4.25 - ADEPTUS ADMINISTRATUM</div>
         </div>
         <h1>Mission Debrief</h1>
         <div>DAT: M42.024</div>
@@ -461,7 +459,7 @@
             <!-- NEW: Mission Played input field -->
             <div class="mission-params">
                 <label for="mission-name">Mission Played</label>
-                <input type="text" id="mission-name" value="" placeholder="e.g. Inferno, Siege ...">
+                <input type="text" id="mission-name" value="" placeholder="e.g., Hive City Infiltration">
             </div>
             <!-- NEW: Difficulty dropdown-menu -->
             <div class="mission-params">
@@ -632,66 +630,69 @@
         const modArmoury = getVal('mod-armoury');
         const modObj = getVal('mod-obj');
 
-        // 2. Get Global statuses
-        // Note: Modified to handle empty string from placeholder option
+        // 2. Get Global statuses (handling empty string from placeholder)
         const globalObj = document.getElementById('global-objective').value === "" ? 0 : getVal('global-objective');
         const globalGene = document.getElementById('global-geneseed').value === "" ? 0 : getVal('global-geneseed');
         const globalArmoury = document.getElementById('global-armoury').value === "" ? 0 : getVal('global-armoury');
         
-        // Initialize Total Accumulators
+        // Initialize Total Accumulators for individual stats (for the TOTAL column)
         let sumKills = 0;
         let sumElite = 0;
         let sumDeath = 0;
         let sumDamage = 0;
-        let sumBaseScore = 0;
-        let sumModifierScore = 0;
 
-        // 3. Process each player
+        // --- Calculate for each player and accumulate individual sums for the total column ---
         for (let i = 1; i <= 3; i++) {
-            // Inputs
+            // Player Inputs
             const kills = getVal(`p${i}-kills`);
             const elite = getVal(`p${i}-elite`);
             const death = getVal(`p${i}-death`);
             const damage = getVal(`p${i}-damage`);
 
-            // Add to totals
+            // Accumulate individual stats for the TOTAL column
             sumKills += kills;
             sumElite += elite;
             sumDeath += death;
             sumDamage += damage;
 
-            // Calculate Base Score: (Kills * Mod) + (Elite * Mod) + (Obj_Status * Mod)
-            const baseScore = (kills * modKills) + (elite * modElite) + (globalObj * modObj);
+            // Calculate Player's Base Score (individual kills + global objective)
+            const playerBaseScore = (kills * modKills) + (elite * modElite) + (globalObj * modObj);
 
-            // Calculate Modifier Score: (Death * Mod) + (Damage * Mod) + (Gene_Status * Mod) + (Armoury_Count * Mod)
-            const modifierScore = (death * modDeath) + (damage * modDamage) + (globalGene * modGene) + (globalArmoury * modArmoury);
+            // Calculate Player's Modifier Score (individual death/damage + global geneseed/armoury)
+            const playerModifierScore = (death * modDeath) + (damage * modDamage) + (globalGene * modGene) + (globalArmoury * modArmoury);
 
-            // Total Score
-            const totalScore = Math.round(baseScore + modifierScore);
-
-            // Accumulate for overall totals
-            sumBaseScore += baseScore;
-            sumModifierScore += modifierScore;
+            // Calculate Player's Final Score
+            const playerFinalScore = Math.round(playerBaseScore + playerModifierScore);
 
             // Update DOM for Player
-            setTxt(`p${i}-base`, Math.round(baseScore * 10) / 10); 
-            setTxt(`p${i}-mod`, parseFloat(modifierScore.toFixed(1))); 
-            setTxt(`p${i}-final`, totalScore);
+            setTxt(`p${i}-base`, Math.round(playerBaseScore * 10) / 10); 
+            setTxt(`p${i}-mod`, parseFloat(playerModifierScore.toFixed(1))); 
+            setTxt(`p${i}-final`, playerFinalScore);
         }
         
-        // 4. Calculate and Update Total Column
+        // --- Calculate and Update Total Column (ensuring global objectives are counted ONCE for the total) ---
+
+        // Update total individual stats
         setTxt('total-kills', sumKills);
         setTxt('total-elite', sumElite);
         setTxt('total-death', sumDeath);
         setTxt('total-damage', sumDamage);
 
-        // Total Column Scores are now simply the accumulated sums
-        const finalTotalScore = Math.round(sumBaseScore + sumModifierScore);
+        // Calculate TOTAL Base Score for the squad
+        // This is the sum of all individual kill-based scores PLUS the global objective score ONCE
+        const totalSquadBaseScore = (sumKills * modKills) + (sumElite * modElite) + (globalObj * modObj);
+
+        // Calculate TOTAL Modifier Score for the squad
+        // This is the sum of all individual death/damage-based scores PLUS the global geneseed/armoury scores ONCE
+        const totalSquadModifierScore = (sumDeath * modDeath) + (sumDamage * modDamage) + (globalGene * modGene) + (globalArmoury * modArmoury);
+
+        // Calculate TOTAL Final Score for the squad
+        const totalSquadFinalScore = Math.round(totalSquadBaseScore + totalSquadModifierScore);
 
         // Update DOM for Total Column
-        setTxt('total-base', Math.round(sumBaseScore * 10) / 10);
-        setTxt('total-mod', parseFloat(sumModifierScore.toFixed(1)));
-        setTxt('total-final', finalTotalScore);
+        setTxt('total-base', Math.round(totalSquadBaseScore * 10) / 10);
+        setTxt('total-mod', parseFloat(totalSquadModifierScore.toFixed(1)));
+        setTxt('total-final', totalSquadFinalScore);
     }
     
     // Function to export table data to CSV
