@@ -236,7 +236,132 @@
         select option[disabled][selected][hidden] {
             color: rgba(0, 255, 0, 0.5); /* Lighter green for placeholder */
         }
+        /* --- Responsive Design Adjustments --- */
+        @media (max-width: 768px) {
+            body {
+                padding: 10px; /* Reduce overall padding */
+            }
 
+            .cogitator-frame {
+                padding: 10px; /* Reduce frame padding */
+                border-width: 2px; /* Thinner border */
+                box-shadow: 0 0 10px rgba(51, 255, 0, 0.2), inset 0 0 25px rgba(0,0,0,0.8);
+            }
+
+            .header-decor {
+                flex-direction: column; /* Stack items vertically */
+                align-items: center; /* Center items */
+                text-align: center;
+                margin-bottom: 10px;
+            }
+
+            .header-decor > div {
+                margin-bottom: 5px; /* Add some space between stacked header elements */
+            }
+
+            h1 {
+                font-size: 1.5em; /* Smaller mission debrief title */
+            }
+
+            input, select {
+                font-size: 1rem; /* Smaller font size for inputs/selects */
+                padding: 1px;
+            }
+
+            .section {
+                padding: 10px; /* Reduce section padding */
+                margin-bottom: 15px; /* Adjust margin */
+            }
+
+            /* Modifiers Grid */
+            .modifier-grid {
+                /* Auto-fit items into available space, minimum 100px. Can result in 2 or 3 columns depending on screen. */
+                grid-template-columns: repeat(auto-fit, minmax(100px, 1fr)); 
+                gap: 5px; /* Reduce gap */
+            }
+            /* Make the 'MODIFIERS' label span all columns and center it */
+            .modifier-grid div:first-child { 
+                grid-column: 1 / -1; 
+                text-align: center !important;
+                margin-bottom: 5px;
+            }
+
+            /* Mission Info Area (Dropdowns + Description) */
+            .mission-info-area {
+                grid-template-columns: 1fr; /* Stack dropdowns and description vertically */
+                gap: 15px; /* Space between stacked sections */
+            }
+            .mission-info-area .section {
+                margin-bottom: 0; /* No extra margin for the inner section */
+            }
+
+            /* Mission Params (individual dropdowns) */
+            .mission-params {
+                grid-template-columns: 1fr; /* Stack label and select vertically */
+                gap: 2px; /* Reduce gap */
+                margin-bottom: 8px; /* Reduce margin */
+                font-size: 1rem;
+            }
+            .mission-params label {
+                text-align: left; /* Align labels left when stacked */
+                margin-bottom: 2px;
+            }
+            
+            /* App Description */
+            .app-description {
+                font-size: 1rem;
+            }
+
+            /* Score Table - Handle horizontal scrolling for wide content */
+            /* This div will be added to your HTML to wrap the table */
+            .score-table-container {
+                overflow-x: auto; /* Enable horizontal scrolling */
+                -webkit-overflow-scrolling: touch; /* Smoother scrolling on iOS */
+            }
+
+            .score-table {
+                min-width: 600px; /* Ensures the table is at least this wide, forcing scroll if container is smaller */
+                width: max-content; /* Allows the table to be wider than its container */
+            }
+
+            .score-table th, .score-table td {
+                padding: 5px; /* Smaller padding in table cells */
+            }
+
+            .row-label {
+                width: 120px; /* Make row labels smaller */
+                padding-right: 5px !important;
+                font-size: 0.9em;
+            }
+
+            .input-cell {
+                width: 90px; /* Make input cells smaller */
+            }
+            .total-cell {
+                width: 90px;
+            }
+
+            .score-table th input[type="text"] { /* Player name inputs */
+                font-size: 0.9rem;
+                padding: 1px;
+            }
+
+            .base-score-row td, .mod-score-row td, .final-score-row td {
+                padding-top: 8px;
+                padding-bottom: 8px;
+                font-size: 1.2rem; /* Slightly smaller for total row */
+            }
+        }
+
+        /* Further adjustments for very small screens (e.g., typical smartphone portrait) */
+        @media (max-width: 480px) {
+            .modifier-grid {
+                grid-template-columns: 1fr; /* Stack all modifiers vertically */
+            }
+            .modifier-grid div:first-child { /* The 'MODIFIERS' label */
+                grid-column: auto; /* Reset grid-column to normal flow */
+            }
+        }
     </style>
 </head>
 <body>
@@ -330,8 +455,9 @@
     </div>
 
     <!-- Main Data Table (Squadron Performance Matrix) -->
-    <div class="section" style="margin-bottom: 0;"> <!-- Last section, no bottom margin -->
+    <div class="section" style="margin-bottom<div class="section" style="margin-bottom: 0;"> <!-- Last section, no bottom margin -->
         <div class="section-header">SQUADRON PERFORMANCE MATRIX</div>
+        <div class="score-table-container"> <!-- ADD THIS WRAPPER -->
         <table class="score-table">
             <thead>
                 <tr>
@@ -407,7 +533,8 @@
                 </tr>
 
             </tbody>
-        </table>
+            </table>
+        </div> <!-- END OF WRAPPER -->
     </div>
 </div>
 
