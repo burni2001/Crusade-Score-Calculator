@@ -33,9 +33,7 @@
                 transparent 1px,
                 transparent 2px
             );
-        }
-
-        /* CRT Screen Effect */
+        }/* CRT Screen Effect */
         .cogitator-frame {
             width: 100%;
             max-width: 1100px;
@@ -44,6 +42,10 @@
             box-shadow: 0 0 20px rgba(51, 255, 0, 0.2), inset 0 0 50px rgba(0,0,0,0.8);
             padding: 20px;
             position: relative;
+            /* Added display flex and flex-direction column to stack direct children */
+            display: flex;
+            flex-direction: column;
+            gap: 20px; /* Spacing between main sections */
         }.cogitator-frame::before {
             content: " ";
             display: block;
@@ -73,9 +75,8 @@
             display: flex;
             justify-content: space-between;
             align-items: flex-end;
-        }
-
-        /* Inputs and Selects Styling */
+            flex-shrink: 0; /* Prevent shrinking if content is too large */
+        }/* Inputs and Selects Styling */
         input, select {
             background-color: #000;
             color: var(--pip-green);
@@ -97,7 +98,7 @@
             background-color: rgba(20, 40, 20, 0.3);
             border: 1px solid var(--border-color);
             padding: 15px;
-            margin-bottom: 20px;
+            /* margin-bottom: 20px; Removed as cogitator-frame gap handles this */
         }
 
         /* Modifier Grid */
@@ -118,10 +119,13 @@
         /* Mission Parameters (Dropdowns) */
         .mission-params {
             display: grid;
-            grid-template-columns: 200px 100px;
+            grid-template-columns: 200px 1fr; /* Adjusted for better label/select alignment */
             gap: 10px;
             margin-bottom: 10px;
             align-items: center;
+        }
+        .mission-params:last-child {
+            margin-bottom: 0; /* Remove bottom margin for the last one */
         }
 
         /* Main Score Table */
@@ -173,9 +177,7 @@
             text-align: center;
             margin-bottom: 15px;
             border: 1px solid var(--pip-green);
-        }
-
-        /* Specific Rows styling based on screenshot logic */
+        }/* Specific Rows styling based on screenshot logic */
         .base-score-row td, .mod-score-row td {
             font-weight: bold;
             text-align: center;
@@ -202,10 +204,33 @@
             -moz-appearance: textfield;
         }
 
+        /* NEW STYLES FOR LAYOUT */
+        .mission-info-area {
+            display: grid;
+            grid-template-columns: minmax(300px, 400px) 1fr; /* Fixed width for dropdowns, 1fr for description */
+            gap: 20px; /* Space between the dropdown box and description text */
+            align-items: start; /* Align content to the top of each grid item */
+        }
+
+        .app-description {
+            /* No background or border as it's outside a .section */
+            padding: 15px 0; /* Vertical padding, no horizontal as grid handles it */
+            font-size: 0.95em;
+            opacity: 0.8;
+            line-height: 1.4;
+            text-align: left;
+            margin-top: 5px; /* Adjust vertical alignment with dropdown box */
+        }
+        /* End NEW STYLES */
+
+        /* Specific style for hidden/disabled placeholder option */
+        select option[disabled][selected][hidden] {
+            color: rgba(51, 255, 0, 0.5); /* Dim green for placeholder */
+        }
+
     </style>
 </head>
 <body>
-
 <div class="cogitator-frame">
     <div class="header-decor">
         <div>
@@ -214,7 +239,9 @@
         </div>
         <h1>Mission Debrief</h1>
         <div>DAT: M42.024</div>
-    </div><!-- Modifiers Section -->
+    </div>
+
+    <!-- Modifiers Section -->
     <div class="section">
         <div class="modifier-grid">
             <div style="text-align: left; font-weight: bold;">MODIFIERS</div>
@@ -248,32 +275,50 @@
                 <input type="number" id="mod-obj" value="100" onchange="calculate()">
             </div>
         </div>
-    </div><!-- Global Toggles Section -->
-    <div class="section" style="width: 350px;">
-        <div class="mission-params">
-            <label>Objective Completion</label>
-            <select id="global-objective" onchange="calculate()">
-                <option value="0" selected>No</option>
-                <option value="1">Yes</option>
-            </select>
+    </div>
+
+    <!-- Mission Info Area: Dropdowns (left) and Description (right) -->
+    <div class="mission-info-area">
+        <!-- Global Toggles Section (now explicitly without fixed width, controlled by grid) -->
+        <div class="section">
+            <div class="mission-params">
+                <label>Objective Completion</label>
+                <select id="global-objective" onchange="calculate()">
+                    <option value="" disabled selected hidden>No</option> <!-- Placeholder -->
+                    <option value="0">No</option>
+                    <option value="1">Yes</option>
+                </select>
+            </div>
+            <div class="mission-params">
+                <label>Geneseed Retrieved</label>
+                <select id="global-geneseed" onchange="calculate()">
+                    <option value="" disabled selected hidden>No</option> <!-- Placeholder -->
+                    <option value="0">No</option>
+                    <option value="1">Yes</option>
+                </select>
+            </div>
+            <div class="mission-params">
+                <label>Armoury Data Retrieved</label>
+                <select id="global-armoury" onchange="calculate()">
+                    <option value="" disabled selected hidden>0</option> <!-- Placeholder -->
+                    <option value="0">0</option>
+                    <option value="1">1</option>
+                    <option value="2">2</option>
+                    <option value="3">3</option>
+                </select>
+            </div>
         </div>
-        <div class="mission-params">
-            <label>Geneseed Retrieved</label>
-            <select id="global-geneseed" onchange="calculate()">
-                <option value="0" selected>No</option>
-                <option value="1">Yes</option>
-            </select>
+
+        <!-- How-to-use description text -->
+        <div class="app-description">
+            Welcome, Brothers and Sisters! Use this debriefing tool to calculate your mission scores.
+            First, select the Mission Parameters to the left. Then, enter your mission statistics
+            (Kills, Deaths, etc.) below. The Modifier section allows customization of score values
+            if necessary. Ensure all fields are filled for an accurate debrief. Glory to the Imperium!
         </div>
-        <div class="mission-params">
-            <label>Armoury Data Retrieved</label>
-            <select id="global-armoury" onchange="calculate()">
-                <option value="0" selected>0</option>
-                <option value="1">1</option>
-                <option value="2">2</option>
-                <option value="3">3</option>
-            </select>
-        </div>
-    </div><!-- Main Data Table -->
+    </div>
+
+    <!-- Main Data Table (Squadron Performance Matrix) -->
     <div class="section">
         <div class="section-header">SQUADRON PERFORMANCE MATRIX</div>
         <table class="score-table">
@@ -337,9 +382,7 @@
                     <td id="p3-mod"></td>
                     <td id="total-mod"></td>
                 </tr><!-- Spacer -->
-                 <tr style="height: 10px;"></tr>
-
-                <!-- TOTAL SCORE -->
+                 <tr style="height: 10px;"></tr><!-- TOTAL SCORE -->
                 <tr class="final-score-row">
                     <td class="row-label" style="color: #afffa6;">TOTAL SCORE</td>
                     <td id="p1-final"></td>
@@ -376,7 +419,10 @@
         const modDamage = getVal('mod-damage');
         const modGene = getVal('mod-gene');
         const modArmoury = getVal('mod-armoury');
-        const modObj = getVal('mod-obj');// 2. Get Global statuses
+        const modObj = getVal('mod-obj');
+
+        // 2. Get Global statuses
+        // These will correctly return 0 if the placeholder is selected due to getVal's logic (parseFloat("") is NaN, which returns 0)
         const globalObj = getVal('global-objective');
         const globalGene = getVal('global-geneseed');
         const globalArmoury = getVal('global-armoury');
@@ -437,11 +483,11 @@
         setTxt('total-base', Math.round(totalBaseScore * 10) / 10);
         setTxt('total-mod', parseFloat(totalModifierScore.toFixed(1)));
         setTxt('total-final', finalTotalScore);
-    }// Initialize
+    }
+    
+    // Initialize
     calculate();
-</script>
-
-<!-- Service Worker Registration -->
+</script><!-- Service Worker Registration -->
 <script>
     if ('serviceWorker' in navigator) {
         window.addEventListener('load', () => {
