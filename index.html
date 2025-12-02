@@ -33,7 +33,9 @@
                 transparent 1px,
                 transparent 2px
             );
-        }/* CRT Screen Effect */
+        }
+
+        /* CRT Screen Effect */
         .cogitator-frame {
             width: 100%;
             max-width: 1100px;
@@ -42,11 +44,8 @@
             box-shadow: 0 0 20px rgba(51, 255, 0, 0.2), inset 0 0 50px rgba(0,0,0,0.8);
             padding: 20px;
             position: relative;
-            /* Added display flex and flex-direction column to stack direct children */
-            display: flex;
-            flex-direction: column;
-            gap: 20px; /* Spacing between main sections */
-        }.cogitator-frame::before {
+        }
+        .cogitator-frame::before {
             content: " ";
             display: block;
             position: absolute;
@@ -75,8 +74,9 @@
             display: flex;
             justify-content: space-between;
             align-items: flex-end;
-            flex-shrink: 0; /* Prevent shrinking if content is too large */
-        }/* Inputs and Selects Styling */
+        }
+
+        /* Inputs and Selects Styling */
         input, select {
             background-color: #000;
             color: var(--pip-green);
@@ -87,7 +87,8 @@
             padding: 2px;
             width: 100%;
             box-sizing: border-box;
-        }input:focus, select:focus {
+        }
+        input:focus, select:focus {
             outline: none;
             box-shadow: 0 0 8px var(--pip-green);
             background-color: #0f240f;
@@ -98,7 +99,7 @@
             background-color: rgba(20, 40, 20, 0.3);
             border: 1px solid var(--border-color);
             padding: 15px;
-            /* margin-bottom: 20px; Removed as cogitator-frame gap handles this */
+            margin-bottom: 20px;
         }
 
         /* Modifier Grid */
@@ -116,17 +117,36 @@
             opacity: 0.8;
         }
 
-        /* Mission Parameters (Dropdowns) */
+        /* Global Toggles (Dropdowns) styling inside .section */
+        /* To make labels and selects align */
         .mission-params {
             display: grid;
-            grid-template-columns: 200px 1fr; /* Adjusted for better label/select alignment */
+            grid-template-columns: 200px 100px; /* Label width, Select width */
             gap: 10px;
             margin-bottom: 10px;
-            align-items: center;
+            align-items: center; /* Vertically align label and select */
+            font-size: 1.1rem;
         }
-        .mission-params:last-child {
-            margin-bottom: 0; /* Remove bottom margin for the last one */
+
+        /* NEW: Container for Dropdowns and Description (side-by-side) */
+        .mission-info-area {
+            display: grid;
+            grid-template-columns: 1fr 2fr; /* Dropdowns (smaller) and Description (larger) */
+            gap: 20px; /* Space between the two columns */
+            margin-bottom: 20px;
         }
+
+        /* NEW: Styling for the description text area */
+        .app-description {
+            background-color: rgba(20, 40, 20, 0.3);
+            border: 1px solid var(--border-color);
+            padding: 15px;
+            line-height: 1.5; /* Readability */
+            font-size: 1.1rem;
+            text-align: left;
+            overflow-y: auto; /* In case text is too long */
+        }
+
 
         /* Main Score Table */
         .score-table {
@@ -140,7 +160,8 @@
             padding: 10px;
             background-color: #000;
             border: 1px solid var(--pip-dim);
-        }/* Specific style for empty header to remove it visually */
+        }
+        /* Specific style for empty header to remove it visually */
         .score-table th.empty-header {
             background-color: transparent;
             border: none;
@@ -177,13 +198,15 @@
             text-align: center;
             margin-bottom: 15px;
             border: 1px solid var(--pip-green);
-        }/* Specific Rows styling based on screenshot logic */
+        }
+        /* Specific Rows styling based on screenshot logic */
         .base-score-row td, .mod-score-row td {
             font-weight: bold;
             text-align: center;
             padding-top: 15px;
             padding-bottom: 15px;
-        }.final-score-row td {
+        }
+        .final-score-row td {
             border-top: 2px solid var(--pip-green);
             border-bottom: 2px double var(--pip-green);
             font-size: 1.5rem;
@@ -203,29 +226,15 @@
         input[type=number] {
             -moz-appearance: textfield;
         }
-
-        /* NEW STYLES FOR LAYOUT */
-        .mission-info-area {
-            display: grid;
-            grid-template-columns: minmax(300px, 400px) 1fr; /* Fixed width for dropdowns, 1fr for description */
-            gap: 20px; /* Space between the dropdown box and description text */
-            align-items: start; /* Align content to the top of each grid item */
+        
+        /* Styling for selected options in dropdowns */
+        select option {
+            background-color: #000; /* Dark background for dropdown options */
+            color: #0f0; /* Green text for options */
         }
-
-        .app-description {
-            /* No background or border as it's outside a .section */
-            padding: 15px 0; /* Vertical padding, no horizontal as grid handles it */
-            font-size: 0.95em;
-            opacity: 0.8;
-            line-height: 1.4;
-            text-align: left;
-            margin-top: 5px; /* Adjust vertical alignment with dropdown box */
-        }
-        /* End NEW STYLES */
-
-        /* Specific style for hidden/disabled placeholder option */
+        /* Style for disabled/hidden placeholder option */
         select option[disabled][selected][hidden] {
-            color: rgba(51, 255, 0, 0.5); /* Dim green for placeholder */
+            color: rgba(0, 255, 0, 0.5); /* Lighter green for placeholder */
         }
 
     </style>
@@ -277,14 +286,14 @@
         </div>
     </div>
 
-    <!-- Mission Info Area: Dropdowns (left) and Description (right) -->
+    <!-- NEW: Mission Info Area: Dropdowns (left) and Description (right) -->
     <div class="mission-info-area">
-        <!-- Global Toggles Section (now explicitly without fixed width, controlled by grid) -->
-        <div class="section">
+        <!-- Global Toggles Section (your dropdowns) -->
+        <div class="section" style="margin-bottom: 0;"> <!-- Remove bottom margin as parent handles spacing -->
             <div class="mission-params">
                 <label>Objective Completion</label>
                 <select id="global-objective" onchange="calculate()">
-                    <option value="" disabled selected hidden>No</option> <!-- Placeholder -->
+                    <option value="" disabled selected hidden>Select</option> <!-- Placeholder -->
                     <option value="0">No</option>
                     <option value="1">Yes</option>
                 </select>
@@ -292,7 +301,7 @@
             <div class="mission-params">
                 <label>Geneseed Retrieved</label>
                 <select id="global-geneseed" onchange="calculate()">
-                    <option value="" disabled selected hidden>No</option> <!-- Placeholder -->
+                    <option value="" disabled selected hidden>Select</option> <!-- Placeholder -->
                     <option value="0">No</option>
                     <option value="1">Yes</option>
                 </select>
@@ -300,7 +309,7 @@
             <div class="mission-params">
                 <label>Armoury Data Retrieved</label>
                 <select id="global-armoury" onchange="calculate()">
-                    <option value="" disabled selected hidden>0</option> <!-- Placeholder -->
+                    <option value="" disabled selected hidden>Select</option> <!-- Placeholder -->
                     <option value="0">0</option>
                     <option value="1">1</option>
                     <option value="2">2</option>
@@ -309,17 +318,19 @@
             </div>
         </div>
 
-        <!-- How-to-use description text -->
+        <!-- THIS IS WHERE YOU WRITE YOUR DESCRIPTION TEXT! -->
         <div class="app-description">
             Welcome, Brothers and Sisters! Use this debriefing tool to calculate your mission scores.
-            First, select the Mission Parameters to the left. Then, enter your mission statistics
+            Select the Mission parameters. Enter your mission statistics
             (Kills, Deaths, etc.) below. The Modifier section allows customization of score values
-            if necessary. Ensure all fields are filled for an accurate debrief. Glory to the Imperium!
+            if necessary. Ensure all fields are filled for an accurate debrief.
+            <br><br>
+            *Glory to the Imperium!*
         </div>
     </div>
 
     <!-- Main Data Table (Squadron Performance Matrix) -->
-    <div class="section">
+    <div class="section" style="margin-bottom: 0;"> <!-- Last section, no bottom margin -->
         <div class="section-header">SQUADRON PERFORMANCE MATRIX</div>
         <table class="score-table">
             <thead>
@@ -356,8 +367,10 @@
                     <td id="p2-base"></td>
                     <td id="p3-base"></td>
                     <td id="total-base"></td>
-                </tr><!-- Spacer -->
-                <tr style="height: 20px;"></tr><!-- Deaths -->
+                </tr>
+                <!-- Spacer -->
+                <tr style="height: 20px;"></tr>
+                <!-- Deaths -->
                 <tr>
                     <td class="row-label">Deaths</td>
                     <td class="input-cell"><input type="number" class="p1-input" id="p1-death" value="" onchange="calculate()"></td>
@@ -381,8 +394,10 @@
                     <td id="p2-mod"></td>
                     <td id="p3-mod"></td>
                     <td id="total-mod"></td>
-                </tr><!-- Spacer -->
-                 <tr style="height: 10px;"></tr><!-- TOTAL SCORE -->
+                </tr>
+                <!-- Spacer -->
+                 <tr style="height: 10px;"></tr>
+                <!-- TOTAL SCORE -->
                 <tr class="final-score-row">
                     <td class="row-label" style="color: #afffa6;">TOTAL SCORE</td>
                     <td id="p1-final"></td>
@@ -422,10 +437,10 @@
         const modObj = getVal('mod-obj');
 
         // 2. Get Global statuses
-        // These will correctly return 0 if the placeholder is selected due to getVal's logic (parseFloat("") is NaN, which returns 0)
-        const globalObj = getVal('global-objective');
-        const globalGene = getVal('global-geneseed');
-        const globalArmoury = getVal('global-armoury');
+        // Note: Modified to handle empty string from placeholder option
+        const globalObj = document.getElementById('global-objective').value === "" ? 0 : getVal('global-objective');
+        const globalGene = document.getElementById('global-geneseed').value === "" ? 0 : getVal('global-geneseed');
+        const globalArmoury = document.getElementById('global-armoury').value === "" ? 0 : getVal('global-armoury');
 
         // Initialize Total Accumulators
         let sumKills = 0;
@@ -487,7 +502,9 @@
     
     // Initialize
     calculate();
-</script><!-- Service Worker Registration -->
+</script>
+
+<!-- Service Worker Registration -->
 <script>
     if ('serviceWorker' in navigator) {
         window.addEventListener('load', () => {
