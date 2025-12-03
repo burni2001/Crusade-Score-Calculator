@@ -547,7 +547,7 @@
                 <div>
                     <div>REF: SM-2/CRUSADE</div>
                     <div style="font-size: 0.8em; opacity: 0.7">
-                        V 0.5.44 - ADEPTUS ADMINISTRATUM
+                        V 0.5.45 - ADEPTUS ADMINISTRATUM
                     </div>
                 </div>
                 <h1>Mission Debrief</h1>
@@ -1257,12 +1257,17 @@
                     const cleanLine = line.replace(/\[.*?\]/g, '').trim();
                     const lineUpper = cleanLine.toUpperCase();
                     
-                    // Check if this line contains a class name
+                    // Check if this line contains a class name (but not "CLASS MAX" level indicators)
                     let foundClass = null;
                     for (const [pattern, className] of Object.entries(classMapping)) {
                         // Match if the pattern appears as a word
                         const regex = new RegExp('\\b' + pattern, 'i');
                         if (regex.test(lineUpper)) {
+                            // Skip if this is a level indicator like "Bulwark MAX" or "Bulwark 6"
+                            const levelIndicator = new RegExp(pattern + '\\s*(MAX|\\d+)', 'i');
+                            if (levelIndicator.test(lineUpper)) {
+                                continue; // Skip this, it's a class level not a player header
+                            }
                             foundClass = className;
                             break;
                         }
