@@ -424,6 +424,48 @@
                 width: 80px;
             }
 
+            .ocr-section {
+                background-color: rgba(0, 40, 0, 0.3);
+                border: 1px solid var(--border-color);
+                border-radius: 4px;
+                padding: 10px;
+                margin-bottom: 10px;
+            }
+
+            .ocr-section-title {
+                color: #afffa6;
+                font-size: 18px;
+                font-weight: bold;
+                margin-bottom: 8px;
+                padding-bottom: 5px;
+                border-bottom: 1px solid var(--border-color);
+            }
+
+            .ocr-player-section .ocr-detected-item {
+                margin-bottom: 5px;
+            }
+
+            .ocr-stats-row {
+                display: grid;
+                grid-template-columns: repeat(4, 1fr);
+                gap: 8px;
+                margin-top: 8px;
+            }
+
+            .ocr-stats-row .ocr-detected-item {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 2px;
+            }
+
+            .ocr-stats-row .ocr-detected-label {
+                font-size: 12px;
+            }
+
+            .ocr-stats-row .ocr-input[type="number"] {
+                width: 100%;
+            }
+
             .ocr-modal-buttons {
                 display: flex;
                 gap: 15px;
@@ -576,7 +618,7 @@
                 <div>
                     <div>REF: SM-2/CRUSADE</div>
                     <div style="font-size: 0.8em; opacity: 0.7">
-                        V 0.5.52 - ADEPTUS ADMINISTRATUM
+                        V 0.5.53 - ADEPTUS ADMINISTRATUM
                     </div>
                 </div>
                 <h1>Mission Debrief</h1>
@@ -1560,51 +1602,19 @@
                 // Display raw text
                 rawTextDiv.textContent = rawOCRText || "No text detected";
 
-                // Build detected values grid - organized by category
-                const fieldLabels = {
-                    "mission-name": "Mission",
-                    "mission-difficulty": "Difficulty",
-                    "global-objective": "Objective Complete",
-                    "global-geneseed": "Geneseed Retrieved",
-                    "global-armoury": "Armoury Data",
-                    "p1-name": "Player 1 Name",
-                    "p1-class": "P1 Class",
-                    "p1-kills": "P1 Kills",
-                    "p1-elite": "P1 Elite Kills",
-                    "p1-death": "P1 Deaths",
-                    "p1-damage": "P1 Damage",
-                    "p2-name": "Player 2 Name",
-                    "p2-class": "P2 Class",
-                    "p2-kills": "P2 Kills",
-                    "p2-elite": "P2 Elite Kills",
-                    "p2-death": "P2 Deaths",
-                    "p2-damage": "P2 Damage",
-                    "p3-name": "Player 3 Name",
-                    "p3-class": "P3 Class",
-                    "p3-kills": "P3 Kills",
-                    "p3-elite": "P3 Elite Kills",
-                    "p3-death": "P3 Deaths",
-                    "p3-damage": "P3 Damage",
-                };
-
-                let gridHTML = "";
-                for (const [key, label] of Object.entries(fieldLabels)) {
+                // Helper to create input HTML
+                function createInput(key, type, label) {
                     const value = pendingOCRResults[key];
                     const hasValue = value !== undefined && value !== "";
                     let displayValue = hasValue ? value : "";
                     
-                    // Format special values for display
+                    // Format special values
                     if (key === "global-objective" && value === "1") displayValue = "Yes";
                     if (key === "global-geneseed" && value === "1") displayValue = "Yes";
                     if (key === "global-geneseed" && value === "0") displayValue = "No";
 
-                    // Determine input type based on field
-                    const isClassField = key.includes("-class");
-                    const isNumericField = key.includes("-kills") || key.includes("-elite") || key.includes("-death") || key.includes("-damage") || key === "global-armoury";
-                    const isSelectField = key === "global-objective" || key === "global-geneseed";
-                    
                     let inputHTML = "";
-                    if (isClassField) {
+                    if (type === "class") {
                         inputHTML = `
                             <select class="ocr-input ocr-select" data-key="${key}">
                                 <option value="">- Select -</option>
@@ -1616,7 +1626,7 @@
                                 <option value="Heavy" ${displayValue === "Heavy" ? "selected" : ""}>Heavy</option>
                                 <option value="Techmarine" ${displayValue === "Techmarine" ? "selected" : ""}>Techmarine</option>
                             </select>`;
-                    } else if (isSelectField) {
+                    } else if (type === "yesno") {
                         const yesSelected = displayValue === "Yes" ? "selected" : "";
                         const noSelected = displayValue === "No" || !hasValue ? "selected" : "";
                         inputHTML = `
@@ -1624,19 +1634,45 @@
                                 <option value="0" ${noSelected}>No</option>
                                 <option value="1" ${yesSelected}>Yes</option>
                             </select>`;
-                    } else if (isNumericField) {
+                    } else if (type === "number") {
                         inputHTML = `<input type="number" class="ocr-input" data-key="${key}" value="${displayValue}" min="0" placeholder="0">`;
                     } else {
                         inputHTML = `<input type="text" class="ocr-input" data-key="${key}" value="${displayValue}" placeholder="Not detected">`;
                     }
 
-                    gridHTML += `
+                    return `
                         <div class="ocr-detected-item ${hasValue ? "" : "not-found"}">
                             <span class="ocr-detected-label">${label}:</span>
                             ${inputHTML}
                         </div>
                     `;
                 }
+
+                // Build grouped layout
+                let gridHTML = "";
+                
+                // Mission Info Section
+                gridHTML += `<div class="ocr-section"><div class="ocr-section-title">Mission Info</div>`;
+                gridHTML += createInput("mission-name", "text", "Mission");
+                gridHTML += createInput("mission-difficulty", "text", "Difficulty");
+                gridHTML += createInput("global-objective", "yesno", "Objective Complete");
+                gridHTML += createInput("global-geneseed", "yesno", "Geneseed Retrieved");
+                gridHTML += createInput("global-armoury", "number", "Armoury Data");
+                gridHTML += `</div>`;
+                
+                // Player sections
+                for (let p = 1; p <= 3; p++) {
+                    gridHTML += `<div class="ocr-section ocr-player-section"><div class="ocr-section-title">Player ${p}</div>`;
+                    gridHTML += createInput(`p${p}-name`, "text", "Name");
+                    gridHTML += createInput(`p${p}-class`, "class", "Class");
+                    gridHTML += `<div class="ocr-stats-row">`;
+                    gridHTML += createInput(`p${p}-kills`, "number", "Kills");
+                    gridHTML += createInput(`p${p}-elite`, "number", "Elite");
+                    gridHTML += createInput(`p${p}-death`, "number", "Deaths");
+                    gridHTML += createInput(`p${p}-damage`, "number", "Damage");
+                    gridHTML += `</div></div>`;
+                }
+                
                 grid.innerHTML = gridHTML;
 
                 // Show modal
