@@ -395,6 +395,35 @@
                 font-style: italic;
             }
 
+            .ocr-input {
+                background-color: #0a1f0a;
+                border: 1px solid var(--border-color);
+                color: #afffa6;
+                font-family: "VT323", monospace;
+                font-size: 16px;
+                padding: 4px 8px;
+                width: 140px;
+            }
+
+            .ocr-input:focus {
+                outline: none;
+                border-color: #afffa6;
+                box-shadow: 0 0 5px rgba(175, 255, 166, 0.3);
+            }
+
+            .ocr-input::placeholder {
+                color: #666;
+                font-style: italic;
+            }
+
+            .ocr-select {
+                cursor: pointer;
+            }
+
+            .ocr-input[type="number"] {
+                width: 80px;
+            }
+
             .ocr-modal-buttons {
                 display: flex;
                 gap: 15px;
@@ -547,7 +576,7 @@
                 <div>
                     <div>REF: SM-2/CRUSADE</div>
                     <div style="font-size: 0.8em; opacity: 0.7">
-                        V 0.5.51 - ADEPTUS ADMINISTRATUM
+                        V 0.5.52 - ADEPTUS ADMINISTRATUM
                     </div>
                 </div>
                 <h1>Mission Debrief</h1>
@@ -1292,8 +1321,31 @@
                 // Collect all found players
                 const foundPlayers = [];
                 
+                // Helper: Extract a valid player name from a line
+                function extractPlayerName(line) {
+                    // Remove brackets and clean the line
+                    const cleanLine = line.replace(/\[.*?\]/g, '').trim();
+                    
+                    // Game terms to filter out
+                    const gameTerms = /^(Kills|Special|Melee|Ranged|Damage|Items|Total|Score|Next|Status|Mission|Rewards|Character|Progress|Primary|Secondary|Objectives|Found|Taken|Revived|Incap)$/i;
+                    
+                    // Strategy A: Look for proper case names (Uppercase + lowercase)
+                    const properMatch = cleanLine.match(/\b([A-ZÄÖÜ][a-zäöüß\u00E0-\u00FF]{2,}(?:\s+[A-ZÄÖÜ]?[a-zäöüß\u00E0-\u00FF]{2,})*)\b/);
+                    if (properMatch && properMatch[1].length >= 3 && !gameTerms.test(properMatch[1])) {
+                        // Clean trailing single letters like "i" from "Zephon i"
+                        return properMatch[1].replace(/\s+[a-z]$/i, '').trim();
+                    }
+                    
+                    // Strategy B: Also accept names that might be all uppercase in OCR
+                    const capsMatch = cleanLine.match(/\b([A-ZÄÖÜ][A-Za-zäöüß\u00C0-\u00FF]{2,})\b/);
+                    if (capsMatch && capsMatch[1].length >= 3 && !gameTerms.test(capsMatch[1])) {
+                        return capsMatch[1];
+                    }
+                    
+                    return null;
+                }
+                
                 // STRATEGY 1: Look for class names with [a] or [i] markers (game UI pattern)
-                // Pattern: "ClassName [a]" or "ClassName [i]" etc.
                 for (let i = 0; i < lines.length; i++) {
                     const line = lines[i];
                     
@@ -1305,20 +1357,16 @@
                         
                         if (matchedClass && foundPlayers.length < 3) {
                             // Skip level indicators like "Bulwark MAX"
-                            if (/MAX|\d+\s*$/.test(line.substring(0, line.indexOf(markerMatch[0])))) continue;
+                            const beforeMatch = line.substring(0, line.indexOf(markerMatch[0]));
+                            if (/MAX\b/i.test(beforeMatch)) continue;
                             
-                            // Look backwards for the player name
+                            // Look backwards up to 6 lines for the player name
                             let foundName = null;
-                            for (let j = i - 1; j >= Math.max(0, i - 5); j--) {
-                                let candidateLine = lines[j].trim();
-                                candidateLine = candidateLine.replace(/\[.*?\]/g, '').trim();
-                                
-                                // Look for proper names (mixed case, not all caps)
-                                const nameMatch = candidateLine.match(/([A-ZÄÖÜ][a-zäöü\u00E0-\u00FF]+(?:\s+[A-ZÄÖÜ]?[a-zäöü\u00E0-\u00FF]+)*)/);
-                                if (nameMatch && nameMatch[1].length >= 3) {
-                                    const name = nameMatch[1];
-                                    // Filter game terms
-                                    if (!/^(Kills|Special|Melee|Ranged|Damage|Items|Total|Score|Next|Status|Mission|Rewards)$/i.test(name)) {
+                            for (let j = i - 1; j >= Math.max(0, i - 6); j--) {
+                                const name = extractPlayerName(lines[j]);
+                                if (name) {
+                                    const isDuplicate = foundPlayers.some(p => p.name === name);
+                                    if (!isDuplicate) {
                                         foundName = name;
                                         break;
                                     }
@@ -1326,42 +1374,63 @@
                             }
                             
                             if (foundName) {
-                                const isDuplicate = foundPlayers.some(p => p.name === foundName);
-                                if (!isDuplicate) {
-                                    foundPlayers.push({ name: foundName, class: formatClass(matchedClass) });
+                                foundPlayers.push({ name: foundName, class: formatClass(matchedClass) });
+                            }
+                        }
+                    }
+                }
+                
+                // STRATEGY 2: Look for name [i] pattern (player name marker)
+                if (foundPlayers.length < 3) {
+                    for (let i = 0; i < lines.length; i++) {
+                        if (foundPlayers.length >= 3) break;
+                        
+                        const line = lines[i];
+                        // Look for "Name [i]" pattern - player names often have [i] after them
+                        const nameMarkerMatch = line.match(/([A-ZÄÖÜ][a-zäöüß\u00E0-\u00FF]+(?:\s+[A-Za-zäöüß\u00E0-\u00FF]+)*)\s*\[i\]/i);
+                        if (nameMarkerMatch) {
+                            const candidateName = nameMarkerMatch[1].trim();
+                            if (candidateName.length >= 3) {
+                                // Look forward for class
+                                for (let j = i + 1; j <= Math.min(lines.length - 1, i + 3); j++) {
+                                    const classLine = lines[j];
+                                    const classMatch = classLine.match(/([A-Za-zÄÖÜäöü]{4,})\s*\[a\]/i);
+                                    if (classMatch) {
+                                        const matchedClass = matchClass(classMatch[1]);
+                                        if (matchedClass) {
+                                            const isDuplicate = foundPlayers.some(p => p.name === candidateName);
+                                            if (!isDuplicate) {
+                                                foundPlayers.push({ name: candidateName, class: formatClass(matchedClass) });
+                                            }
+                                            break;
+                                        }
+                                    }
                                 }
                             }
                         }
                     }
                 }
                 
-                // STRATEGY 2: Fallback - look for standalone class names without markers
+                // STRATEGY 3: Fallback - look for standalone class names
                 if (foundPlayers.length < 3) {
                     for (let i = 0; i < lines.length; i++) {
                         if (foundPlayers.length >= 3) break;
                         
                         const line = lines[i].trim();
-                        const lineUpper = line.toUpperCase();
+                        if (/\bMAX\b/i.test(line)) continue;
                         
-                        // Skip lines with level indicators
-                        if (/\bMAX\b|\b\d+\s*$/.test(lineUpper)) continue;
-                        
-                        // Extract words and try strict matching
+                        // Extract words and try matching
                         const words = line.match(/[A-Za-zÄÖÜäöü]{5,}/g) || [];
                         for (const word of words) {
                             const matchedClass = matchClass(word);
                             if (matchedClass) {
                                 // Look backwards for name
-                                for (let j = i - 1; j >= Math.max(0, i - 5); j--) {
-                                    let candidateLine = lines[j].trim().replace(/\[.*?\]/g, '').trim();
-                                    const nameMatch = candidateLine.match(/([A-ZÄÖÜ][a-zäöü\u00E0-\u00FF]+(?:\s+[A-ZÄÖÜ]?[a-zäöü\u00E0-\u00FF]+)*)/);
-                                    if (nameMatch && nameMatch[1].length >= 3) {
-                                        const name = nameMatch[1];
-                                        if (!/^(Kills|Special|Melee|Ranged|Damage|Items|Total|Score|Next|Status|Mission|Rewards)$/i.test(name)) {
-                                            const isDuplicate = foundPlayers.some(p => p.name === name);
-                                            if (!isDuplicate) {
-                                                foundPlayers.push({ name: name, class: formatClass(matchedClass) });
-                                            }
+                                for (let j = i - 1; j >= Math.max(0, i - 6); j--) {
+                                    const name = extractPlayerName(lines[j]);
+                                    if (name) {
+                                        const isDuplicate = foundPlayers.some(p => p.name === name);
+                                        if (!isDuplicate) {
+                                            foundPlayers.push({ name: name, class: formatClass(matchedClass) });
                                             break;
                                         }
                                     }
@@ -1522,17 +1591,49 @@
                 for (const [key, label] of Object.entries(fieldLabels)) {
                     const value = pendingOCRResults[key];
                     const hasValue = value !== undefined && value !== "";
-                    let displayValue = hasValue ? value : "Not detected";
+                    let displayValue = hasValue ? value : "";
                     
-                    // Format special values
+                    // Format special values for display
                     if (key === "global-objective" && value === "1") displayValue = "Yes";
                     if (key === "global-geneseed" && value === "1") displayValue = "Yes";
                     if (key === "global-geneseed" && value === "0") displayValue = "No";
 
+                    // Determine input type based on field
+                    const isClassField = key.includes("-class");
+                    const isNumericField = key.includes("-kills") || key.includes("-elite") || key.includes("-death") || key.includes("-damage") || key === "global-armoury";
+                    const isSelectField = key === "global-objective" || key === "global-geneseed";
+                    
+                    let inputHTML = "";
+                    if (isClassField) {
+                        inputHTML = `
+                            <select class="ocr-input ocr-select" data-key="${key}">
+                                <option value="">- Select -</option>
+                                <option value="Tactical" ${displayValue === "Tactical" ? "selected" : ""}>Tactical</option>
+                                <option value="Assault" ${displayValue === "Assault" ? "selected" : ""}>Assault</option>
+                                <option value="Vanguard" ${displayValue === "Vanguard" ? "selected" : ""}>Vanguard</option>
+                                <option value="Bulwark" ${displayValue === "Bulwark" ? "selected" : ""}>Bulwark</option>
+                                <option value="Sniper" ${displayValue === "Sniper" ? "selected" : ""}>Sniper</option>
+                                <option value="Heavy" ${displayValue === "Heavy" ? "selected" : ""}>Heavy</option>
+                                <option value="Techmarine" ${displayValue === "Techmarine" ? "selected" : ""}>Techmarine</option>
+                            </select>`;
+                    } else if (isSelectField) {
+                        const yesSelected = displayValue === "Yes" ? "selected" : "";
+                        const noSelected = displayValue === "No" || !hasValue ? "selected" : "";
+                        inputHTML = `
+                            <select class="ocr-input ocr-select" data-key="${key}">
+                                <option value="0" ${noSelected}>No</option>
+                                <option value="1" ${yesSelected}>Yes</option>
+                            </select>`;
+                    } else if (isNumericField) {
+                        inputHTML = `<input type="number" class="ocr-input" data-key="${key}" value="${displayValue}" min="0" placeholder="0">`;
+                    } else {
+                        inputHTML = `<input type="text" class="ocr-input" data-key="${key}" value="${displayValue}" placeholder="Not detected">`;
+                    }
+
                     gridHTML += `
                         <div class="ocr-detected-item ${hasValue ? "" : "not-found"}">
                             <span class="ocr-detected-label">${label}:</span>
-                            <span class="ocr-detected-value ${hasValue ? "" : "missing"}">${displayValue}</span>
+                            ${inputHTML}
                         </div>
                     `;
                 }
@@ -1544,12 +1645,16 @@
 
             // Apply OCR results to form
             function applyOCRResults() {
-                for (const [fieldId, value] of Object.entries(pendingOCRResults)) {
-                    const el = document.getElementById(fieldId);
+                // Read values from the editable input fields in the modal
+                const inputs = document.querySelectorAll(".ocr-input");
+                inputs.forEach(input => {
+                    const key = input.dataset.key;
+                    const value = input.value;
+                    const el = document.getElementById(key);
                     if (el && value !== undefined && value !== "") {
                         el.value = value;
                     }
-                }
+                });
 
                 // Recalculate and save
                 calculate();
