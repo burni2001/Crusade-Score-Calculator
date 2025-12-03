@@ -547,7 +547,7 @@
                 <div>
                     <div>REF: SM-2/CRUSADE</div>
                     <div style="font-size: 0.8em; opacity: 0.7">
-                        V 0.5.48 - ADEPTUS ADMINISTRATUM
+                        V 0.5.49 - ADEPTUS ADMINISTRATUM
                     </div>
                 </div>
                 <h1>Mission Debrief</h1>
@@ -1384,30 +1384,35 @@
 
                 // === ARMOURY DATA ===
                 // Look for patterns near "REWARDS" section
-                // The game shows armoury icon with a number (0-3) followed by requisition amount
+                // Game shows: [armoury_icon 3] [requisition_icon 260]
                 // OCR often mangles this, so try multiple patterns
                 let armouryFound = false;
                 
-                // Pattern 1: Look for REWARDS followed by a digit 0-3 somewhere in next 50 chars
-                const armouryMatch1 = text.match(/REWARDS[\s\S]{0,50}?\b([0-3])\s+\d{2,3}\b/i);
-                if (armouryMatch1) {
-                    pendingOCRResults["global-armoury"] = armouryMatch1[1];
-                    armouryFound = true;
-                }
-                
-                // Pattern 2: Look for isolated small digit (0-3) near REWARDS
-                if (!armouryFound) {
-                    const rewardsIdx = upperText.indexOf('REWARDS');
-                    if (rewardsIdx !== -1) {
-                        // Look in the next 100 chars after REWARDS for a standalone small digit
-                        const afterRewards = text.substring(rewardsIdx, rewardsIdx + 100);
-                        // Find digits 0-3 that appear before a larger number (like "3 260")
-                        const armouryMatch2 = afterRewards.match(/\b([0-3])\s+\d{2,3}\b/);
+                const rewardsIdx = upperText.indexOf('REWARDS');
+                if (rewardsIdx !== -1) {
+                    // Get text after REWARDS (next 150 chars to capture the boxes)
+                    const afterRewards = text.substring(rewardsIdx, rewardsIdx + 150);
+                    
+                    // Pattern 1: Single digit 1-3 followed by space and 3-digit number (like "3 260")
+                    const armouryMatch1 = afterRewards.match(/\b([1-3])\s+\d{3}\b/);
+                    if (armouryMatch1) {
+                        pendingOCRResults["global-armoury"] = armouryMatch1[1];
+                        armouryFound = true;
+                    }
+                    
+                    // Pattern 2: Single digit 1-3 on its own line or surrounded by non-digits
+                    if (!armouryFound) {
+                        const armouryMatch2 = afterRewards.match(/(?:^|\D)([1-3])(?:\D|$)/);
                         if (armouryMatch2) {
                             pendingOCRResults["global-armoury"] = armouryMatch2[1];
                             armouryFound = true;
                         }
                     }
+                }
+                
+                // Default: If REWARDS section exists but no armoury number found, default to 0
+                if (!armouryFound && rewardsIdx !== -1) {
+                    pendingOCRResults["global-armoury"] = "0";
                 }
                 
                 // === GENE-SEED DEFAULT ===
