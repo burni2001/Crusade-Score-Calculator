@@ -618,7 +618,7 @@
                 <div>
                     <div>REF: SM-2/CRUSADE</div>
                     <div style="font-size: 0.8em; opacity: 0.7">
-                        V 0.6.6 - ADEPTUS ADMINISTRATUM
+                        V 0.6.7 - ADEPTUS ADMINISTRATUM
                     </div>
                 </div>
                 <h1>Mission Debrief</h1>
@@ -1732,29 +1732,36 @@
                 // === ARMOURY DATA ===
                 // Look for patterns near "REWARDS" section
                 // Game shows: [armoury_icon 3] [requisition_icon 260]
-                // OCR often mangles this, so try multiple patterns
+                // OCR often mangles this badly - be conservative to avoid garbage matches
                 let armouryFound = false;
                 
                 const rewardsIdx = upperText.indexOf('REWARDS');
                 if (rewardsIdx !== -1) {
-                    // Get text after REWARDS (next 200 chars to capture the boxes)
-                    const afterRewards = text.substring(rewardsIdx, rewardsIdx + 200);
+                    // Get text after REWARDS (next 100 chars - keep it short to avoid garbage)
+                    const afterRewards = text.substring(rewardsIdx, rewardsIdx + 100);
+                    const afterRewardsUpper = afterRewards.toUpperCase();
                     
-                    // Pattern 1: Look for "[icon] NUMBER [icon] 260" pattern
-                    // The first number is armoury count (0-3), second is usually 260
-                    const armouryMatch1 = afterRewards.match(/\b([0-3])\s+(?:\d{2,3}|260)\b/);
-                    if (armouryMatch1) {
+                    // Skip if we've hit CHARACTER PROGRESS (means we went too far)
+                    const progressIdx = afterRewardsUpper.indexOf('CHARACTER');
+                    const cleanText = progressIdx > 0 ? afterRewards.substring(0, progressIdx) : afterRewards;
+                    
+                    // Pattern 1: Look for "[digit] 260" or "[digit] [3-digit]" pattern
+                    // The armoury count (0-3) followed by requisition (typically 260)
+                    const armouryMatch1 = cleanText.match(/\b([0-3])\s+(\d{3})\b/);
+                    if (armouryMatch1 && parseInt(armouryMatch1[2]) >= 100) {
                         pendingOCRResults["global-armoury"] = armouryMatch1[1];
                         armouryFound = true;
                     }
                     
-                    // Pattern 2: Look for small digit near larger 3-digit number on same line
+                    // Pattern 2: Check each short line for the pattern
                     if (!armouryFound) {
-                        // Split into lines and find line with 260 or similar
-                        const rewardLines = afterRewards.split(/[\r\n]+/);
+                        const rewardLines = cleanText.split(/[\r\n]+/);
                         for (const line of rewardLines) {
-                            // Look for pattern like "3 260" or "El 3 260" etc.
-                            const lineMatch = line.match(/\b([0-3])\s+(\d{2,3})\b/);
+                            // Only check short lines (the REWARDS area is compact)
+                            if (line.length > 30) continue;
+                            
+                            // Look for pattern like "3 260" at start of line
+                            const lineMatch = line.trim().match(/^[^\d]*([0-3])\s+(\d{3})\b/);
                             if (lineMatch && parseInt(lineMatch[2]) >= 100) {
                                 pendingOCRResults["global-armoury"] = lineMatch[1];
                                 armouryFound = true;
@@ -1762,21 +1769,9 @@
                             }
                         }
                     }
-                    
-                    // Pattern 3: Just look for a standalone 0-3 near numbers like 260
-                    if (!armouryFound) {
-                        const simpleMatch = afterRewards.match(/(?:^|[^\d])([0-3])(?:[^\d]|$)/);
-                        if (simpleMatch) {
-                            pendingOCRResults["global-armoury"] = simpleMatch[1];
-                            armouryFound = true;
-                        }
-                    }
                 }
                 
-                // Default: If REWARDS section exists but no armoury number found, default to 0
-                if (!armouryFound && rewardsIdx !== -1) {
-                    pendingOCRResults["global-armoury"] = "0";
-                }
+                // Don't default - let user select from dropdown if not found
                 
                 // === GENE-SEED DEFAULT ===
                 // If gene-seed was not detected anywhere in the text, default to "No"
@@ -1840,6 +1835,14 @@
                                 <option value="0" ${noSelected}>No</option>
                                 <option value="1" ${yesSelected}>Yes</option>
                             </select>`;
+                    } else if (type === "armoury") {
+                        inputHTML = `
+                            <select class="ocr-input ocr-select" data-key="${key}">
+                                <option value="0" ${displayValue === "0" ? "selected" : ""}>0</option>
+                                <option value="1" ${displayValue === "1" ? "selected" : ""}>1</option>
+                                <option value="2" ${displayValue === "2" ? "selected" : ""}>2</option>
+                                <option value="3" ${displayValue === "3" ? "selected" : ""}>3</option>
+                            </select>`;
                     } else if (type === "number") {
                         inputHTML = `<input type="number" class="ocr-input" data-key="${key}" value="${displayValue}" min="0" placeholder="0">`;
                     } else {
@@ -1863,7 +1866,7 @@
                 gridHTML += createInput("mission-difficulty", "difficulty", "Difficulty");
                 gridHTML += createInput("global-objective", "yesno", "Objective Complete");
                 gridHTML += createInput("global-geneseed", "yesno", "Geneseed Retrieved");
-                gridHTML += createInput("global-armoury", "number", "Armoury Data");
+                gridHTML += createInput("global-armoury", "armoury", "Armoury Data");
                 gridHTML += `</div>`;
                 
                 // Space Marine sections
