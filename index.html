@@ -618,7 +618,7 @@
                 <div>
                     <div>REF: SM-2/CRUSADE</div>
                     <div style="font-size: 0.8em; opacity: 0.7">
-                        V 0.5.53 - ADEPTUS ADMINISTRATUM
+                        V 0.5.54 - ADEPTUS ADMINISTRATUM
                     </div>
                 </div>
                 <h1>Mission Debrief</h1>
@@ -1368,20 +1368,34 @@
                     // Remove brackets and clean the line
                     const cleanLine = line.replace(/\[.*?\]/g, '').trim();
                     
-                    // Game terms to filter out
-                    const gameTerms = /^(Kills|Special|Melee|Ranged|Damage|Items|Total|Score|Next|Status|Mission|Rewards|Character|Progress|Primary|Secondary|Objectives|Found|Taken|Revived|Incap)$/i;
+                    // Game terms and garbage patterns to filter out
+                    const gameTerms = /^(Kills|Special|Melee|Ranged|Damage|Items|Total|Score|Next|Status|Mission|Rewards|Character|Progress|Primary|Secondary|Objectives|Found|Taken|Revived|Incap|Success|Assault|Vanguard|Bulwark|Tactical|Sniper|Heavy)$/i;
+                    
+                    // Filter out garbage: all same letter, too short, all caps under 4 chars
+                    function isValidName(name) {
+                        if (!name || name.length < 3) return false;
+                        if (gameTerms.test(name)) return false;
+                        // Reject if all same letter (EEE, RRR, etc)
+                        if (/^(.)\1+$/i.test(name)) return false;
+                        // Reject all-caps short strings (likely OCR noise)
+                        if (name === name.toUpperCase() && name.length < 5) return false;
+                        // Reject if mostly non-letters
+                        const letterCount = (name.match(/[a-zA-ZäöüÄÖÜß\u00C0-\u00FF]/g) || []).length;
+                        if (letterCount < name.length * 0.7) return false;
+                        return true;
+                    }
                     
                     // Strategy A: Look for proper case names (Uppercase + lowercase)
                     const properMatch = cleanLine.match(/\b([A-ZÄÖÜ][a-zäöüß\u00E0-\u00FF]{2,}(?:\s+[A-ZÄÖÜ]?[a-zäöüß\u00E0-\u00FF]{2,})*)\b/);
-                    if (properMatch && properMatch[1].length >= 3 && !gameTerms.test(properMatch[1])) {
+                    if (properMatch && isValidName(properMatch[1])) {
                         // Clean trailing single letters like "i" from "Zephon i"
                         return properMatch[1].replace(/\s+[a-z]$/i, '').trim();
                     }
                     
-                    // Strategy B: Also accept names that might be all uppercase in OCR
-                    const capsMatch = cleanLine.match(/\b([A-ZÄÖÜ][A-Za-zäöüß\u00C0-\u00FF]{2,})\b/);
-                    if (capsMatch && capsMatch[1].length >= 3 && !gameTerms.test(capsMatch[1])) {
-                        return capsMatch[1];
+                    // Strategy B: Mixed case names
+                    const mixedMatch = cleanLine.match(/\b([A-ZÄÖÜ][A-Za-zäöüß\u00C0-\u00FF]{3,})\b/);
+                    if (mixedMatch && isValidName(mixedMatch[1])) {
+                        return mixedMatch[1];
                     }
                     
                     return null;
@@ -1614,7 +1628,17 @@
                     if (key === "global-geneseed" && value === "0") displayValue = "No";
 
                     let inputHTML = "";
-                    if (type === "class") {
+                    if (type === "difficulty") {
+                        inputHTML = `
+                            <select class="ocr-input ocr-select" data-key="${key}">
+                                <option value="">- Select -</option>
+                                <option value="Minimal" ${displayValue === "Minimal" ? "selected" : ""}>Minimal</option>
+                                <option value="Average" ${displayValue === "Average" ? "selected" : ""}>Average</option>
+                                <option value="Substantial" ${displayValue === "Substantial" ? "selected" : ""}>Substantial</option>
+                                <option value="Ruthless" ${displayValue === "Ruthless" ? "selected" : ""}>Ruthless</option>
+                                <option value="Lethal" ${displayValue === "Lethal" ? "selected" : ""}>Lethal</option>
+                            </select>`;
+                    } else if (type === "class") {
                         inputHTML = `
                             <select class="ocr-input ocr-select" data-key="${key}">
                                 <option value="">- Select -</option>
@@ -1654,7 +1678,7 @@
                 // Mission Info Section
                 gridHTML += `<div class="ocr-section"><div class="ocr-section-title">Mission Info</div>`;
                 gridHTML += createInput("mission-name", "text", "Mission");
-                gridHTML += createInput("mission-difficulty", "text", "Difficulty");
+                gridHTML += createInput("mission-difficulty", "difficulty", "Difficulty");
                 gridHTML += createInput("global-objective", "yesno", "Objective Complete");
                 gridHTML += createInput("global-geneseed", "yesno", "Geneseed Retrieved");
                 gridHTML += createInput("global-armoury", "number", "Armoury Data");
