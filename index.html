@@ -547,7 +547,7 @@
                 <div>
                     <div>REF: SM-2/CRUSADE</div>
                     <div style="font-size: 0.8em; opacity: 0.7">
-                        V 0.5.41 - ADEPTUS ADMINISTRATUM
+                        V 0.5.42 - ADEPTUS ADMINISTRATUM
                     </div>
                 </div>
                 <h1>Mission Debrief</h1>
@@ -1243,40 +1243,48 @@
                 
                 let playerIndex = 1;
                 
+                // Search for name/class pairs in the OCR text
+                // Pattern: a name-like string followed within a few lines by a class name
                 for (let i = 0; i < lines.length && playerIndex <= 3; i++) {
                     const line = lines[i].trim();
-                    // Remove bracket markers like [a], [i], [E] from line for matching
-                    const cleanLine = line.replace(/\[.\]/g, '').trim();
+                    const cleanLine = line.replace(/\[.*?\]/g, '').trim();
                     const lineUpper = cleanLine.toUpperCase();
                     
                     // Check if this line contains a class name
                     let foundClass = null;
                     for (const [pattern, className] of Object.entries(classMapping)) {
-                        if (lineUpper.includes(pattern) || lineUpper.startsWith(pattern.substring(0, 4))) {
+                        // Match if the pattern appears as a word or at start of line
+                        const regex = new RegExp('\\b' + pattern, 'i');
+                        if (regex.test(lineUpper)) {
                             foundClass = className;
                             break;
                         }
                     }
                     
-                    if (foundClass && i > 0) {
-                        // Get name from previous line
-                        let playerName = lines[i - 1].trim();
-                        // Remove bracket markers and clean up
-                        playerName = playerName.replace(/\[.*?\]/g, '');
-                        playerName = playerName.replace(/^[^A-Za-z\u00C0-\u024F]+/, '');
-                        playerName = playerName.replace(/[^A-Za-z\u00C0-\u024F\s]+$/, '');
-                        playerName = playerName.trim();
-                        
-                        // Skip if it looks like a stat label, garbage, or too short
-                        const isValidName = playerName.length >= 2 && 
-                            playerName.length < 30 &&
-                            !/^(kills|special|melee|ranged|damage|items|incap|team|total|score|next|status)/i.test(playerName) &&
-                            !/^\d+$/.test(playerName);
-                        
-                        if (isValidName) {
-                            pendingOCRResults[`p${playerIndex}-name`] = playerName;
-                            pendingOCRResults[`p${playerIndex}-class`] = foundClass;
-                            playerIndex++;
+                    if (foundClass) {
+                        // Look backwards up to 3 lines for a valid name
+                        for (let j = i - 1; j >= Math.max(0, i - 3); j--) {
+                            let candidateName = lines[j].trim();
+                            // Clean up the name - remove brackets, numbers at edges
+                            candidateName = candidateName.replace(/\[.*?\]/g, '');
+                            candidateName = candidateName.replace(/^[^A-Za-zÄÖÜäöü\u00C0-\u024F]+/, '');
+                            candidateName = candidateName.replace(/[^A-Za-zÄÖÜäöü\u00C0-\u024F\s]+$/, '');
+                            candidateName = candidateName.trim();
+                            
+                            // Check if this looks like a valid player name
+                            const isValidName = candidateName.length >= 2 && 
+                                candidateName.length < 30 &&
+                                /^[A-Za-zÄÖÜäöü\u00C0-\u024F]/.test(candidateName) &&
+                                !/^(kills|special|melee|ranged|damage|items|incap|team|total|score|next|status|mission|rewards)/i.test(candidateName) &&
+                                !/^\d+$/.test(candidateName) &&
+                                !Object.keys(classMapping).some(c => candidateName.toUpperCase().includes(c));
+                            
+                            if (isValidName) {
+                                pendingOCRResults[`p${playerIndex}-name`] = candidateName;
+                                pendingOCRResults[`p${playerIndex}-class`] = foundClass;
+                                playerIndex++;
+                                break; // Found name, move to next player
+                            }
                         }
                     }
                 }
