@@ -618,7 +618,7 @@
                 <div>
                     <div>REF: SM-2/CRUSADE</div>
                     <div style="font-size: 0.8em; opacity: 0.7">
-                        V 0.5.55 - ADEPTUS ADMINISTRATUM
+                        V 0.5.56 - ADEPTUS ADMINISTRATUM
                     </div>
                 </div>
                 <h1>Mission Debrief</h1>
@@ -1416,15 +1416,31 @@
                             const beforeMatch = line.substring(0, line.indexOf(markerMatch[0]));
                             if (/MAX\b/i.test(beforeMatch)) continue;
                             
-                            // Look backwards up to 6 lines for the player name
                             let foundName = null;
-                            for (let j = i - 1; j >= Math.max(0, i - 6); j--) {
-                                const name = extractPlayerName(lines[j]);
-                                if (name) {
-                                    const isDuplicate = foundPlayers.some(p => p.name === name);
+                            
+                            // First check the SAME LINE before the class marker for a name
+                            // This handles cases like "Borni | Bulwark [a]"
+                            if (beforeMatch.trim()) {
+                                const sameLine = beforeMatch.replace(/[|:$#\[\]0-9]/g, ' ').trim();
+                                const sameLineName = extractPlayerName(sameLine);
+                                if (sameLineName) {
+                                    const isDuplicate = foundPlayers.some(p => p.name === sameLineName);
                                     if (!isDuplicate) {
-                                        foundName = name;
-                                        break;
+                                        foundName = sameLineName;
+                                    }
+                                }
+                            }
+                            
+                            // If not found on same line, look backwards up to 6 lines
+                            if (!foundName) {
+                                for (let j = i - 1; j >= Math.max(0, i - 6); j--) {
+                                    const name = extractPlayerName(lines[j]);
+                                    if (name) {
+                                        const isDuplicate = foundPlayers.some(p => p.name === name);
+                                        if (!isDuplicate) {
+                                            foundName = name;
+                                            break;
+                                        }
                                     }
                                 }
                             }
@@ -1497,7 +1513,8 @@
                     }
                 }
                 
-                // Assign players in REVERSE order to match game's column layout
+                // Assign players in REVERSE order (OCR sections appear in reverse screenshot order)
+                // Column 1 stats = last found player, Column 3 stats = first found player
                 const reversedPlayers = [...foundPlayers].reverse();
                 for (let p = 0; p < reversedPlayers.length && p < 3; p++) {
                     const slot = p + 1;
