@@ -1119,6 +1119,13 @@
                 const originalBodyOverflow = body.style.overflow;
                 const originalBodyWidth = body.style.width;
                 const originalHtmlWidth = html.style.width;
+                const originalViewport = document.querySelector('meta[name="viewport"]');
+                const originalViewportContent = originalViewport ? originalViewport.getAttribute('content') : null;
+
+                // Temporarily change viewport to allow wider rendering on mobile
+                if (originalViewport) {
+                    originalViewport.setAttribute('content', 'width=1200, initial-scale=1.0');
+                }
 
                 // Force wide desktop layout for screenshot - set on all containers
                 element.style.width = "1100px";
@@ -1131,18 +1138,18 @@
                 html.style.minWidth = "1200px";
 
                 // Wait for layout to settle, then capture
-                requestAnimationFrame(() => {
+                setTimeout(() => {
                     html2canvas(element, {
                         scale: 2,
                         backgroundColor: "#000",
                         useCORS: true,
-                        width: 1148,
-                        height: 1168,
                         windowWidth: 1200,
                         windowHeight: 1400,
                         scrollX: 0,
                         scrollY: 0,
-                        logging: false,
+                        logging: true,
+                        allowTaint: false,
+                        foreignObjectRendering: false,
                     })
                         .then((canvas) => {
                             // Restore original styles
@@ -1152,6 +1159,13 @@
                             body.style.overflow = originalBodyOverflow;
                             body.style.width = originalBodyWidth;
                             html.style.width = originalHtmlWidth;
+                            
+                            // Restore viewport
+                            if (originalViewport && originalViewportContent) {
+                                originalViewport.setAttribute('content', originalViewportContent);
+                            }
+
+                            console.log("Canvas dimensions:", canvas.width, "x", canvas.height);
 
                             const link = document.createElement("a");
                             link.download = "Mission_Debrief_Display.png";
@@ -1166,12 +1180,18 @@
                             body.style.overflow = originalBodyOverflow;
                             body.style.width = originalBodyWidth;
                             html.style.width = originalHtmlWidth;
+                            
+                            // Restore viewport
+                            if (originalViewport && originalViewportContent) {
+                                originalViewport.setAttribute('content', originalViewportContent);
+                            }
+                            
                             console.error("PNG export failed:", err);
                             alert(
                                 "Failed to capture screenshot. Please try again.",
                             );
                         });
-                });
+                }, 300); // Give more time for viewport change to take effect
             }
 
             // Initialize: load saved data and calculate when DOM is ready
