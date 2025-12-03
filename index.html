@@ -547,7 +547,7 @@
                 <div>
                     <div>REF: SM-2/CRUSADE</div>
                     <div style="font-size: 0.8em; opacity: 0.7">
-                        V 0.5.45 - ADEPTUS ADMINISTRATUM
+                        V 0.5.46 - ADEPTUS ADMINISTRATUM
                     </div>
                 </div>
                 <h1>Mission Debrief</h1>
@@ -1241,15 +1241,9 @@
                     'ECHMAR': 'Techmarine',   // OCR partial match
                 };
                 
-                // Find next available player slot (don't overwrite existing)
-                function getNextPlayerSlot() {
-                    for (let p = 1; p <= 3; p++) {
-                        if (!pendingOCRResults[`p${p}-name`]) {
-                            return p;
-                        }
-                    }
-                    return null; // All slots filled
-                }
+                // Collect all found players first, then assign in reverse order
+                // (Game shows stats in reverse order of screenshot appearance)
+                const foundPlayers = [];
                 
                 // Search for name/class pairs in the OCR text
                 for (let i = 0; i < lines.length; i++) {
@@ -1273,7 +1267,7 @@
                         }
                     }
                     
-                    if (foundClass) {
+                    if (foundClass && foundPlayers.length < 3) {
                         // Look backwards up to 3 lines for a valid name
                         for (let j = i - 1; j >= Math.max(0, i - 3); j--) {
                             let candidateLine = lines[j].trim();
@@ -1299,14 +1293,25 @@
                                 cleanWords.some(w => w.length >= 3); // At least one word with 3+ chars
                             
                             if (isValidName) {
-                                const slot = getNextPlayerSlot();
-                                if (slot) {
-                                    pendingOCRResults[`p${slot}-name`] = candidateName;
-                                    pendingOCRResults[`p${slot}-class`] = foundClass;
+                                // Check if we already have this player (avoid duplicates)
+                                const isDuplicate = foundPlayers.some(p => p.name === candidateName);
+                                if (!isDuplicate) {
+                                    foundPlayers.push({ name: candidateName, class: foundClass });
                                 }
                                 break; // Found name for this class, move on
                             }
                         }
+                    }
+                }
+                
+                // Assign players in REVERSE order to match game's column layout
+                // Last screenshot's player = column 1 (P1), first = column 3 (P3)
+                const reversedPlayers = [...foundPlayers].reverse();
+                for (let p = 0; p < reversedPlayers.length && p < 3; p++) {
+                    const slot = p + 1;
+                    if (!pendingOCRResults[`p${slot}-name`]) {
+                        pendingOCRResults[`p${slot}-name`] = reversedPlayers[p].name;
+                        pendingOCRResults[`p${slot}-class`] = reversedPlayers[p].class;
                     }
                 }
 
