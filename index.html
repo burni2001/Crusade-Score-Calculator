@@ -547,7 +547,7 @@
                 <div>
                     <div>REF: SM-2/CRUSADE</div>
                     <div style="font-size: 0.8em; opacity: 0.7">
-                        V 0.5.46 - ADEPTUS ADMINISTRATUM
+                        V 0.5.47 - ADEPTUS ADMINISTRATUM
                     </div>
                 </div>
                 <h1>Mission Debrief</h1>
@@ -1274,13 +1274,24 @@
                             // Remove brackets and clean
                             candidateLine = candidateLine.replace(/\[.*?\]/g, '').trim();
                             
-                            // Extract words (2+ letters each) that could be a name
+                            // Extract words that look like names (proper capitalization)
+                            // Names typically have First letter cap + lowercase, like "Zephon" or "Boki"
+                            // Filter out ALL CAPS garbage like "EE", "TEE", "YE"
                             const words = candidateLine.match(/[A-ZÄÖÜa-zäöü\u00C0-\u024F]{2,}/g);
                             if (!words || words.length === 0) continue;
                             
                             // Filter out common OCR garbage and game terms
-                            const badWords = /^(kills|special|melee|ranged|damage|items|incap|team|total|score|next|status|mission|rewards|primary|secondary|objectives|character|progress|max|min|xp|bulwark|assault|vanguard|tactical|sniper|heavy|techmarine|fe|fo|an|the)$/i;
-                            const cleanWords = words.filter(w => !badWords.test(w) && w.length >= 2);
+                            const badWords = /^(kills|special|melee|ranged|damage|items|incap|team|total|score|next|status|mission|rewards|primary|secondary|objectives|character|progress|max|min|xp|bulwark|assault|vanguard|tactical|sniper|heavy|techmarine|fe|fo|an|the|ee|tee|ye|pd|ss|te|ws)$/i;
+                            
+                            // A word is valid for a name if it's NOT all caps (except if short like "Bo")
+                            // Valid: "Zephon", "Boki", "Bo" | Invalid: "TEE", "EE", "YE"
+                            const isProperName = (w) => {
+                                if (w.length <= 2) return false; // Too short
+                                // Check if it has at least one lowercase letter (not all caps)
+                                return /[a-zäöü\u00E0-\u00FF]/.test(w);
+                            };
+                            
+                            const cleanWords = words.filter(w => !badWords.test(w) && isProperName(w));
                             
                             if (cleanWords.length === 0) continue;
                             
@@ -1290,7 +1301,7 @@
                             // Check if this looks like a valid player name
                             const isValidName = candidateName.length >= 3 && 
                                 candidateName.length < 30 &&
-                                cleanWords.some(w => w.length >= 3); // At least one word with 3+ chars
+                                cleanWords.some(w => w.length >= 4); // At least one word with 4+ chars
                             
                             if (isValidName) {
                                 // Check if we already have this player (avoid duplicates)
@@ -1319,10 +1330,12 @@
                 // For stats, look for the last 3 numbers on a line containing the label
                 // This handles cases like "Kills XB 10 460 453 425" where we want the last 3
 
-                function extractLastThreeNumbers(labelRegex) {
+                function extractLastThreeNumbers(labelRegex, excludeRegex = null) {
                     for (const line of lines) {
                         const upperLine = line.toUpperCase();
                         if (labelRegex.test(upperLine)) {
+                            // Skip if exclude pattern matches (e.g., skip "SPECIAL KILLS" for "KILLS")
+                            if (excludeRegex && excludeRegex.test(upperLine)) continue;
                             // Find all numbers in this line
                             const nums = line.match(/\d+/g);
                             if (nums && nums.length >= 3) {
@@ -1338,7 +1351,7 @@
                 }
 
                 // Kills - find line with "Kills" but not "Special Kills"
-                const killsNums = extractLastThreeNumbers(/^KILLS\b/);
+                const killsNums = extractLastThreeNumbers(/\bKILLS\b/, /SPECIAL/);
                 if (killsNums) {
                     pendingOCRResults["p1-kills"] = killsNums[0];
                     pendingOCRResults["p2-kills"] = killsNums[1];
