@@ -547,7 +547,7 @@
                 <div>
                     <div>REF: SM-2/CRUSADE</div>
                     <div style="font-size: 0.8em; opacity: 0.7">
-                        V 0.5.42 - ADEPTUS ADMINISTRATUM
+                        V 0.5.43 - ADEPTUS ADMINISTRATUM
                     </div>
                 </div>
                 <h1>Mission Debrief</h1>
@@ -1241,11 +1241,18 @@
                     'ECHMAR': 'Techmarine',   // OCR partial match
                 };
                 
-                let playerIndex = 1;
+                // Find next available player slot (don't overwrite existing)
+                function getNextPlayerSlot() {
+                    for (let p = 1; p <= 3; p++) {
+                        if (!pendingOCRResults[`p${p}-name`]) {
+                            return p;
+                        }
+                    }
+                    return null; // All slots filled
+                }
                 
                 // Search for name/class pairs in the OCR text
-                // Pattern: a name-like string followed within a few lines by a class name
-                for (let i = 0; i < lines.length && playerIndex <= 3; i++) {
+                for (let i = 0; i < lines.length; i++) {
                     const line = lines[i].trim();
                     const cleanLine = line.replace(/\[.*?\]/g, '').trim();
                     const lineUpper = cleanLine.toUpperCase();
@@ -1253,7 +1260,7 @@
                     // Check if this line contains a class name
                     let foundClass = null;
                     for (const [pattern, className] of Object.entries(classMapping)) {
-                        // Match if the pattern appears as a word or at start of line
+                        // Match if the pattern appears as a word
                         const regex = new RegExp('\\b' + pattern, 'i');
                         if (regex.test(lineUpper)) {
                             foundClass = className;
@@ -1265,25 +1272,31 @@
                         // Look backwards up to 3 lines for a valid name
                         for (let j = i - 1; j >= Math.max(0, i - 3); j--) {
                             let candidateName = lines[j].trim();
-                            // Clean up the name - remove brackets, numbers at edges
+                            // Clean up the name - remove brackets, numbers, symbols at edges
                             candidateName = candidateName.replace(/\[.*?\]/g, '');
-                            candidateName = candidateName.replace(/^[^A-Za-zÄÖÜäöü\u00C0-\u024F]+/, '');
-                            candidateName = candidateName.replace(/[^A-Za-zÄÖÜäöü\u00C0-\u024F\s]+$/, '');
-                            candidateName = candidateName.trim();
+                            // Extract just the name part - look for capitalized words
+                            const nameMatch = candidateName.match(/([A-ZÄÖÜa-zäöü\u00C0-\u024F][A-Za-zÄÖÜäöü\u00C0-\u024F]*(?:\s+[A-ZÄÖÜa-zäöü\u00C0-\u024F][A-Za-zÄÖÜäöü\u00C0-\u024F]*)*)/);
+                            if (nameMatch) {
+                                candidateName = nameMatch[1].trim();
+                            } else {
+                                continue;
+                            }
                             
                             // Check if this looks like a valid player name
-                            const isValidName = candidateName.length >= 2 && 
+                            const isValidName = candidateName.length >= 3 && 
                                 candidateName.length < 30 &&
-                                /^[A-Za-zÄÖÜäöü\u00C0-\u024F]/.test(candidateName) &&
-                                !/^(kills|special|melee|ranged|damage|items|incap|team|total|score|next|status|mission|rewards)/i.test(candidateName) &&
+                                !/^(kills|special|melee|ranged|damage|items|incap|team|total|score|next|status|mission|rewards|primary|secondary|objectives|character|progress)/i.test(candidateName) &&
                                 !/^\d+$/.test(candidateName) &&
-                                !Object.keys(classMapping).some(c => candidateName.toUpperCase().includes(c));
+                                !Object.keys(classMapping).some(c => candidateName.toUpperCase().includes(c)) &&
+                                !/^(max|min|xp)$/i.test(candidateName);
                             
                             if (isValidName) {
-                                pendingOCRResults[`p${playerIndex}-name`] = candidateName;
-                                pendingOCRResults[`p${playerIndex}-class`] = foundClass;
-                                playerIndex++;
-                                break; // Found name, move to next player
+                                const slot = getNextPlayerSlot();
+                                if (slot) {
+                                    pendingOCRResults[`p${slot}-name`] = candidateName;
+                                    pendingOCRResults[`p${slot}-class`] = foundClass;
+                                }
+                                break; // Found name for this class, move on
                             }
                         }
                     }
