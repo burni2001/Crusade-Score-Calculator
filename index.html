@@ -1123,8 +1123,8 @@
                 element.style.width = "1100px";
                 element.style.maxWidth = "none";
                 element.style.minWidth = "1100px";
-                body.style.width = "1200px";
-                body.style.minWidth = "1200px";
+                body.style.width = "1400px";
+                body.style.minWidth = "1400px";
                 body.style.overflow = "visible";
 
                 // Wait for layout to settle, then capture
@@ -1133,7 +1133,9 @@
                         scale: 2,
                         backgroundColor: "#000",
                         useCORS: true,
-                        windowWidth: 1400,
+                        windowWidth: 1600,
+                        scrollX: 0,
+                        scrollY: 0,
                     })
                         .then((canvas) => {
                             // Restore original styles
