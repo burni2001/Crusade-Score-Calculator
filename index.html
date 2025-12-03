@@ -618,7 +618,7 @@
                 <div>
                     <div>REF: SM-2/CRUSADE</div>
                     <div style="font-size: 0.8em; opacity: 0.7">
-                        V 0.6.9 - ADEPTUS ADMINISTRATUM
+                        V 0.6.10 - ADEPTUS ADMINISTRATUM
                     </div>
                 </div>
                 <h1>Mission Debrief</h1>
@@ -1159,6 +1159,7 @@
 
                 <div class="ocr-modal-buttons">
                     <button onclick="applyOCRResults()">Apply Values</button>
+                    <button onclick="exportOCRDebug()" style="background: #335533;">Export Debug Data</button>
                     <button class="cancel-btn" onclick="closeOCRModal()">Cancel</button>
                 </div>
             </div>
@@ -1973,6 +1974,71 @@
             function closeOCRModal() {
                 const modal = document.getElementById("ocr-modal-overlay");
                 modal.classList.remove("active");
+            }
+            
+            // Export OCR debug data for troubleshooting
+            function exportOCRDebug() {
+                const debugData = {
+                    version: "0.6.10",
+                    timestamp: new Date().toISOString(),
+                    detectedValues: pendingOCRResults,
+                    rawOCRText: rawOCRText
+                };
+                
+                // Create formatted debug output
+                let output = "=== OCR DEBUG EXPORT ===\n";
+                output += `Version: ${debugData.version}\n`;
+                output += `Timestamp: ${debugData.timestamp}\n\n`;
+                
+                output += "=== DETECTED VALUES ===\n";
+                for (const [key, value] of Object.entries(pendingOCRResults)) {
+                    output += `${key}: ${value}\n`;
+                }
+                
+                output += "\n=== RAW OCR TEXT ===\n";
+                output += rawOCRText;
+                
+                output += "\n\n=== ANALYSIS ===\n";
+                // Check what lines contain stats keywords
+                const lines = rawOCRText.split(/[\r\n]+/);
+                output += "Lines containing 'KILL' (case-insensitive):\n";
+                lines.forEach((line, i) => {
+                    if (/kill/i.test(line)) {
+                        output += `  Line ${i}: ${line}\n`;
+                        // Show what numbers were found
+                        const nums = line.match(/\d+/g);
+                        output += `    Numbers found: ${nums ? nums.join(', ') : 'NONE'}\n`;
+                    }
+                });
+                
+                output += "\nLines containing 'INCAP' (case-insensitive):\n";
+                lines.forEach((line, i) => {
+                    if (/incap/i.test(line)) {
+                        output += `  Line ${i}: ${line}\n`;
+                        const nums = line.match(/\d+/g);
+                        output += `    Numbers found: ${nums ? nums.join(', ') : 'NONE'}\n`;
+                    }
+                });
+                
+                output += "\nLines containing 'DAMAGE' (case-insensitive):\n";
+                lines.forEach((line, i) => {
+                    if (/damage/i.test(line)) {
+                        output += `  Line ${i}: ${line}\n`;
+                        const nums = line.match(/\d+/g);
+                        output += `    Numbers found: ${nums ? nums.join(', ') : 'NONE'}\n`;
+                    }
+                });
+                
+                // Download the file
+                const blob = new Blob([output], { type: 'text/plain' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `ocr_debug_${Date.now()}.txt`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
             }
 
             // Clear all data except modifiers
