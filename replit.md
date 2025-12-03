@@ -59,16 +59,17 @@ This automatically updates:
 The application is served using Python's built-in HTTP server on port 5000. No build step is required.
 
 ## Recent Changes
-- 2024-12-03: Improved OCR parsing for game-accurate terminology (v0.5.31)
+- 2024-12-03: Improved OCR parsing for game-accurate terminology (v0.5.33)
   - Fixed matrix layout bug where Damage row was missing its label cell
-  - OCR now recognizes actual game terms: "Special Kills"→Elite Kills, "Incapacitations"→Death, "Damage Taken"→Damage
-  - Added mission name extraction from "MISSION: X" format
-  - Added "STATUS: SUCCESS" and "VICTORY" detection for objective completion
-  - Added "Gene-Seed Found" detection for geneseed retrieval
-  - Player name extraction from header (name + class pattern like "John BULWARK")
-  - Multi-player stat extraction (3 columns: P1, P2, P3) for kills/elite/death/damage
-  - OCR review modal now shows all player fields (P1/P2/P3)
-  - Improved regex patterns for stricter matching and fewer false positives
+  - OCR preprocessing removes star symbols (★) and XP badges before parsing
+  - Player name extraction: looks for name on line BEFORE class name (BULWARK/VANGUARD/ASSAULT/etc)
+  - Supports international characters in names (umlauts like Ö, Ü, etc)
+  - "MISSION: RECLAMATION" format properly extracts mission name
+  - "STATUS: SUCCESS" detection for objective completion
+  - Stats extraction: Kills, Special Kills→Elite, Incapacitations→Death, Damage Taken→Damage
+  - Multi-player stat extraction (3 columns: P1, P2, P3) from table rows
+  - Armoury data detection from rewards section
+  - OCR review modal shows all 3 player fields for review before applying
 
 - 2024-12-03: Enhanced OCR functionality and added Clear Data button
   - OCR now shows review modal before applying values (instead of auto-filling)
