@@ -547,7 +547,7 @@
                 <div>
                     <div>REF: SM-2/CRUSADE</div>
                     <div style="font-size: 0.8em; opacity: 0.7">
-                        V 0.5.50 - ADEPTUS ADMINISTRATUM
+                        V 0.5.51 - ADEPTUS ADMINISTRATUM
                     </div>
                 </div>
                 <h1>Mission Debrief</h1>
@@ -1245,139 +1245,134 @@
                     return matrix[b.length][a.length];
                 }
                 
-                // Canonical class names for fuzzy matching
+                // Canonical class names
                 const canonicalClasses = ['BULWARK', 'ASSAULT', 'VANGUARD', 'TACTICAL', 'SNIPER', 'HEAVY', 'TECHMARINE'];
                 
-                // Find best fuzzy match for a class name
-                function fuzzyMatchClass(word) {
+                // Known OCR misreads mapped to correct class
+                const ocrClassFixes = {
+                    'ANGUNRO': 'VANGUARD',
+                    'ANGUARD': 'VANGUARD',
+                    'VANGUNRD': 'VANGUARD',
+                    'VANGURD': 'VANGUARD',
+                    'BULWAR': 'BULWARK',
+                    'BÜLWARK': 'BULWARK',
+                    'ASSAUL': 'ASSAULT',
+                    'ASSAUT': 'ASSAULT',
+                    'TACTIAL': 'TACTICAL',
+                    'SNIPE': 'SNIPER',
+                    'TECHMAR': 'TECHMARINE',
+                    'ECHMAR': 'TECHMARINE',
+                };
+                
+                // Strict class matching - requires close match
+                function matchClass(word) {
                     const upper = word.toUpperCase();
-                    // First try exact match
+                    // Exact match
                     if (canonicalClasses.includes(upper)) return upper;
-                    // Then try fuzzy match - find closest with distance <= 3
+                    // Known OCR fix
+                    if (ocrClassFixes[upper]) return ocrClassFixes[upper];
+                    // Fuzzy match with strict distance <= 2
                     let bestMatch = null;
-                    let bestDist = 4;
+                    let bestDist = 3;
                     for (const cls of canonicalClasses) {
                         const dist = levenshtein(upper, cls);
-                        // Also check if word is contained in class name or vice versa
-                        if (cls.includes(upper) || upper.includes(cls.slice(0,4))) {
-                            return cls;
-                        }
                         if (dist < bestDist) {
                             bestDist = dist;
                             bestMatch = cls;
                         }
                     }
-                    return bestDist <= 3 ? bestMatch : null;
+                    return bestDist <= 2 ? bestMatch : null;
                 }
                 
-                // Map of class name patterns to their canonical names
-                const classMapping = {
-                    'BULWARK': 'Bulwark',
-                    'ASSAULT': 'Assault',
-                    'VANGUARD': 'Vanguard',
-                    'TACTICAL': 'Tactical',
-                    'SNIPER': 'Sniper',
-                    'HEAVY': 'Heavy',
-                    'TECHMARINE': 'Techmarine',
-                    'ANGUARD': 'Vanguard',    // OCR partial match
-                    'ANGUNRO': 'Vanguard',    // OCR misread
-                    'ECHMAR': 'Techmarine',   // OCR partial match
-                };
+                // Format class name properly
+                function formatClass(cls) {
+                    return cls.charAt(0).toUpperCase() + cls.slice(1).toLowerCase();
+                }
                 
-                // Collect all found players first, then assign in reverse order
-                // (Game shows stats in reverse order of screenshot appearance)
+                // Collect all found players
                 const foundPlayers = [];
                 
-                // Search for name/class pairs in the OCR text
+                // STRATEGY 1: Look for class names with [a] or [i] markers (game UI pattern)
+                // Pattern: "ClassName [a]" or "ClassName [i]" etc.
                 for (let i = 0; i < lines.length; i++) {
-                    const line = lines[i].trim();
-                    const cleanLine = line.replace(/\[.*?\]/g, '').trim();
-                    const lineUpper = cleanLine.toUpperCase();
+                    const line = lines[i];
                     
-                    // Check if this line contains a class name (but not "CLASS MAX" level indicators)
-                    let foundClass = null;
-                    
-                    // Extract all words from the line and try fuzzy matching
-                    const wordsInLine = lineUpper.match(/[A-Z]{4,}/g) || [];
-                    for (const word of wordsInLine) {
-                        // Skip if this looks like a level indicator (followed by MAX or number)
-                        const wordPos = lineUpper.indexOf(word);
-                        const afterWord = lineUpper.substring(wordPos + word.length).trim();
-                        if (/^(MAX|\d+)/.test(afterWord)) {
-                            continue; // Skip level indicators like "Bulwark MAX"
-                        }
+                    // Look for pattern: word followed by [a], [i], [E], etc.
+                    const markerMatch = line.match(/([A-Za-zÄÖÜäöü]{4,})\s*\[([aieAIE])\]/i);
+                    if (markerMatch) {
+                        const potentialClass = markerMatch[1];
+                        const matchedClass = matchClass(potentialClass);
                         
-                        // Try fuzzy matching
-                        const matchedClass = fuzzyMatchClass(word);
-                        if (matchedClass) {
-                            foundClass = classMapping[matchedClass] || matchedClass.charAt(0) + matchedClass.slice(1).toLowerCase();
-                            break;
-                        }
-                    }
-                    
-                    // Also try exact pattern matching as fallback
-                    if (!foundClass) {
-                        for (const [pattern, className] of Object.entries(classMapping)) {
-                            const regex = new RegExp('\\b' + pattern, 'i');
-                            if (regex.test(lineUpper)) {
-                                const levelIndicator = new RegExp(pattern + '\\s*(MAX|\\d+)', 'i');
-                                if (levelIndicator.test(lineUpper)) continue;
-                                foundClass = className;
-                                break;
+                        if (matchedClass && foundPlayers.length < 3) {
+                            // Skip level indicators like "Bulwark MAX"
+                            if (/MAX|\d+\s*$/.test(line.substring(0, line.indexOf(markerMatch[0])))) continue;
+                            
+                            // Look backwards for the player name
+                            let foundName = null;
+                            for (let j = i - 1; j >= Math.max(0, i - 5); j--) {
+                                let candidateLine = lines[j].trim();
+                                candidateLine = candidateLine.replace(/\[.*?\]/g, '').trim();
+                                
+                                // Look for proper names (mixed case, not all caps)
+                                const nameMatch = candidateLine.match(/([A-ZÄÖÜ][a-zäöü\u00E0-\u00FF]+(?:\s+[A-ZÄÖÜ]?[a-zäöü\u00E0-\u00FF]+)*)/);
+                                if (nameMatch && nameMatch[1].length >= 3) {
+                                    const name = nameMatch[1];
+                                    // Filter game terms
+                                    if (!/^(Kills|Special|Melee|Ranged|Damage|Items|Total|Score|Next|Status|Mission|Rewards)$/i.test(name)) {
+                                        foundName = name;
+                                        break;
+                                    }
+                                }
+                            }
+                            
+                            if (foundName) {
+                                const isDuplicate = foundPlayers.some(p => p.name === foundName);
+                                if (!isDuplicate) {
+                                    foundPlayers.push({ name: foundName, class: formatClass(matchedClass) });
+                                }
                             }
                         }
                     }
-                    
-                    if (foundClass && foundPlayers.length < 3) {
-                        // Look backwards up to 3 lines for a valid name
-                        for (let j = i - 1; j >= Math.max(0, i - 3); j--) {
-                            let candidateLine = lines[j].trim();
-                            // Remove brackets and clean
-                            candidateLine = candidateLine.replace(/\[.*?\]/g, '').trim();
-                            
-                            // Extract words that look like names (proper capitalization)
-                            // Names typically have First letter cap + lowercase, like "Zephon" or "Boki"
-                            // Filter out ALL CAPS garbage like "EE", "TEE", "YE"
-                            const words = candidateLine.match(/[A-ZÄÖÜa-zäöü\u00C0-\u024F]{2,}/g);
-                            if (!words || words.length === 0) continue;
-                            
-                            // Filter out common OCR garbage and game terms
-                            const badWords = /^(kills|special|melee|ranged|damage|items|incap|team|total|score|next|status|mission|rewards|primary|secondary|objectives|character|progress|max|min|xp|bulwark|assault|vanguard|tactical|sniper|heavy|techmarine|fe|fo|an|the|ee|tee|ye|pd|ss|te|ws)$/i;
-                            
-                            // A word is valid for a name if it's NOT all caps (except if short like "Bo")
-                            // Valid: "Zephon", "Boki", "Bo" | Invalid: "TEE", "EE", "YE"
-                            const isProperName = (w) => {
-                                if (w.length <= 2) return false; // Too short
-                                // Check if it has at least one lowercase letter (not all caps)
-                                return /[a-zäöü\u00E0-\u00FF]/.test(w);
-                            };
-                            
-                            const cleanWords = words.filter(w => !badWords.test(w) && isProperName(w));
-                            
-                            if (cleanWords.length === 0) continue;
-                            
-                            // Build the name from clean words (max 3 words for a name)
-                            const candidateName = cleanWords.slice(0, 3).join(' ');
-                            
-                            // Check if this looks like a valid player name
-                            const isValidName = candidateName.length >= 3 && 
-                                candidateName.length < 30 &&
-                                cleanWords.some(w => w.length >= 4); // At least one word with 4+ chars
-                            
-                            if (isValidName) {
-                                // Check if we already have this player (avoid duplicates)
-                                const isDuplicate = foundPlayers.some(p => p.name === candidateName);
-                                if (!isDuplicate) {
-                                    foundPlayers.push({ name: candidateName, class: foundClass });
+                }
+                
+                // STRATEGY 2: Fallback - look for standalone class names without markers
+                if (foundPlayers.length < 3) {
+                    for (let i = 0; i < lines.length; i++) {
+                        if (foundPlayers.length >= 3) break;
+                        
+                        const line = lines[i].trim();
+                        const lineUpper = line.toUpperCase();
+                        
+                        // Skip lines with level indicators
+                        if (/\bMAX\b|\b\d+\s*$/.test(lineUpper)) continue;
+                        
+                        // Extract words and try strict matching
+                        const words = line.match(/[A-Za-zÄÖÜäöü]{5,}/g) || [];
+                        for (const word of words) {
+                            const matchedClass = matchClass(word);
+                            if (matchedClass) {
+                                // Look backwards for name
+                                for (let j = i - 1; j >= Math.max(0, i - 5); j--) {
+                                    let candidateLine = lines[j].trim().replace(/\[.*?\]/g, '').trim();
+                                    const nameMatch = candidateLine.match(/([A-ZÄÖÜ][a-zäöü\u00E0-\u00FF]+(?:\s+[A-ZÄÖÜ]?[a-zäöü\u00E0-\u00FF]+)*)/);
+                                    if (nameMatch && nameMatch[1].length >= 3) {
+                                        const name = nameMatch[1];
+                                        if (!/^(Kills|Special|Melee|Ranged|Damage|Items|Total|Score|Next|Status|Mission|Rewards)$/i.test(name)) {
+                                            const isDuplicate = foundPlayers.some(p => p.name === name);
+                                            if (!isDuplicate) {
+                                                foundPlayers.push({ name: name, class: formatClass(matchedClass) });
+                                            }
+                                            break;
+                                        }
+                                    }
                                 }
-                                break; // Found name for this class, move on
+                                break;
                             }
                         }
                     }
                 }
                 
                 // Assign players in REVERSE order to match game's column layout
-                // Last screenshot's player = column 1 (P1), first = column 3 (P3)
                 const reversedPlayers = [...foundPlayers].reverse();
                 for (let p = 0; p < reversedPlayers.length && p < 3; p++) {
                     const slot = p + 1;
