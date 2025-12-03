@@ -618,7 +618,7 @@
                 <div>
                     <div>REF: SM-2/CRUSADE</div>
                     <div style="font-size: 0.8em; opacity: 0.7">
-                        V 0.6.1 - ADEPTUS ADMINISTRATUM
+                        V 0.6.2 - ADEPTUS ADMINISTRATUM
                     </div>
                 </div>
                 <h1>Mission Debrief</h1>
@@ -1373,6 +1373,15 @@
                 
                 // Helper: Extract a valid player name from a line
                 function extractPlayerName(line) {
+                    // First try to extract names FROM brackets (OCR sometimes puts names inside)
+                    const bracketContent = line.match(/\[(?:jr\s+)?([A-ZÄÖÜ][a-zäöüß\u00E0-\u00FF]+(?:\s+[A-Za-zäöüß\u00E0-\u00FF]+)*)\s*[q\]]/i);
+                    if (bracketContent && bracketContent[1].length >= 3) {
+                        const extracted = bracketContent[1].trim();
+                        if (!/^(Kills|Special|Heavy|Assault|Bulwark|Vanguard|Tactical|Sniper)/i.test(extracted)) {
+                            return extracted;
+                        }
+                    }
+                    
                     // Remove brackets and clean the line
                     const cleanLine = line.replace(/\[.*?\]/g, '').trim();
                     
@@ -1403,8 +1412,11 @@
                     // Strategy A: Look for proper case names (Uppercase + lowercase)
                     const properMatch = cleanLine.match(/\b([A-ZÄÖÜ][a-zäöüß\u00E0-\u00FF]{2,}(?:\s+[A-ZÄÖÜ]?[a-zäöüß\u00E0-\u00FF]{2,})*)\b/);
                     if (properMatch && isValidName(properMatch[1])) {
-                        // Clean trailing single letters like "i" from "Zephon i"
-                        return properMatch[1].replace(/\s+[a-z]$/i, '').trim();
+                        // Clean trailing garbage like "i", "py", "q" from "Zephon py"
+                        let cleaned = properMatch[1].replace(/\s+[a-z]{1,2}$/i, '').trim();
+                        // Also remove trailing single lowercase words under 3 chars
+                        cleaned = cleaned.replace(/\s+\S{1,2}$/g, '').trim();
+                        return cleaned;
                     }
                     
                     // Strategy B: Mixed case names
