@@ -14,6 +14,8 @@ A Progressive Web App (PWA) calculator for Warhammer 40K Space Marine 2 mission 
 ├── index.html              # Main application file with embedded CSS and JavaScript
 ├── manifest.json           # PWA manifest for installability
 ├── service-worker.js       # Service worker for offline functionality and caching
+├── version.json            # Central version storage (major.minor.patch)
+├── bump-version.sh         # Script to automatically update version numbers
 ├── icons/                  # PWA icons for various devices
 │   ├── icon-192x192.png
 │   ├── icon-512x512.png
@@ -21,6 +23,19 @@ A Progressive Web App (PWA) calculator for Warhammer 40K Space Marine 2 mission 
 │   └── icon-maskable-512x512.png
 └── replit.md              # This documentation file
 ```
+
+## Version Management
+Run these commands in the Shell to update the version:
+
+```bash
+./bump-version.sh patch   # For smaller updates: 0.5.29 -> 0.5.30
+./bump-version.sh minor   # For bigger updates: 0.5.29 -> 0.6.0
+```
+
+This automatically updates:
+- `version.json` - Central version storage
+- `index.html` - Display version in header
+- `service-worker.js` - Cache version for PWA updates
 
 ## Features
 - Mission score calculation based on customizable modifiers
