@@ -618,7 +618,7 @@
                 <div>
                     <div>REF: SM-2/CRUSADE</div>
                     <div style="font-size: 0.8em; opacity: 0.7">
-                        V 0.6.2 - ADEPTUS ADMINISTRATUM
+                        V 0.6.3 - ADEPTUS ADMINISTRATUM
                     </div>
                 </div>
                 <h1>Mission Debrief</h1>
@@ -1559,7 +1559,7 @@
                     }
                 }
                 
-                // STRATEGY 3: Fallback - look for standalone class names
+                // STRATEGY 3: Fallback - look for standalone class names (skip MAX lines)
                 if (foundPlayers.length < 3) {
                     for (let i = 0; i < lines.length; i++) {
                         if (foundPlayers.length >= 3) break;
@@ -1588,6 +1588,50 @@
                                     }
                                 }
                                 break;
+                            }
+                        }
+                    }
+                }
+                
+                // STRATEGY 4: Handle "CLASS MAX" patterns (Character Progress section)
+                // This catches cases where the viewing player's class appears as "Heavy MAX" etc.
+                if (foundPlayers.length < 3) {
+                    for (let i = 0; i < lines.length; i++) {
+                        if (foundPlayers.length >= 3) break;
+                        
+                        const line = lines[i].trim();
+                        // Match pattern like "Heavy MAX" or "25 Heavy MAX"
+                        const maxMatch = line.match(/\b([A-Za-z]{5,})\s+MAX\b/i);
+                        if (maxMatch) {
+                            const potentialClass = maxMatch[1];
+                            const matchedClass = matchClass(potentialClass);
+                            if (matchedClass) {
+                                const classAlreadyFound = foundPlayers.some(p => p.class.toLowerCase() === matchedClass.toLowerCase());
+                                if (classAlreadyFound) continue;
+                                
+                                // Look backwards and forwards for name
+                                let foundName = null;
+                                for (let j = i - 1; j >= Math.max(0, i - 8); j--) {
+                                    const name = extractPlayerName(lines[j]);
+                                    if (name && !foundPlayers.some(p => p.name === name)) {
+                                        foundName = name;
+                                        break;
+                                    }
+                                }
+                                // Also look forward if not found
+                                if (!foundName) {
+                                    for (let j = i + 1; j <= Math.min(lines.length - 1, i + 4); j++) {
+                                        const name = extractPlayerName(lines[j]);
+                                        if (name && !foundPlayers.some(p => p.name === name)) {
+                                            foundName = name;
+                                            break;
+                                        }
+                                    }
+                                }
+                                
+                                if (foundName) {
+                                    foundPlayers.push({ name: foundName, class: formatClass(matchedClass) });
+                                }
                             }
                         }
                     }
