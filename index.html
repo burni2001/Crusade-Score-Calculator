@@ -618,7 +618,7 @@
                 <div>
                     <div>REF: SM-2/CRUSADE</div>
                     <div style="font-size: 0.8em; opacity: 0.7">
-                        V 0.5.56 - ADEPTUS ADMINISTRATUM
+                        V 0.5.57 - ADEPTUS ADMINISTRATUM
                     </div>
                 </div>
                 <h1>Mission Debrief</h1>
@@ -1402,6 +1402,9 @@
                 }
                 
                 // STRATEGY 1: Look for class names with [a] or [i] markers (game UI pattern)
+                console.log("=== OCR NAME DETECTION DEBUG ===");
+                console.log("Total lines:", lines.length);
+                
                 for (let i = 0; i < lines.length; i++) {
                     const line = lines[i];
                     
@@ -1410,19 +1413,23 @@
                     if (markerMatch) {
                         const potentialClass = markerMatch[1];
                         const matchedClass = matchClass(potentialClass);
+                        console.log(`Line ${i}: Found marker "${markerMatch[0]}", class: ${matchedClass}`);
                         
                         if (matchedClass && foundPlayers.length < 3) {
                             // Skip level indicators like "Bulwark MAX"
                             const beforeMatch = line.substring(0, line.indexOf(markerMatch[0]));
-                            if (/MAX\b/i.test(beforeMatch)) continue;
+                            if (/MAX\b/i.test(beforeMatch)) {
+                                console.log("  Skipped: MAX indicator");
+                                continue;
+                            }
                             
                             let foundName = null;
                             
                             // First check the SAME LINE before the class marker for a name
-                            // This handles cases like "Borni | Bulwark [a]"
                             if (beforeMatch.trim()) {
                                 const sameLine = beforeMatch.replace(/[|:$#\[\]0-9]/g, ' ').trim();
                                 const sameLineName = extractPlayerName(sameLine);
+                                console.log(`  Same line check: "${sameLine}" -> "${sameLineName}"`);
                                 if (sameLineName) {
                                     const isDuplicate = foundPlayers.some(p => p.name === sameLineName);
                                     if (!isDuplicate) {
@@ -1434,23 +1441,31 @@
                             // If not found on same line, look backwards up to 6 lines
                             if (!foundName) {
                                 for (let j = i - 1; j >= Math.max(0, i - 6); j--) {
-                                    const name = extractPlayerName(lines[j]);
+                                    const candidateLine = lines[j];
+                                    const name = extractPlayerName(candidateLine);
+                                    console.log(`  Look back line ${j}: "${candidateLine.substring(0,50)}..." -> "${name}"`);
                                     if (name) {
                                         const isDuplicate = foundPlayers.some(p => p.name === name);
                                         if (!isDuplicate) {
                                             foundName = name;
                                             break;
+                                        } else {
+                                            console.log(`    Duplicate, skipping`);
                                         }
                                     }
                                 }
                             }
                             
                             if (foundName) {
+                                console.log(`  => Added player: ${foundName} / ${formatClass(matchedClass)}`);
                                 foundPlayers.push({ name: foundName, class: formatClass(matchedClass) });
+                            } else {
+                                console.log(`  => No name found for ${matchedClass}`);
                             }
                         }
                     }
                 }
+                console.log("Found players:", foundPlayers);
                 
                 // STRATEGY 2: Look for name [i] pattern (player name marker)
                 if (foundPlayers.length < 3) {
