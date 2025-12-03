@@ -368,48 +368,102 @@
                     font-size: 1rem;
                 }
 
-                /* Score Table - Handle horizontal scrolling for wide content */
-                /* This div will be added to your HTML to wrap the table */
+                /* Score Table - Responsive card-based layout */
                 .score-table-container {
-                    overflow-x: auto; /* Enable horizontal scrolling */
-                    -webkit-overflow-scrolling: touch; /* Smoother scrolling on iOS */
+                    overflow-x: visible;
                 }
-                .score-table {
-                    min-width: 600px; /* Ensures the table is at least this wide, forcing scroll if container is smaller */
-                    width: max-content; /* Allows the table to be wider than its container */
+                
+                /* Hide the original table structure on mobile */
+                .score-table thead {
+                    display: none;
                 }
-
-                .score-table th,
+                
+                .score-table,
+                .score-table tbody,
+                .score-table tr,
                 .score-table td {
-                    padding: 5px; /* Smaller padding in table cells */
+                    display: block;
+                    width: 100%;
                 }
-
+                
+                .score-table tr {
+                    margin-bottom: 15px;
+                    border: 1px solid var(--border-color);
+                    background-color: var(--panel-bg);
+                    padding: 10px;
+                }
+                
+                .score-table td {
+                    border: none;
+                    padding: 8px 5px;
+                    text-align: left;
+                    position: relative;
+                    padding-left: 50%;
+                }
+                
+                .score-table td::before {
+                    content: attr(data-label);
+                    position: absolute;
+                    left: 10px;
+                    width: 45%;
+                    padding-right: 10px;
+                    white-space: nowrap;
+                    font-weight: bold;
+                    text-align: left;
+                }
+                
                 .row-label {
-                    width: 120px; /* Make row labels smaller */
-                    padding-right: 5px !important;
-                    font-size: 0.9em;
+                    background-color: var(--panel-bg);
+                    font-size: 1.1em;
+                    text-align: center !important;
+                    padding: 10px !important;
+                    border-bottom: 1px solid var(--pip-green);
+                    margin-bottom: 5px;
                 }
-
-                .input-cell {
-                    width: 90px; /* Make input cells smaller */
+                
+                .row-label::before {
+                    content: none;
                 }
+                
+                .input-cell,
                 .total-cell {
-                    width: 90px;
+                    width: 100%;
                 }
-
-                .score-table th input[type="text"] {
-                    /* Player name inputs */
-                    font-size: 0.9rem;
-                    padding: 1px;
+                
+                .input-cell input {
+                    width: 100%;
                 }
-
+                
+                /* Special rows */
+                .base-score-row,
+                .mod-score-row,
+                .final-score-row {
+                    background-color: #000;
+                    border: 2px solid var(--pip-green);
+                }
+                
                 .base-score-row td,
                 .mod-score-row td,
                 .final-score-row td {
-                    padding-top: 8px;
-                    padding-bottom: 8px;
-                    font-size: 1.2rem; /* Slightly smaller for total row */
+                    padding: 10px 5px;
+                    padding-left: 50%;
+                    font-size: 1.1rem;
                 }
+                
+                .final-score-row {
+                    border: 2px solid var(--pip-green);
+                }
+                
+                .final-score-row td {
+                    color: #afffa6;
+                    font-size: 1.3rem;
+                }
+                
+                /* Spacer rows */
+                .score-table tr[style*="height: 10px"] {
+                    display: none;
+                }
+
                 /* Export buttons */
                 .export-buttons-container {
                     flex-direction: column;
@@ -661,7 +715,7 @@
                             <!-- Kills -->
                             <tr>
                                 <td class="row-label">Kills</td>
-                                <td class="input-cell">
+                                <td class="input-cell" data-label="Player 1">
                                     <input
                                         type="number"
                                         class="p1-input"
@@ -672,7 +726,7 @@
                                         onchange="calculate(); saveData();"
                                     />
                                 </td>
-                                <td class="input-cell">
+                                <td class="input-cell" data-label="Player 2">
                                     <input
                                         type="number"
                                         class="p2-input"
@@ -683,7 +737,7 @@
                                         onchange="calculate(); saveData();"
                                     />
                                 </td>
-                                <td class="input-cell">
+                                <td class="input-cell" data-label="Player 3">
                                     <input
                                         type="number"
                                         class="p3-input"
@@ -694,12 +748,12 @@
                                         onchange="calculate(); saveData();"
                                     />
                                 </td>
-                                <td class="total-cell" id="total-kills">0</td>
+                                <td class="total-cell" data-label="Total" id="total-kills">0</td>
                             </tr>
                             <!-- Elite Kills -->
                             <tr>
                                 <td class="row-label">Elite Kills</td>
-                                <td class="input-cell">
+                                <td class="input-cell" data-label="Player 1">
                                     <input
                                         type="number"
                                         class="p1-input"
@@ -710,7 +764,7 @@
                                         onchange="calculate(); saveData();"
                                     />
                                 </td>
-                                <td class="input-cell">
+                                <td class="input-cell" data-label="Player 2">
                                     <input
                                         type="number"
                                         class="p2-input"
@@ -721,7 +775,7 @@
                                         onchange="calculate(); saveData();"
                                     />
                                 </td>
-                                <td class="input-cell">
+                                <td class="input-cell" data-label="Player 3">
                                     <input
                                         type="number"
                                         class="p3-input"
@@ -732,20 +786,20 @@
                                         onchange="calculate(); saveData();"
                                     />
                                 </td>
-                                <td class="total-cell" id="total-elite">0</td>
+                                <td class="total-cell" data-label="Total" id="total-elite">0</td>
                             </tr>
                             <!-- Base Score Result -->
                             <tr class="base-score-row">
                                 <td class="row-label">Base Score</td>
-                                <td id="p1-base">0</td>
-                                <td id="p2-base">0</td>
-                                <td id="p3-base">0</td>
-                                <td id="total-base">0</td>
+                                <td data-label="Player 1" id="p1-base">0</td>
+                                <td data-label="Player 2" id="p2-base">0</td>
+                                <td data-label="Player 3" id="p3-base">0</td>
+                                <td data-label="Total" id="total-base">0</td>
                             </tr>
                             <!-- Death -->
                             <tr>
                                 <td class="row-label">Death</td>
-                                <td class="input-cell">
+                                <td class="input-cell" data-label="Player 1">
                                     <input
                                         type="number"
                                         class="p1-input"
@@ -756,7 +810,7 @@
                                         onchange="calculate(); saveData();"
                                     />
                                 </td>
-                                <td class="input-cell">
+                                <td class="input-cell" data-label="Player 2">
                                     <input
                                         type="number"
                                         class="p2-input"
@@ -767,7 +821,7 @@
                                         onchange="calculate(); saveData();"
                                     />
                                 </td>
-                                <td class="input-cell">
+                                <td class="input-cell" data-label="Player 3">
                                     <input
                                         type="number"
                                         class="p3-input"
@@ -778,12 +832,12 @@
                                         onchange="calculate(); saveData();"
                                     />
                                 </td>
-                                <td class="total-cell" id="total-death">0</td>
+                                <td class="total-cell" data-label="Total" id="total-death">0</td>
                             </tr>
                             <!-- Damage -->
                             <tr>
                                 <td class="row-label">Damage</td>
-                                <td class="input-cell">
+                                <td class="input-cell" data-label="Player 1">
                                     <input
                                         type="number"
                                         class="p1-input"
@@ -795,7 +849,7 @@
                                         onchange="calculate(); saveData();"
                                     />
                                 </td>
-                                <td class="input-cell">
+                                <td class="input-cell" data-label="Player 2">
                                     <input
                                         type="number"
                                         class="p2-input"
@@ -807,7 +861,7 @@
                                         onchange="calculate(); saveData();"
                                     />
                                 </td>
-                                <td class="input-cell">
+                                <td class="input-cell" data-label="Player 3">
                                     <input
                                         type="number"
                                         class="p3-input"
@@ -819,16 +873,16 @@
                                         onchange="calculate(); saveData();"
                                     />
                                 </td>
-                                <td class="total-cell" id="total-damage">0</td>
+                                <td class="total-cell" data-label="Total" id="total-damage">0</td>
                             </tr>
 
                             <!-- Modifier Score Result -->
                             <tr class="mod-score-row">
                                 <td class="row-label">Modifier Score</td>
-                                <td id="p1-mod">0</td>
-                                <td id="p2-mod">0</td>
-                                <td id="p3-mod">0</td>
-                                <td id="total-mod">0</td>
+                                <td data-label="Player 1" id="p1-mod">0</td>
+                                <td data-label="Player 2" id="p2-mod">0</td>
+                                <td data-label="Player 3" id="p3-mod">0</td>
+                                <td data-label="Total" id="total-mod">0</td>
                             </tr>
                             <!-- Spacer -->
                             <tr style="height: 10px"></tr>
@@ -837,10 +891,10 @@
                                 <td class="row-label" style="color: #afffa6">
                                     TOTAL SCORE
                                 </td>
-                                <td id="p1-final">0</td>
-                                <td id="p2-final">0</td>
-                                <td id="p3-final">0</td>
-                                <td id="total-final">0</td>
+                                <td data-label="Player 1" id="p1-final">0</td>
+                                <td data-label="Player 2" id="p2-final">0</td>
+                                <td data-label="Player 3" id="p3-final">0</td>
+                                <td data-label="Total" id="total-final">0</td>
                             </tr>
                         </tbody>
                     </table>
