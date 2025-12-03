@@ -493,6 +493,21 @@
                 <!-- Global Toggles Section (your dropdowns) -->
                 <div class="section" style="margin-bottom: 0">
                     <!-- Remove bottom margin as parent handles spacing -->
+                    <!-- Screenshot Upload Section -->
+                    <div style="margin-bottom: 15px; padding: 10px; background-color: rgba(51, 255, 0, 0.1); border: 1px solid var(--pip-green);">
+                        <label for="screenshot-upload" style="display: block; margin-bottom: 8px; font-weight: bold; text-align: center;">
+                            UPLOAD SCREENSHOTS
+                        </label>
+                        <input
+                            type="file"
+                            id="screenshot-upload"
+                            accept="image/png,image/jpeg,image/jpg"
+                            multiple
+                            style="display: block; margin: 0 auto; padding: 8px; background-color: var(--panel-bg); cursor: pointer;"
+                        />
+                        <div id="upload-status" style="margin-top: 10px; text-align: center; font-size: 0.9rem; min-height: 20px;"></div>
+                        <div id="upload-progress" style="margin-top: 5px; text-align: center; font-size: 0.85rem; color: var(--pip-dim);"></div>
+                    </div>
                     <!-- NEW: Mission Played input field -->
                     <div class="mission-params">
                         <label for="mission-name">Mission Played</label>
@@ -745,7 +760,6 @@
                             </tr>
                             <!-- Damage -->
                             <tr>
-                                <td class="row-label">Damage</td>
                                 <td class="input-cell">
                                     <input
                                         type="number"
@@ -1159,7 +1173,7 @@
                             body.style.overflow = originalBodyOverflow;
                             body.style.width = originalBodyWidth;
                             html.style.width = originalHtmlWidth;
-                            
+
                             // Restore viewport
                             if (originalViewport && originalViewportContent) {
                                 originalViewport.setAttribute('content', originalViewportContent);
@@ -1180,12 +1194,12 @@
                             body.style.overflow = originalBodyOverflow;
                             body.style.width = originalBodyWidth;
                             html.style.width = originalHtmlWidth;
-                            
+
                             // Restore viewport
                             if (originalViewport && originalViewportContent) {
                                 originalViewport.setAttribute('content', originalViewportContent);
                             }
-                            
+
                             console.error("PNG export failed:", err);
                             alert(
                                 "Failed to capture screenshot. Please try again.",
