@@ -618,7 +618,7 @@
                 <div>
                     <div>REF: SM-2/CRUSADE</div>
                     <div style="font-size: 0.8em; opacity: 0.7">
-                        V 0.6.5 - ADEPTUS ADMINISTRATUM
+                        V 0.6.6 - ADEPTUS ADMINISTRATUM
                     </div>
                 </div>
                 <h1>Mission Debrief</h1>
@@ -1651,10 +1651,10 @@
                                     }
                                 }
                                 
-                                // If we have a class but no confident name, add with class only
+                                // If we have a class but no confident name, add with empty name
                                 // (user can fill name in review modal)
                                 foundPlayers.push({ 
-                                    name: foundName || "Unknown", 
+                                    name: foundName || "", 
                                     class: formatClass(matchedClass) 
                                 });
                             }
