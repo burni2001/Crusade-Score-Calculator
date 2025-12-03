@@ -618,7 +618,7 @@
                 <div>
                     <div>REF: SM-2/CRUSADE</div>
                     <div style="font-size: 0.8em; opacity: 0.7">
-                        V 0.6.0 - ADEPTUS ADMINISTRATUM
+                        V 0.6.1 - ADEPTUS ADMINISTRATUM
                     </div>
                 </div>
                 <h1>Mission Debrief</h1>
@@ -1379,7 +1379,7 @@
                     // Game terms and garbage patterns to filter out
                     const gameTerms = /^(Kills|Special|Melee|Ranged|Damage|Items|Total|Score|Next|Status|Mission|Rewards|Character|Progress|Primary|Secondary|Objectives|Found|Taken|Revived|Incap|Success|Assault|Vanguard|Bulwark|Tactical|Sniper|Heavy|TRUER|SYREN)$/i;
                     
-                    // Filter out garbage: all same letter, too short, all caps under 4 chars
+                    // Filter out garbage: all same letter, too short, suspicious patterns
                     function isValidName(name) {
                         if (!name || name.length < 3) return false;
                         if (gameTerms.test(name)) return false;
@@ -1390,6 +1390,13 @@
                         // Reject if mostly non-letters
                         const letterCount = (name.match(/[a-zA-ZäöüÄÖÜß\u00C0-\u00FF]/g) || []).length;
                         if (letterCount < name.length * 0.7) return false;
+                        // Reject weird case patterns like "AajE" (uppercase at end of short word)
+                        if (name.length <= 5 && /[a-z][A-Z]$/.test(name)) return false;
+                        // Reject if contains multiple random uppercase in the middle
+                        const midUppers = (name.slice(1, -1).match(/[A-Z]/g) || []).length;
+                        if (name.length <= 5 && midUppers > 1) return false;
+                        // Reject very short names that look like OCR artifacts
+                        if (name.length <= 4 && !/^[A-Z][a-z]{2,3}$/.test(name)) return false;
                         return true;
                     }
                     
@@ -1413,8 +1420,8 @@
                 for (let i = 0; i < lines.length; i++) {
                     const line = lines[i];
                     
-                    // Look for pattern: word followed by [a], [i], [E], etc.
-                    const markerMatch = line.match(/([A-Za-zÄÖÜäöü]{4,})\s*\[([aieAIE])\]/i);
+                    // Look for pattern: word followed by [a], [i], [E], [of], [a], etc. (OCR variations)
+                    const markerMatch = line.match(/([A-Za-zÄÖÜäöü]{4,})\s*\[([aieAIEof0-9]{1,2})\]/i);
                     if (markerMatch) {
                         const potentialClass = markerMatch[1];
                         const matchedClass = matchClass(potentialClass);
@@ -1490,6 +1497,56 @@
                     }
                 }
                 
+                // STRATEGY 2.5: Look for class names followed by ANY bracket (more flexible)
+                if (foundPlayers.length < 3) {
+                    for (let i = 0; i < lines.length; i++) {
+                        if (foundPlayers.length >= 3) break;
+                        
+                        const line = lines[i];
+                        if (/\bMAX\b/i.test(line)) continue;
+                        
+                        // More flexible pattern: class name followed by bracket with anything
+                        const flexMatch = line.match(/\b([A-Za-zÄÖÜäöü]{5,})\s*\[[^\]]{0,3}\]/i);
+                        if (flexMatch) {
+                            const potentialClass = flexMatch[1];
+                            const matchedClass = matchClass(potentialClass);
+                            
+                            if (matchedClass) {
+                                // Check if this class already detected
+                                const classAlreadyFound = foundPlayers.some(p => p.class.toLowerCase() === matchedClass.toLowerCase());
+                                if (classAlreadyFound) continue;
+                                
+                                let foundName = null;
+                                const beforeMatch = line.substring(0, line.indexOf(flexMatch[0]));
+                                
+                                // Check same line first
+                                if (beforeMatch.trim()) {
+                                    const sameLine = beforeMatch.replace(/[|:$#\[\]0-9]/g, ' ').trim();
+                                    foundName = extractPlayerName(sameLine);
+                                    if (foundName && foundPlayers.some(p => p.name === foundName)) {
+                                        foundName = null;
+                                    }
+                                }
+                                
+                                // Look backwards
+                                if (!foundName) {
+                                    for (let j = i - 1; j >= Math.max(0, i - 6); j--) {
+                                        const name = extractPlayerName(lines[j]);
+                                        if (name && !foundPlayers.some(p => p.name === name)) {
+                                            foundName = name;
+                                            break;
+                                        }
+                                    }
+                                }
+                                
+                                if (foundName) {
+                                    foundPlayers.push({ name: foundName, class: formatClass(matchedClass) });
+                                }
+                            }
+                        }
+                    }
+                }
+                
                 // STRATEGY 3: Fallback - look for standalone class names
                 if (foundPlayers.length < 3) {
                     for (let i = 0; i < lines.length; i++) {
@@ -1503,6 +1560,10 @@
                         for (const word of words) {
                             const matchedClass = matchClass(word);
                             if (matchedClass) {
+                                // Check if this class already detected
+                                const classAlreadyFound = foundPlayers.some(p => p.class.toLowerCase() === matchedClass.toLowerCase());
+                                if (classAlreadyFound) continue;
+                                
                                 // Look backwards for name
                                 for (let j = i - 1; j >= Math.max(0, i - 6); j--) {
                                     const name = extractPlayerName(lines[j]);
