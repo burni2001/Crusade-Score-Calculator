@@ -547,7 +547,7 @@
                 <div>
                     <div>REF: SM-2/CRUSADE</div>
                     <div style="font-size: 0.8em; opacity: 0.7">
-                        V 0.5.43 - ADEPTUS ADMINISTRATUM
+                        V 0.5.44 - ADEPTUS ADMINISTRATUM
                     </div>
                 </div>
                 <h1>Mission Debrief</h1>
@@ -1271,24 +1271,27 @@
                     if (foundClass) {
                         // Look backwards up to 3 lines for a valid name
                         for (let j = i - 1; j >= Math.max(0, i - 3); j--) {
-                            let candidateName = lines[j].trim();
-                            // Clean up the name - remove brackets, numbers, symbols at edges
-                            candidateName = candidateName.replace(/\[.*?\]/g, '');
-                            // Extract just the name part - look for capitalized words
-                            const nameMatch = candidateName.match(/([A-ZÄÖÜa-zäöü\u00C0-\u024F][A-Za-zÄÖÜäöü\u00C0-\u024F]*(?:\s+[A-ZÄÖÜa-zäöü\u00C0-\u024F][A-Za-zÄÖÜäöü\u00C0-\u024F]*)*)/);
-                            if (nameMatch) {
-                                candidateName = nameMatch[1].trim();
-                            } else {
-                                continue;
-                            }
+                            let candidateLine = lines[j].trim();
+                            // Remove brackets and clean
+                            candidateLine = candidateLine.replace(/\[.*?\]/g, '').trim();
+                            
+                            // Extract words (2+ letters each) that could be a name
+                            const words = candidateLine.match(/[A-ZÄÖÜa-zäöü\u00C0-\u024F]{2,}/g);
+                            if (!words || words.length === 0) continue;
+                            
+                            // Filter out common OCR garbage and game terms
+                            const badWords = /^(kills|special|melee|ranged|damage|items|incap|team|total|score|next|status|mission|rewards|primary|secondary|objectives|character|progress|max|min|xp|bulwark|assault|vanguard|tactical|sniper|heavy|techmarine|fe|fo|an|the)$/i;
+                            const cleanWords = words.filter(w => !badWords.test(w) && w.length >= 2);
+                            
+                            if (cleanWords.length === 0) continue;
+                            
+                            // Build the name from clean words (max 3 words for a name)
+                            const candidateName = cleanWords.slice(0, 3).join(' ');
                             
                             // Check if this looks like a valid player name
                             const isValidName = candidateName.length >= 3 && 
                                 candidateName.length < 30 &&
-                                !/^(kills|special|melee|ranged|damage|items|incap|team|total|score|next|status|mission|rewards|primary|secondary|objectives|character|progress)/i.test(candidateName) &&
-                                !/^\d+$/.test(candidateName) &&
-                                !Object.keys(classMapping).some(c => candidateName.toUpperCase().includes(c)) &&
-                                !/^(max|min|xp)$/i.test(candidateName);
+                                cleanWords.some(w => w.length >= 3); // At least one word with 3+ chars
                             
                             if (isValidName) {
                                 const slot = getNextPlayerSlot();
