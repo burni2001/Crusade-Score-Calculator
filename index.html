@@ -618,7 +618,7 @@
                 <div>
                     <div>REF: SM-2/CRUSADE</div>
                     <div style="font-size: 0.8em; opacity: 0.7">
-                        V 0.6.4 - ADEPTUS ADMINISTRATUM
+                        V 0.6.5 - ADEPTUS ADMINISTRATUM
                     </div>
                 </div>
                 <h1>Mission Debrief</h1>
@@ -1611,29 +1611,52 @@
                                 const classAlreadyFound = foundPlayers.some(p => p.class.toLowerCase() === matchedClass.toLowerCase());
                                 if (classAlreadyFound) continue;
                                 
-                                // Look backwards and forwards for name
+                                // Look backwards and forwards for name - require higher confidence
+                                // Since CLASS MAX context often has garbled OCR, require longer names (5+ chars)
+                                // or names that look very name-like
                                 let foundName = null;
+                                
+                                function isHighConfidenceName(name) {
+                                    if (!name) return false;
+                                    // Require at least 5 chars, OR known OCR pattern for Börni
+                                    if (name.length >= 5) return true;
+                                    if (/^B[oö]rni$/i.test(name)) return true;
+                                    // Reject very short names from garbage lines
+                                    return false;
+                                }
+                                
                                 for (let j = i - 1; j >= Math.max(0, i - 8); j--) {
-                                    const name = extractPlayerName(lines[j]);
-                                    if (name && !foundPlayers.some(p => p.name === name)) {
+                                    const candidateLine = lines[j];
+                                    // Skip lines that look like garbage (lots of symbols, very short words)
+                                    if (/^[\s\[\]\(\)\{\}|\\\/\-\.\,\;\:\#\@\!\?\*\&\%\$\=\+\<\>\~\`\'\"0-9]+$/.test(candidateLine)) continue;
+                                    
+                                    const name = extractPlayerName(candidateLine);
+                                    if (isHighConfidenceName(name) && !foundPlayers.some(p => p.name === name)) {
                                         foundName = name;
                                         break;
                                     }
                                 }
+                                
                                 // Also look forward if not found
                                 if (!foundName) {
                                     for (let j = i + 1; j <= Math.min(lines.length - 1, i + 4); j++) {
-                                        const name = extractPlayerName(lines[j]);
-                                        if (name && !foundPlayers.some(p => p.name === name)) {
+                                        const candidateLine = lines[j];
+                                        if (/^[\s\[\]\(\)\{\}|\\\/\-\.\,\;\:\#\@\!\?\*\&\%\$\=\+\<\>\~\`\'\"0-9]+$/.test(candidateLine)) continue;
+                                        
+                                        const name = extractPlayerName(candidateLine);
+                                        if (isHighConfidenceName(name) && !foundPlayers.some(p => p.name === name)) {
                                             foundName = name;
                                             break;
                                         }
                                     }
                                 }
                                 
-                                if (foundName) {
-                                    foundPlayers.push({ name: foundName, class: formatClass(matchedClass) });
-                                }
+                                // If we have a class but no confident name, add with class only
+                                // (user can fill name in review modal)
+                                foundPlayers.push({ 
+                                    name: foundName || "Unknown", 
+                                    class: formatClass(matchedClass) 
+                                });
                             }
                         }
                     }
