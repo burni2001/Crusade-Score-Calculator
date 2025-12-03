@@ -618,7 +618,7 @@
                 <div>
                     <div>REF: SM-2/CRUSADE</div>
                     <div style="font-size: 0.8em; opacity: 0.7">
-                        V 0.6.10 - ADEPTUS ADMINISTRATUM
+                        V 0.6.11 - ADEPTUS ADMINISTRATUM
                     </div>
                 </div>
                 <h1>Mission Debrief</h1>
@@ -1226,6 +1226,52 @@
                     }
                 });
 
+            // Pre-process image for better OCR (increase contrast, enhance text)
+            async function preprocessImage(dataUrl) {
+                return new Promise((resolve) => {
+                    const img = new Image();
+                    img.onload = function() {
+                        const canvas = document.createElement('canvas');
+                        const ctx = canvas.getContext('2d');
+                        canvas.width = img.width;
+                        canvas.height = img.height;
+                        
+                        // Draw original image
+                        ctx.drawImage(img, 0, 0);
+                        
+                        // Get image data
+                        const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+                        const data = imageData.data;
+                        
+                        // Enhance contrast and convert to high-contrast grayscale
+                        // This helps OCR recognize the green text on dark background
+                        for (let i = 0; i < data.length; i += 4) {
+                            const r = data[i];
+                            const g = data[i + 1];
+                            const b = data[i + 2];
+                            
+                            // Calculate luminance (green channel weighted higher for green text)
+                            const luminance = 0.2 * r + 0.7 * g + 0.1 * b;
+                            
+                            // Apply contrast enhancement
+                            let enhanced = ((luminance - 128) * 2.0) + 128;
+                            enhanced = Math.max(0, Math.min(255, enhanced));
+                            
+                            // Threshold to black/white for cleaner OCR
+                            const threshold = enhanced > 100 ? 255 : 0;
+                            
+                            data[i] = threshold;     // R
+                            data[i + 1] = threshold; // G
+                            data[i + 2] = threshold; // B
+                        }
+                        
+                        ctx.putImageData(imageData, 0, 0);
+                        resolve(canvas.toDataURL('image/png'));
+                    };
+                    img.src = dataUrl;
+                });
+            }
+            
             async function processScreenshot(file, statusDiv, progressDiv) {
                 return new Promise((resolve, reject) => {
                     const reader = new FileReader();
@@ -1233,11 +1279,14 @@
                     reader.onload = async function (e) {
                         try {
                             const imageData = e.target.result;
+                            
+                            // Pre-process image for better OCR
+                            const processedImage = await preprocessImage(imageData);
 
-                            // Use Tesseract.js to extract text
+                            // Use Tesseract.js to extract text with optimized settings
                             const {
                                 data: { text },
-                            } = await Tesseract.recognize(imageData, "eng", {
+                            } = await Tesseract.recognize(processedImage, "eng", {
                                 logger: (m) => {
                                     if (m.status === "recognizing text") {
                                         progressDiv.textContent = `OCR Progress: ${Math.round(m.progress * 100)}%`;

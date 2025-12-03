@@ -1,0 +1,106 @@
+=== OCR DEBUG EXPORT ===
+Version: 0.6.10
+Timestamp: 2025-12-03T23:03:12.956Z
+
+=== DETECTED VALUES ===
+mission-name: Reclamation te
+global-objective: 1
+p1-death: 2
+p2-death: 1
+p3-death: 1
+global-geneseed: 0
+
+=== RAW OCR TEXT ===
+STATUS: success Na
+\ BRIA E : |
+| . REWARDS
+a le
+= jen
+| | Qj] FE
+: \ 4),
+™] ¥ -a 1] RY E
+TU ea = 4 4
+| 2» Sah =—
+Fi £ E ; 8 5 [/ (4 1 CHARACTER PROGRESS
+J LE CE Wi 2} Bj ALT MARX.
+ — ~~ i =| 4 CEE
+y — A pe a iY i E
+i 4 £2. Bp» TomaiscoRe ©
+‘rey, . Ll) y) YE
+3 Yr BRR Wan oy / 284, rT ___ wJ048 = ©
+gE “a 1 : p is Ea  , eB
+~ ext (15) : ¢ ks | f/35 ; _— 4 4 Wh #
+
+
+---
+
+MISSION: RECLAMATION TE
+STATUS: SUCCESS gd
+| N p 4 ; ;
+§ l¢ li "== sh GEE — rE EE Sa
+| | me © Eee
+I. 4 (| Kills ew es | ww | ws |
+‘ |X: QIN special Kills = on] 26 Ia I — 11
+IS in \ | =F I) eee
+TE, \ if - [ - ye y nin i @10 = | am | ES ]!
+iF "a 5 = rE \ 7 / Ranged Damage @o| sees | sa | ness ||
+| ee Fol SW a 7 uy
+ps 1 PA \ = = bs (la \ eee eel m5 | 5 |
+J) £- 7 yy . i a ES | Damage Taken en. sw | we | om |
+k = —a a | ——-—
+F oy y & pa i r ¢ 7 Sy / a os \ \ Incapacitations ll 2 I 1 I 1 i
+: . E Nee AE Fal y >. a
+R il — A Sd FS [i 3 v | J rates ved [ 0 I 2 1 it
+- F il hd Jo 74h L WE” 0 1o7ALSCORE — — °°
+oe 1 9 1 SS ——_ =
+7 ny J ~ 3 ry 4 lie a . -
+3 CR Wel Sam «¢  ®©37048 ]
+y 4 S| wr TT... = a
+. BE A [44 3
+Es 5) Sls < By { 58 > #3 > Gi d
+£7) / ES F/
+i ] ey, 4 , i
+{ R | EF f= PP a.
+
+
+---
+
+MISSION: RECLAMATION
+STATUS: SUCCESS
+: PRIMARY, OBJECTIVES Rr
+EB Faken ee
+@ Weapons Deck Xe 581
+@ Ordnance Depot Xe 581
+@ Reactor Cooling Hall Xe 581
+@ Reactor Chamber Xe 581
+@ Egress Xp 588
+Extermination Rank ©4076
+TOTAL SCORE —
+——y—
+w» 6988
+(«=| Next (20)
+“| Diepeto
+7 fe
+a Cyberpunk 2077
+
+
+---
+
+
+
+=== ANALYSIS ===
+Lines containing 'KILL' (case-insensitive):
+  Line 25: I. 4 (| Kills ew es | ww | ws |
+    Numbers found: 4
+  Line 26: ‘ |X: QIN special Kills = on] 26 Ia I — 11
+    Numbers found: 26, 11
+
+Lines containing 'INCAP' (case-insensitive):
+  Line 34: F oy y & pa i r ¢ 7 Sy / a os \ \ Incapacitations ll 2 I 1 I 1 i
+    Numbers found: 7, 2, 1, 1
+
+Lines containing 'DAMAGE' (case-insensitive):
+  Line 29: iF "a 5 = rE \ 7 / Ranged Damage @o| sees | sa | ness ||
+    Numbers found: 5, 7
+  Line 32: J) £- 7 yy . i a ES | Damage Taken en. sw | we | om |
+    Numbers found: 7
