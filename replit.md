@@ -59,17 +59,16 @@ This automatically updates:
 The application is served using Python's built-in HTTP server on port 5000. No build step is required.
 
 ## Recent Changes
-- 2024-12-03: Improved OCR parsing for game-accurate terminology (v0.5.33)
+- 2024-12-03: Major OCR parsing improvements (v0.5.35)
   - Fixed matrix layout bug where Damage row was missing its label cell
-  - OCR preprocessing removes star symbols (★) and XP badges before parsing
-  - Player name extraction: looks for name on line BEFORE class name (BULWARK/VANGUARD/ASSAULT/etc)
-  - Supports international characters in names (umlauts like Ö, Ü, etc)
-  - "MISSION: RECLAMATION" format properly extracts mission name
-  - "STATUS: SUCCESS" detection for objective completion
-  - Stats extraction: Kills, Special Kills→Elite, Incapacitations→Death, Damage Taken→Damage
-  - Multi-player stat extraction (3 columns: P1, P2, P3) from table rows
-  - Armoury data detection from rewards section
-  - OCR review modal shows all 3 player fields for review before applying
+  - Heavy text normalization: removes stars, XP badges, normalizes unicode
+  - Creates uppercase single-line version for more tolerant pattern matching
+  - Player name extraction: scans lines for class names (BULWARK/VANGUARD/etc), takes previous line as name
+  - Supports Unicode letters (Ö, Ü, etc) via \u00C0-\u024F range
+  - Flexible regex patterns accept various separators (colons, equals, dashes, spaces)
+  - Stats extraction uses tolerant patterns: "KILLS", "SPECIAL KILLS", "DAMAGE TAKEN", "INCAPACITATION"
+  - Armoury data detected from "ARMOURY DATA" or REWARDS section
+  - OCR review modal shows all detected values for manual verification
 
 - 2024-12-03: Enhanced OCR functionality and added Clear Data button
   - OCR now shows review modal before applying values (instead of auto-filling)
