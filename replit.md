@@ -59,6 +59,14 @@ This automatically updates:
 The application is served using Python's built-in HTTP server on port 5000. No build step is required.
 
 ## Recent Changes
+- 2024-12-03: OCR image preprocessing and debug export (v0.6.11)
+  - Added image preprocessing before OCR: converts to high-contrast black/white
+  - Enhances green text on dark background for better Tesseract recognition
+  - Added "Export Debug Data" button in OCR review modal for troubleshooting
+  - Debug export includes: detected values, raw OCR text, and line-by-line analysis
+  - Multi-pattern stats extraction with OCR-tolerant regex variants
+  - Better handling of garbled OCR output from game screenshots
+
 - 2024-12-03: Added Class field and improved OCR name extraction (v0.5.38)
   - Added Class dropdown to Squad Performance Matrix (Tactical, Assault, Vanguard, Bulwark, Sniper, Heavy, Techmarine)
   - OCR now extracts both player names AND class from screenshots
