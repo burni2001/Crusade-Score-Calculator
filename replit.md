@@ -44,6 +44,13 @@ A Progressive Web App (PWA) calculator for Warhammer 40K Space Marine 2 mission 
 The application is served using Python's built-in HTTP server on port 5000. No build step is required.
 
 ## Recent Changes
+- 2024-12-03: Enhanced OCR functionality and added Clear Data button
+  - OCR now shows review modal before applying values (instead of auto-filling)
+  - Users can see detected values and raw OCR text for manual review
+  - "Apply Values" button overwrites existing form data with OCR results
+  - Added "Clear Mission Data" button (orange styling) that clears all fields except modifiers
+  - Incremented service worker cache version to v4
+
 - 2024-12-02: Added localStorage, input validation, and improved PNG export
   - Added localStorage to automatically save and restore all form inputs
   - Added input validation with min=0 constraints on player stat fields

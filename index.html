@@ -291,6 +291,148 @@
                 box-shadow: 0 0 15px var(--pip-green);
             }
 
+            .export-buttons-container button.danger-btn {
+                border-color: #ff6600;
+                color: #ff6600;
+            }
+
+            .export-buttons-container button.danger-btn:hover {
+                background-color: #ff6600;
+                color: var(--bg-color);
+                box-shadow: 0 0 15px #ff6600;
+            }
+
+            /* OCR Review Modal */
+            .ocr-modal-overlay {
+                display: none;
+                position: fixed;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                background-color: rgba(0, 0, 0, 0.9);
+                z-index: 1000;
+                justify-content: center;
+                align-items: center;
+                padding: 20px;
+            }
+
+            .ocr-modal-overlay.active {
+                display: flex;
+            }
+
+            .ocr-modal {
+                background-color: var(--bg-color);
+                border: 2px solid var(--pip-green);
+                box-shadow: 0 0 30px rgba(51, 255, 0, 0.3);
+                max-width: 800px;
+                width: 100%;
+                max-height: 90vh;
+                overflow-y: auto;
+                padding: 20px;
+            }
+
+            .ocr-modal h2 {
+                margin-top: 0;
+                border-bottom: 1px solid var(--pip-green);
+                padding-bottom: 10px;
+            }
+
+            .ocr-modal-section {
+                margin-bottom: 20px;
+            }
+
+            .ocr-modal-section h3 {
+                font-size: 1.1rem;
+                margin-bottom: 10px;
+                color: var(--pip-dim);
+            }
+
+            .ocr-raw-text {
+                background-color: #000;
+                border: 1px solid var(--border-color);
+                padding: 10px;
+                max-height: 150px;
+                overflow-y: auto;
+                font-size: 0.9rem;
+                white-space: pre-wrap;
+                word-break: break-word;
+            }
+
+            .ocr-detected-grid {
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                gap: 10px;
+            }
+
+            .ocr-detected-item {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                background-color: rgba(51, 255, 0, 0.1);
+                padding: 8px 12px;
+                border: 1px solid var(--border-color);
+            }
+
+            .ocr-detected-item.not-found {
+                background-color: rgba(255, 100, 0, 0.1);
+                border-color: #ff6600;
+            }
+
+            .ocr-detected-label {
+                font-weight: bold;
+            }
+
+            .ocr-detected-value {
+                color: #afffa6;
+            }
+
+            .ocr-detected-value.missing {
+                color: #ff6600;
+                font-style: italic;
+            }
+
+            .ocr-modal-buttons {
+                display: flex;
+                gap: 15px;
+                justify-content: center;
+                margin-top: 20px;
+                padding-top: 15px;
+                border-top: 1px solid var(--border-color);
+            }
+
+            .ocr-modal-buttons button {
+                background-color: var(--panel-bg);
+                color: var(--pip-green);
+                border: 1px solid var(--pip-green);
+                padding: 10px 25px;
+                font-family: "VT323", monospace;
+                font-size: 1.1rem;
+                cursor: pointer;
+                text-transform: uppercase;
+            }
+
+            .ocr-modal-buttons button:hover {
+                background-color: var(--pip-green);
+                color: var(--bg-color);
+            }
+
+            .ocr-modal-buttons button.cancel-btn {
+                border-color: #ff6600;
+                color: #ff6600;
+            }
+
+            .ocr-modal-buttons button.cancel-btn:hover {
+                background-color: #ff6600;
+                color: var(--bg-color);
+            }
+
+            @media (max-width: 768px) {
+                .ocr-detected-grid {
+                    grid-template-columns: 1fr;
+                }
+            }
+
             /* --- Responsive Design Adjustments --- */
             @media (max-width: 768px) {
                 body {
@@ -869,6 +1011,32 @@
                 <button onclick="saveAsPNG()">
                     Record Cogitator Display (PNG)
                 </button>
+                <button class="danger-btn" onclick="clearData()">
+                    Clear Mission Data
+                </button>
+            </div>
+        </div>
+
+        <!-- OCR Review Modal -->
+        <div id="ocr-modal-overlay" class="ocr-modal-overlay">
+            <div class="ocr-modal">
+                <h2>OCR Results Review</h2>
+                
+                <div class="ocr-modal-section">
+                    <h3>Detected Values</h3>
+                    <div id="ocr-detected-grid" class="ocr-detected-grid">
+                    </div>
+                </div>
+
+                <div class="ocr-modal-section">
+                    <h3>Raw OCR Text (for manual review)</h3>
+                    <div id="ocr-raw-text" class="ocr-raw-text"></div>
+                </div>
+
+                <div class="ocr-modal-buttons">
+                    <button onclick="applyOCRResults()">Apply Values</button>
+                    <button class="cancel-btn" onclick="closeOCRModal()">Cancel</button>
+                </div>
             </div>
         </div>
 
@@ -877,6 +1045,10 @@
         <!-- Tesseract.js for OCR -->
         <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
         <script>
+            // Store OCR results for review
+            let pendingOCRResults = {};
+            let rawOCRText = "";
+
             // Screenshot Upload and OCR Processing
             document
                 .getElementById("screenshot-upload")
@@ -891,6 +1063,10 @@
                     statusDiv.textContent = "Processing screenshots...";
                     statusDiv.style.color = "var(--pip-green)";
 
+                    // Reset pending results
+                    pendingOCRResults = {};
+                    rawOCRText = "";
+
                     try {
                         for (let i = 0; i < files.length; i++) {
                             const file = files[i];
@@ -904,13 +1080,15 @@
                         }
 
                         statusDiv.textContent =
-                            "Screenshots processed successfully!";
+                            "OCR complete - review results below";
                         statusDiv.style.color = "#afffa6";
                         progressDiv.textContent = "";
 
-                        // Recalculate after all data is filled
-                        calculate();
-                        saveData();
+                        // Show the review modal
+                        showOCRModal();
+
+                        // Clear the file input for future uploads
+                        e.target.value = "";
                     } catch (error) {
                         console.error("OCR Error:", error);
                         statusDiv.textContent =
@@ -939,7 +1117,10 @@
                                 },
                             });
 
-                            // Parse the extracted text and fill form fields
+                            // Store raw text
+                            rawOCRText += text + "\n\n---\n\n";
+
+                            // Parse the extracted text and store results
                             parseGameData(text);
                             resolve();
                         } catch (error) {
@@ -967,7 +1148,7 @@
                 ];
                 missions.forEach((mission) => {
                     if (lowerText.includes(mission.toLowerCase())) {
-                        document.getElementById("mission-name").value = mission;
+                        pendingOCRResults["mission-name"] = mission;
                     }
                 });
 
@@ -982,24 +1163,16 @@
                 ];
                 difficulties.forEach((diff) => {
                     if (lowerText.includes(diff)) {
-                        const select =
-                            document.getElementById("mission-difficulty");
-                        select.value =
+                        pendingOCRResults["mission-difficulty"] =
                             diff.charAt(0).toUpperCase() + diff.slice(1);
                     }
                 });
 
                 // Try to extract numeric data using regex patterns
-                // Look for patterns like "Kills: 123" or "Deaths: 2"
-
                 // Kills pattern
                 const killsMatch = text.match(/kills?\s*[:\-]?\s*(\d+)/i);
                 if (killsMatch) {
-                    const kills = parseInt(killsMatch[1]);
-                    // Distribute to first player if not filled
-                    if (getVal("p1-kills") === 0) {
-                        document.getElementById("p1-kills").value = kills;
-                    }
+                    pendingOCRResults["p1-kills"] = parseInt(killsMatch[1]);
                 }
 
                 // Elite kills pattern
@@ -1007,19 +1180,13 @@
                     /elite\s*kills?\s*[:\-]?\s*(\d+)/i,
                 );
                 if (eliteMatch) {
-                    const elite = parseInt(eliteMatch[1]);
-                    if (getVal("p1-elite") === 0) {
-                        document.getElementById("p1-elite").value = elite;
-                    }
+                    pendingOCRResults["p1-elite"] = parseInt(eliteMatch[1]);
                 }
 
                 // Deaths pattern
                 const deathMatch = text.match(/deaths?\s*[:\-]?\s*(\d+)/i);
                 if (deathMatch) {
-                    const deaths = parseInt(deathMatch[1]);
-                    if (getVal("p1-death") === 0) {
-                        document.getElementById("p1-death").value = deaths;
-                    }
+                    pendingOCRResults["p1-death"] = parseInt(deathMatch[1]);
                 }
 
                 // Damage taken pattern (often shown as percentage or number)
@@ -1027,10 +1194,7 @@
                     /damage\s*(?:taken)?\s*[:\-]?\s*(\d+(?:\.\d+)?)/i,
                 );
                 if (damageMatch) {
-                    const damage = parseFloat(damageMatch[1]);
-                    if (getVal("p1-damage") === 0) {
-                        document.getElementById("p1-damage").value = damage;
-                    }
+                    pendingOCRResults["p1-damage"] = parseFloat(damageMatch[1]);
                 }
 
                 // Check for objective completion
@@ -1039,7 +1203,7 @@
                     (lowerText.includes("complete") ||
                         lowerText.includes("success"))
                 ) {
-                    document.getElementById("global-objective").value = "1";
+                    pendingOCRResults["global-objective"] = "1";
                 }
 
                 // Check for geneseed
@@ -1048,7 +1212,7 @@
                     (lowerText.includes("retrieved") ||
                         lowerText.includes("collected"))
                 ) {
-                    document.getElementById("global-geneseed").value = "1";
+                    pendingOCRResults["global-geneseed"] = "1";
                 }
 
                 // Try to extract armoury data count
@@ -1058,10 +1222,128 @@
                 if (armouryMatch) {
                     const armoury = parseInt(armouryMatch[1]);
                     if (armoury >= 0 && armoury <= 3) {
-                        document.getElementById("global-armoury").value =
-                            armoury.toString();
+                        pendingOCRResults["global-armoury"] = armoury.toString();
                     }
                 }
+            }
+
+            // Show OCR review modal
+            function showOCRModal() {
+                const modal = document.getElementById("ocr-modal-overlay");
+                const grid = document.getElementById("ocr-detected-grid");
+                const rawTextDiv = document.getElementById("ocr-raw-text");
+
+                // Display raw text
+                rawTextDiv.textContent = rawOCRText || "No text detected";
+
+                // Build detected values grid
+                const fieldLabels = {
+                    "mission-name": "Mission",
+                    "mission-difficulty": "Difficulty",
+                    "p1-kills": "Kills (P1)",
+                    "p1-elite": "Elite Kills (P1)",
+                    "p1-death": "Deaths (P1)",
+                    "p1-damage": "Damage (P1)",
+                    "global-objective": "Objective Complete",
+                    "global-geneseed": "Geneseed Retrieved",
+                    "global-armoury": "Armoury Data",
+                };
+
+                let gridHTML = "";
+                for (const [key, label] of Object.entries(fieldLabels)) {
+                    const value = pendingOCRResults[key];
+                    const hasValue = value !== undefined && value !== "";
+                    let displayValue = hasValue ? value : "Not detected";
+                    
+                    // Format special values
+                    if (key === "global-objective" && value === "1") displayValue = "Yes";
+                    if (key === "global-geneseed" && value === "1") displayValue = "Yes";
+
+                    gridHTML += `
+                        <div class="ocr-detected-item ${hasValue ? "" : "not-found"}">
+                            <span class="ocr-detected-label">${label}:</span>
+                            <span class="ocr-detected-value ${hasValue ? "" : "missing"}">${displayValue}</span>
+                        </div>
+                    `;
+                }
+                grid.innerHTML = gridHTML;
+
+                // Show modal
+                modal.classList.add("active");
+            }
+
+            // Apply OCR results to form
+            function applyOCRResults() {
+                for (const [fieldId, value] of Object.entries(pendingOCRResults)) {
+                    const el = document.getElementById(fieldId);
+                    if (el && value !== undefined && value !== "") {
+                        el.value = value;
+                    }
+                }
+
+                // Recalculate and save
+                calculate();
+                saveData();
+
+                // Close modal
+                closeOCRModal();
+
+                // Update status
+                const statusDiv = document.getElementById("upload-status");
+                statusDiv.textContent = "Values applied successfully!";
+                statusDiv.style.color = "#afffa6";
+            }
+
+            // Close OCR modal
+            function closeOCRModal() {
+                const modal = document.getElementById("ocr-modal-overlay");
+                modal.classList.remove("active");
+            }
+
+            // Clear all data except modifiers
+            function clearData() {
+                if (!confirm("Clear all mission data? (Modifiers will be kept)")) {
+                    return;
+                }
+
+                // List of fields to clear (everything except modifiers)
+                const fieldsToClear = [
+                    "mission-name",
+                    "mission-difficulty",
+                    "global-objective",
+                    "global-geneseed",
+                    "global-armoury",
+                    "p1-name",
+                    "p2-name",
+                    "p3-name",
+                    "p1-kills",
+                    "p2-kills",
+                    "p3-kills",
+                    "p1-elite",
+                    "p2-elite",
+                    "p3-elite",
+                    "p1-death",
+                    "p2-death",
+                    "p3-death",
+                    "p1-damage",
+                    "p2-damage",
+                    "p3-damage",
+                ];
+
+                fieldsToClear.forEach((id) => {
+                    const el = document.getElementById(id);
+                    if (el) {
+                        if (el.tagName === "SELECT") {
+                            el.selectedIndex = 0; // Reset to placeholder
+                        } else {
+                            el.value = el.type === "number" ? "0" : "";
+                        }
+                    }
+                });
+
+                // Recalculate and save
+                calculate();
+                saveData();
             }
         </script>
         <script>
