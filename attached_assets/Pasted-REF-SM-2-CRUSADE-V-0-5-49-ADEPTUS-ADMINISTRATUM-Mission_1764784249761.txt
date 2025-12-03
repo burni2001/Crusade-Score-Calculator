@@ -1,0 +1,295 @@
+REF: SM-2/CRUSADE
+V 0.5.49 - ADEPTUS ADMINISTRATUM
+Mission Debrief
+DAT: M42.024
+MODIFIERS
+Kills 
+1
+Elite Kills 
+20
+Death 
+-100
+Damage 
+-0,1
+Geneseed 
+100
+Armoury 
+25
+Objective 
+100
+UPLOAD SCREENSHOTS
+Keine ausgewählt
+OCR complete - review results below
+Mission Played
+Reclamation
+Difficulty
+
+Select Difficulty
+Objective Completion
+
+Yes
+Geneseed Retrieved
+
+Yes
+Armoury Data Retrieved
+
+3
+Welcome, Brothers and Sisters! Use this debriefingp tool to calculate your mission scores. Select the Mission parameters. Enter your mission statistics (Kills, Deaths, etc.) below. The Modifier section allows customization of score values if necessary. Ensure all fields are filled for an accurate debrief.
+
+*Glory to the Imperium!*
+SQUAD PERFORMANCE MATRIX
+Boki Heldfeste
+Name
+Name
+TOTAL
+Class	
+Assault
+
+-
+
+-
+Kills	
+460
+453
+425
+1338
+Elite Kills	
+6
+5
+10
+21
+Base Score	680	653	725	1858
+Death	
+0
+0
+0
+0
+Damage	
+410
+465
+316
+1191
+Modifier Score	134	128.5	143.4	55.9
+TOTAL SCORE	814	782	868	1914
+Export to Data Slate (CSV)
+Record Cogitator Display (PNG)
+Clear Mission Data
+OCR Results Review
+Detected Values
+Mission:
+Reclamation
+Difficulty:
+Not detected
+Objective Complete:
+Yes
+Geneseed Retrieved:
+No
+Armoury Data:
+1
+Player 1 Name:
+Not detected
+P1 Class:
+Not detected
+P1 Kills:
+326
+P1 Elite Kills:
+7
+P1 Deaths:
+1
+P1 Damage:
+248
+Player 2 Name:
+Not detected
+P2 Class:
+Not detected
+P2 Kills:
+449
+P2 Elite Kills:
+4
+P2 Deaths:
+0
+P2 Damage:
+349
+Player 3 Name:
+Not detected
+P3 Class:
+Not detected
+P3 Kills:
+352
+P3 Elite Kills:
+7
+P3 Deaths:
+0
+P3 Damage:
+188
+Raw OCR Text (for manual review)
+MISSION: RECLAMATION 4
+STATUS: SUCCESS »
+< REWARDS
+El
+4 7 A AN AN ©
+wv <<)
+Er 9 X. | Raw?
+- te
+Tra [1] # -
+5 u {= 3 [] »
+4 / = 3 yy
+- ra p/ CHARACTER PROGRESS
+iF / St r \ i E
+— 7) Heavy MAX.
+: / BS J 25 RE —————————__
+4 Ss = SN 8 TOTAL SCORE
+2 A, I
+. ITED aaa © 7018
+raw A = 5 hy a T = = Te. a se
+/ \§ -
+\ y o
+[=] Next (17) A 6 ec -
+- \ vod 7 ET
+yu fy a 6 1 rR 4 EY
+
+
+---
+
+MISSION: RECLAMATION ©»
+n
+STATUS: SUCCESS -
+— Bh a = Re ————. —_— — —————
+ee EE TEE YE TTT pd ET Ss TE ———e——— ws
+\
+\ : [jr Boki Heldfeste q] Ww ® [i] [E]
+30m ASSAULT ——
+- \ i = Kills 326 449 352
+| Ed A Zo
+x | | Sa \ EE
+~ \ S pr ’ ! J I | Ze = . . ZA
+- | Hd J | <== Special Kills 7 4 7
+ge LEP \ RNS
+3 aig Re % | \ i S Melee Damage 3265 1927 16038
+Lf HL i and : OW ©) “a i - _—  —
+\N NS pos 3 «ud V4 y/ & a \'Y
+3 a ry, we \ A Ranged Damage 25735 7888 5418
+b’ \ \ rT 7 We mn Y J 5a
+ad \ } - / EE \ BN = = + JBO0ToHUTER Th LR Items Found 16 13 5
+oH r— bo \ RB Oh > { & Ee \ LY 0 A —- J. _____.|
+- He b & “R) q y/ 7 B 8 81) i n \ PZ
+4 / [= Pros Fp z 2) iE Ii \ Yo { A 0. Damage Taken 7k 248 349 188
+p fla ~~) ff 4 Ch P Nw ig BT ) —_—————————
+53 of oy /| td —~ AS = ody ' \B Incapacitations 1 0 0
+= yal NT ea VL AENY ——— ~ NAN Sad A sl
+/ yy | Yan PY Ge Ee =z
+ee ye Wd Te CCR 4 oo
+a \ Fe] Ce il 7 = 4 ANNE - Teammates Revived 0 1 0
+& \ y WN SNe ly ANSE ES BU AS Si, Be
+i / hb AN © , CT ¢ N - ¢
+NN a ] N J ni AV nal he Ea NT TOTAL SCORE
+AY ~ =F CRMs, bk -
+| SNE o——>__ > Dt a OF ae RG / = 701 8
+Pe rSran” — — | 5 CG
+F 7 pro— HPS ==> © - wy aE. Se ; il
+hd Le 7 Se AS” rN ff AYN \ 4 > — & =
+A ¥ 2 POF a STAN FL os
+BE ly \> 7 CE gra - ZH Qe NT ¥ |
+a Ney é & << r Sth, re Ps on TES ji TO \ ll
+4 [< r LCs go K —- : SS > 3 = = A\: = op 1 efi > Ld
+is £ ho A 8 EERE TY SAY 7 ZN Rg 4 \ rE 1
+
+
+---
+
+418 .
+val sion RECLAMATION
+STATUS: SUCCESS
+= SEES I | ® V TRER CTUWADT TE RE EEE TREE
+s— Zephon py [%] 1
+- ] 5 (1) AajE
+El fe oN I | ¥ suLwank [of (@ [8] [€]
+1 i C { i « Is To, /
+>" | am . AN kl, | Kills 326 449 352
+— RN » | A : Conic aac Sct
+| -— =O (8 veal 20H |—
+| > Jarl} = \ ; Zl Special Kills - : =
+= = S11 "ud lL \ £7
+
+TN py BS pa = 4 | = 2 9 f= / S ag \
+
+She EER 4 : a 2a | 2 7 IN \% LN - \ Melee Damage 3265 1927 16038
+SER FT <8 YW aan FA y am <2) A v4 (= Ranged Damage 25735 7888 5418
+== R\ BS AN Fo. CEE——— 7&5 4 Items Found 16 13 5
+
+— % Ev a £1 EK QA Ny Fo = To ALR 8 \ —_— ee
+
+= 8 : KEE > ” i } a) = 3 \N Rh ~ ie I D3 LA 4 A a 4S 7 \ \
+pe . 3 r \ id 7 7 ANC CS - A 7 a 2 ote \ Damage Taken 248 349 188
+RN - > oo Ae as = 0 wwii; y © 5. a | :
+EN Se A 4 Hy PSS E ~ hi A EN || Incapacitations 1 0 i]
+™ W ca =H . NN SS “NINE | \\ =
+pono fF 4 Sl (a Phat IRI
+== NEEL 7 a § Te. Fv a 4 AR 2 2 a EE A. | Teammates Revived & 0 1 0
+ih LL JS NS LENG Bf Da, Se. J =
+| Ae a NEE () ~ ~~ TOTAL SCORE
+| S— py SS p Sad A cE 5 By ee (\ xo! il [ N pe ~ > 7 i 4 4 EE
+ms AP EEIEN ST RC NN Em ———_ DE i ===
+Sn = V 4 . 3 = eC EEE Cir & >) eat, {i
+SN ee ree or Aaliy < Ely
+Sf is . &£ pr / yr i ~~ Loa As = om % NN mt Bl fo io iN ig > —
+ily © 5 FO" at TN w X
+y pr - Fi FY pr py \ 4 - 4 Se
+s Ps 2 gE 4 BS —
+g , po | \ 3 BS
+y = Ey N Eu > 5 & 7
+
+
+---
+
+STATUS: SUCCESS L ¥ F
+ee ae oe
+P 4 ; > —r [@]
+4 WA A =\\ P "
+(RS r\ OY Kills 326 449 352
+& Z aa 7 =
+on -— “— Special Kills #& xp 10 7 4 7
+= - Re i \ 7 Melee Damage 3265 1927 16038
+be Hi a |
+41> 7 oe Wi
+5 FE pe Ranged Damage Xe10 25735 7888 5418
+2s Ex | -
+oF / Eo 7 v y Items Found XB 10 16 13 5
+> : Pay ||
+cans a +5 we Sa Eo
+: FE ~ EAP, AE Damage Taken 248 349 188
+$ / Re — yy — B 4 2 7d > af \ : Fr r———
+as — y po - > Incapacitations 1 0 0
+/ / rN 2 T0 AY Sg , X Teammates Revived i] 1 0
+{14 Eas — AG 5 oS ee
+2H = Na Pa A 7 X mn Sr 23 \
+Zi Ca” ~ fr io = oN \ CA TOTAL SCORE
+Hi ow >) 7 -— N CT A — EC _____ a= ¥ Ny
+Eee ©7018
+: - { N ‘ar NRT x o a ~ EN J J yr : Be a. cH 5: fi i: : HEE 01 Eg Sete ET GI l|
+a (| Next (18) ] 0 2 ! i 4 > |
+TL SR | ill
+/ &s : fs » EB EEE ERT J CE 3 di f bY
+
+
+---
+
+MISSION: RECLAMATION ‘
+STATUS: SUCCESS
+EE
+© Weapons Deck XP 581
+4 Ordnance Depot i i XP 581
+4 Reactor Cooling Hall ” i XP 581
+«© Reactor Chamber — 8 581
+@ Egress XP 588
+ExterminationRank XP 4076
+= TOTAL SCORE
+==
+x» 6988
+Next (23)
+
+
+---
+
+Apply Values
+Cancel
