@@ -618,7 +618,7 @@
                 <div>
                     <div>REF: SM-2/CRUSADE</div>
                     <div style="font-size: 0.8em; opacity: 0.7">
-                        V 0.6.3 - ADEPTUS ADMINISTRATUM
+                        V 0.6.4 - ADEPTUS ADMINISTRATUM
                     </div>
                 </div>
                 <h1>Mission Debrief</h1>
@@ -1374,9 +1374,11 @@
                 // Helper: Extract a valid player name from a line
                 function extractPlayerName(line) {
                     // First try to extract names FROM brackets (OCR sometimes puts names inside)
-                    const bracketContent = line.match(/\[(?:jr\s+)?([A-ZÄÖÜ][a-zäöüß\u00E0-\u00FF]+(?:\s+[A-Za-zäöüß\u00E0-\u00FF]+)*)\s*[q\]]/i);
+                    // Pattern: [jr Name Lastname q] or similar
+                    const bracketContent = line.match(/\[(?:jr\s+)?([A-ZÄÖÜ][a-zäöüß\u00E0-\u00FF]+(?:\s+[A-Za-zäöüß\u00E0-\u00FF]+)*)\s*[qQ\]®]/i);
                     if (bracketContent && bracketContent[1].length >= 3) {
-                        const extracted = bracketContent[1].trim();
+                        // Clean the extracted name - remove trailing single chars
+                        let extracted = bracketContent[1].trim().replace(/\s+[a-zA-Z]$/g, '').trim();
                         if (!/^(Kills|Special|Heavy|Assault|Bulwark|Vanguard|Tactical|Sniper)/i.test(extracted)) {
                             return extracted;
                         }
@@ -1712,21 +1714,37 @@
                 
                 const rewardsIdx = upperText.indexOf('REWARDS');
                 if (rewardsIdx !== -1) {
-                    // Get text after REWARDS (next 150 chars to capture the boxes)
-                    const afterRewards = text.substring(rewardsIdx, rewardsIdx + 150);
+                    // Get text after REWARDS (next 200 chars to capture the boxes)
+                    const afterRewards = text.substring(rewardsIdx, rewardsIdx + 200);
                     
-                    // Pattern 1: Single digit 1-3 followed by space and 3-digit number (like "3 260")
-                    const armouryMatch1 = afterRewards.match(/\b([1-3])\s+\d{3}\b/);
+                    // Pattern 1: Look for "[icon] NUMBER [icon] 260" pattern
+                    // The first number is armoury count (0-3), second is usually 260
+                    const armouryMatch1 = afterRewards.match(/\b([0-3])\s+(?:\d{2,3}|260)\b/);
                     if (armouryMatch1) {
                         pendingOCRResults["global-armoury"] = armouryMatch1[1];
                         armouryFound = true;
                     }
                     
-                    // Pattern 2: Single digit 1-3 on its own line or surrounded by non-digits
+                    // Pattern 2: Look for small digit near larger 3-digit number on same line
                     if (!armouryFound) {
-                        const armouryMatch2 = afterRewards.match(/(?:^|\D)([1-3])(?:\D|$)/);
-                        if (armouryMatch2) {
-                            pendingOCRResults["global-armoury"] = armouryMatch2[1];
+                        // Split into lines and find line with 260 or similar
+                        const rewardLines = afterRewards.split(/[\r\n]+/);
+                        for (const line of rewardLines) {
+                            // Look for pattern like "3 260" or "El 3 260" etc.
+                            const lineMatch = line.match(/\b([0-3])\s+(\d{2,3})\b/);
+                            if (lineMatch && parseInt(lineMatch[2]) >= 100) {
+                                pendingOCRResults["global-armoury"] = lineMatch[1];
+                                armouryFound = true;
+                                break;
+                            }
+                        }
+                    }
+                    
+                    // Pattern 3: Just look for a standalone 0-3 near numbers like 260
+                    if (!armouryFound) {
+                        const simpleMatch = afterRewards.match(/(?:^|[^\d])([0-3])(?:[^\d]|$)/);
+                        if (simpleMatch) {
+                            pendingOCRResults["global-armoury"] = simpleMatch[1];
                             armouryFound = true;
                         }
                     }
