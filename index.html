@@ -547,7 +547,7 @@
                 <div>
                     <div>REF: SM-2/CRUSADE</div>
                     <div style="font-size: 0.8em; opacity: 0.7">
-                        V 0.5.47 - ADEPTUS ADMINISTRATUM
+                        V 0.5.48 - ADEPTUS ADMINISTRATUM
                     </div>
                 </div>
                 <h1>Mission Debrief</h1>
@@ -1383,10 +1383,41 @@
                 }
 
                 // === ARMOURY DATA ===
-                // Look for number after "REWARDS" - the armoury icon shows a small number
-                const armouryMatch = text.match(/REWARDS[\s\S]{0,30}?\b([0-3])\s+\d{2,3}\b/i);
-                if (armouryMatch) {
-                    pendingOCRResults["global-armoury"] = armouryMatch[1];
+                // Look for patterns near "REWARDS" section
+                // The game shows armoury icon with a number (0-3) followed by requisition amount
+                // OCR often mangles this, so try multiple patterns
+                let armouryFound = false;
+                
+                // Pattern 1: Look for REWARDS followed by a digit 0-3 somewhere in next 50 chars
+                const armouryMatch1 = text.match(/REWARDS[\s\S]{0,50}?\b([0-3])\s+\d{2,3}\b/i);
+                if (armouryMatch1) {
+                    pendingOCRResults["global-armoury"] = armouryMatch1[1];
+                    armouryFound = true;
+                }
+                
+                // Pattern 2: Look for isolated small digit (0-3) near REWARDS
+                if (!armouryFound) {
+                    const rewardsIdx = upperText.indexOf('REWARDS');
+                    if (rewardsIdx !== -1) {
+                        // Look in the next 100 chars after REWARDS for a standalone small digit
+                        const afterRewards = text.substring(rewardsIdx, rewardsIdx + 100);
+                        // Find digits 0-3 that appear before a larger number (like "3 260")
+                        const armouryMatch2 = afterRewards.match(/\b([0-3])\s+\d{2,3}\b/);
+                        if (armouryMatch2) {
+                            pendingOCRResults["global-armoury"] = armouryMatch2[1];
+                            armouryFound = true;
+                        }
+                    }
+                }
+                
+                // === GENE-SEED DEFAULT ===
+                // If gene-seed was not detected anywhere in the text, default to "No"
+                // Gene-seed is only mentioned when it IS retrieved
+                if (!pendingOCRResults["global-geneseed"]) {
+                    const hasGeneseedMention = /GENE.?SEED|GENESEED/i.test(upperText);
+                    if (!hasGeneseedMention) {
+                        pendingOCRResults["global-geneseed"] = "0"; // No
+                    }
                 }
             }
 
@@ -1435,6 +1466,7 @@
                     // Format special values
                     if (key === "global-objective" && value === "1") displayValue = "Yes";
                     if (key === "global-geneseed" && value === "1") displayValue = "Yes";
+                    if (key === "global-geneseed" && value === "0") displayValue = "No";
 
                     gridHTML += `
                         <div class="ocr-detected-item ${hasValue ? "" : "not-found"}">
