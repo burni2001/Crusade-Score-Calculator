@@ -544,7 +544,7 @@
                 <div>
                     <div>REF: SM-2/CRUSADE</div>
                     <div style="font-size: 0.8em; opacity: 0.7">
-                        V 0.5.38 - ADEPTUS ADMINISTRATUM
+                        V 0.5.39 - ADEPTUS ADMINISTRATUM
                     </div>
                 </div>
                 <h1>Mission Debrief</h1>
@@ -813,48 +813,49 @@
                                 </th>
                                 <th>TOTAL</th>
                             </tr>
-                            <tr>
-                                <th class="row-label" style="font-size: 0.9rem; opacity: 0.7;">Class</th>
-                                <th style="padding: 2px;">
-                                    <select id="p1-class" onchange="saveData();" style="font-size: 1rem;">
-                                        <option value="">-</option>
-                                        <option value="Tactical">Tactical</option>
-                                        <option value="Assault">Assault</option>
-                                        <option value="Vanguard">Vanguard</option>
-                                        <option value="Bulwark">Bulwark</option>
-                                        <option value="Sniper">Sniper</option>
-                                        <option value="Heavy">Heavy</option>
-                                        <option value="Techmarine">Techmarine</option>
-                                    </select>
-                                </th>
-                                <th style="padding: 2px;">
-                                    <select id="p2-class" onchange="saveData();" style="font-size: 1rem;">
-                                        <option value="">-</option>
-                                        <option value="Tactical">Tactical</option>
-                                        <option value="Assault">Assault</option>
-                                        <option value="Vanguard">Vanguard</option>
-                                        <option value="Bulwark">Bulwark</option>
-                                        <option value="Sniper">Sniper</option>
-                                        <option value="Heavy">Heavy</option>
-                                        <option value="Techmarine">Techmarine</option>
-                                    </select>
-                                </th>
-                                <th style="padding: 2px;">
-                                    <select id="p3-class" onchange="saveData();" style="font-size: 1rem;">
-                                        <option value="">-</option>
-                                        <option value="Tactical">Tactical</option>
-                                        <option value="Assault">Assault</option>
-                                        <option value="Vanguard">Vanguard</option>
-                                        <option value="Bulwark">Bulwark</option>
-                                        <option value="Sniper">Sniper</option>
-                                        <option value="Heavy">Heavy</option>
-                                        <option value="Techmarine">Techmarine</option>
-                                    </select>
-                                </th>
-                                <th></th>
-                            </tr>
                         </thead>
                         <tbody>
+                            <!-- Class -->
+                            <tr>
+                                <td class="row-label">Class</td>
+                                <td class="input-cell">
+                                    <select id="p1-class" onchange="saveData();">
+                                        <option value="">-</option>
+                                        <option value="Tactical">Tactical</option>
+                                        <option value="Assault">Assault</option>
+                                        <option value="Vanguard">Vanguard</option>
+                                        <option value="Bulwark">Bulwark</option>
+                                        <option value="Sniper">Sniper</option>
+                                        <option value="Heavy">Heavy</option>
+                                        <option value="Techmarine">Techmarine</option>
+                                    </select>
+                                </td>
+                                <td class="input-cell">
+                                    <select id="p2-class" onchange="saveData();">
+                                        <option value="">-</option>
+                                        <option value="Tactical">Tactical</option>
+                                        <option value="Assault">Assault</option>
+                                        <option value="Vanguard">Vanguard</option>
+                                        <option value="Bulwark">Bulwark</option>
+                                        <option value="Sniper">Sniper</option>
+                                        <option value="Heavy">Heavy</option>
+                                        <option value="Techmarine">Techmarine</option>
+                                    </select>
+                                </td>
+                                <td class="input-cell">
+                                    <select id="p3-class" onchange="saveData();">
+                                        <option value="">-</option>
+                                        <option value="Tactical">Tactical</option>
+                                        <option value="Assault">Assault</option>
+                                        <option value="Vanguard">Vanguard</option>
+                                        <option value="Bulwark">Bulwark</option>
+                                        <option value="Sniper">Sniper</option>
+                                        <option value="Heavy">Heavy</option>
+                                        <option value="Techmarine">Techmarine</option>
+                                    </select>
+                                </td>
+                                <td class="total-cell"></td>
+                            </tr>
                             <!-- Kills -->
                             <tr>
                                 <td class="row-label">Kills</td>
