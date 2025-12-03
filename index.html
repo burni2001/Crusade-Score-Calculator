@@ -544,7 +544,7 @@
                 <div>
                     <div>REF: SM-2/CRUSADE</div>
                     <div style="font-size: 0.8em; opacity: 0.7">
-                        V 0.5.35 - ADEPTUS ADMINISTRATUM
+                        V 0.5.36 - ADEPTUS ADMINISTRATUM
                     </div>
                 </div>
                 <h1>Mission Debrief</h1>
@@ -1136,31 +1136,29 @@
 
             function parseGameData(text) {
                 // Heavy normalization for OCR text
-                // Step 1: Normalize unicode and remove symbols
+                // Step 1: Remove symbols and normalize
                 let normalized = text
                     .replace(/[★☆✦✧⭐\u2605\u2606]/g, '')  // Remove star symbols
-                    .replace(/[|]/g, ' ')                    // Pipes to spaces
+                    .replace(/[|©®™]/g, ' ')                 // Remove special chars
+                    .replace(/\[.\]/g, '')                   // Remove [a], [i], [E] etc
                     .replace(/xp\s*\d+/gi, ' ')              // Remove "XP 10" badges
+                    .replace(/xb\s*\d+/gi, ' ')              // Remove "XB 10" (OCR misread)
                     .replace(/[''`]/g, "'")                  // Normalize quotes
                     .replace(/[""]/g, '"');                  // Normalize double quotes
                 
                 // Step 2: Create uppercase version for matching
                 let upperText = normalized.toUpperCase();
                 
-                // Step 3: Split into lines and also create single-line version
+                // Step 3: Split into lines
                 const lines = normalized.split(/[\r\n]+/).map(l => l.trim()).filter(l => l.length > 0);
-                const singleLine = normalized.replace(/[\r\n]+/g, ' ').replace(/\s+/g, ' ');
                 const upperSingleLine = upperText.replace(/[\r\n]+/g, ' ').replace(/\s+/g, ' ');
 
                 // === MISSION NAME ===
-                // Look for "MISSION" followed by text
                 const missionMatch = upperSingleLine.match(/MISSION\s*[:\-=]?\s*([A-Z][A-Z\s\-']{2,30})/);
                 if (missionMatch) {
                     let missionName = missionMatch[1].trim();
-                    // Remove STATUS if it got captured
                     missionName = missionName.replace(/\s*STATUS.*$/i, '').trim();
                     if (missionName.length > 2) {
-                        // Title case it
                         pendingOCRResults["mission-name"] = missionName.charAt(0) + missionName.slice(1).toLowerCase();
                     }
                 }
@@ -1180,69 +1178,86 @@
                 }
 
                 // === GENE-SEED ===
-                if (/GENE.?SEED\s*(FOUND|RETRIEVED|COLLECTED)/i.test(upperText)) {
+                if (/GENE.?SEED\s*(FOUND|XP)/i.test(upperText)) {
                     pendingOCRResults["global-geneseed"] = "1";
                 }
 
                 // === PLAYER NAME ===
-                // Look for class names and get the text before them
-                const classNames = ['BULWARK', 'ASSAULT', 'VANGUARD', 'TACTICAL', 'SNIPER', 'HEAVY'];
+                // Class name patterns - including common OCR misreads
+                // VANGUARD often becomes "anGunro", "ANGUARD", etc.
+                const classPatterns = [
+                    /^BULWARK/i,
+                    /^ASSAULT/i,
+                    /^VANGUARD/i,
+                    /^TACTICAL/i,
+                    /^SNIPER/i,
+                    /^HEAVY/i,
+                    /ANGUARD/i,      // Partial match for VANGUARD
+                    /ANGUNRO/i,      // OCR misread of VANGUARD
+                ];
                 
                 for (let i = 0; i < lines.length; i++) {
-                    const lineUpper = lines[i].toUpperCase().trim();
+                    const line = lines[i].trim();
+                    const lineUpper = line.toUpperCase();
                     
-                    // Check if this line contains a class name (at start or as whole line)
-                    for (const className of classNames) {
-                        if (lineUpper === className || lineUpper.startsWith(className + ' ') || lineUpper.startsWith(className + '\t')) {
-                            // Found a class line - the name is on the PREVIOUS line
-                            if (i > 0) {
-                                let playerName = lines[i - 1].trim();
-                                // Remove leading/trailing non-letter characters but keep spaces and unicode letters
-                                playerName = playerName.replace(/^[^A-Za-z\u00C0-\u024F]+/, '');
-                                playerName = playerName.replace(/[^A-Za-z\u00C0-\u024F\s]+$/, '');
-                                playerName = playerName.trim();
-                                
-                                if (playerName.length >= 2 && playerName.length < 30) {
-                                    // Find next available player slot
-                                    for (let p = 1; p <= 3; p++) {
-                                        if (!pendingOCRResults[`p${p}-name`]) {
-                                            pendingOCRResults[`p${p}-name`] = playerName;
-                                            break;
-                                        }
-                                    }
+                    // Check if this line matches any class pattern
+                    const isClassLine = classPatterns.some(p => p.test(lineUpper));
+                    
+                    if (isClassLine && i > 0) {
+                        // Get name from previous line
+                        let playerName = lines[i - 1].trim();
+                        // Remove brackets, numbers, and other noise
+                        playerName = playerName.replace(/\[.*?\]/g, '');
+                        playerName = playerName.replace(/^[^A-Za-z\u00C0-\u024F]+/, '');
+                        playerName = playerName.replace(/[^A-Za-z\u00C0-\u024F\s]+$/, '');
+                        playerName = playerName.trim();
+                        
+                        // Skip if it looks like a stat label or garbage
+                        if (playerName.length >= 2 && playerName.length < 30 &&
+                            !/^(kills|special|melee|ranged|damage|items|incap|team)/i.test(playerName)) {
+                            // Find next available player slot
+                            for (let p = 1; p <= 3; p++) {
+                                if (!pendingOCRResults[`p${p}-name`]) {
+                                    pendingOCRResults[`p${p}-name`] = playerName;
+                                    break;
                                 }
                             }
-                            break;
                         }
                     }
                 }
 
                 // === EXTRACT STATS ===
-                // Helper: Find 3 numbers after a label keyword
-                function findThreeNumbers(label) {
-                    // Create pattern that matches label followed by 3 numbers (with flexible separators)
-                    const pattern = new RegExp(label + '[^0-9]*?(\\d+)[^0-9]+(\\d+)[^0-9]+(\\d+)', 'i');
-                    const match = upperSingleLine.match(pattern);
-                    if (match) {
-                        const nums = [parseInt(match[1]), parseInt(match[2]), parseInt(match[3])];
-                        if (nums.every(n => !isNaN(n) && n >= 0 && n < 1000000)) {
-                            return nums;
+                // For stats, look for the last 3 numbers on a line containing the label
+                // This handles cases like "Kills XB 10 460 453 425" where we want the last 3
+
+                function extractLastThreeNumbers(labelRegex) {
+                    for (const line of lines) {
+                        const upperLine = line.toUpperCase();
+                        if (labelRegex.test(upperLine)) {
+                            // Find all numbers in this line
+                            const nums = line.match(/\d+/g);
+                            if (nums && nums.length >= 3) {
+                                // Take the last 3 numbers (skip XP badge numbers)
+                                const last3 = nums.slice(-3).map(n => parseInt(n));
+                                if (last3.every(n => !isNaN(n) && n >= 0 && n < 1000000)) {
+                                    return last3;
+                                }
+                            }
                         }
                     }
                     return null;
                 }
 
-                // Kills - must find "KILLS" but NOT "SPECIAL KILLS"
-                // First try to find the kills row specifically
-                const killsMatch = upperSingleLine.match(/(?:^|[^L])\bKILLS\b[^0-9]*?(\d+)[^0-9]+(\d+)[^0-9]+(\d+)/);
-                if (killsMatch) {
-                    pendingOCRResults["p1-kills"] = parseInt(killsMatch[1]);
-                    pendingOCRResults["p2-kills"] = parseInt(killsMatch[2]);
-                    pendingOCRResults["p3-kills"] = parseInt(killsMatch[3]);
+                // Kills - find line with "Kills" but not "Special Kills"
+                const killsNums = extractLastThreeNumbers(/^KILLS\b/);
+                if (killsNums) {
+                    pendingOCRResults["p1-kills"] = killsNums[0];
+                    pendingOCRResults["p2-kills"] = killsNums[1];
+                    pendingOCRResults["p3-kills"] = killsNums[2];
                 }
 
                 // Special Kills -> Elite Kills
-                const specialNums = findThreeNumbers('SPECIAL\\s*KILLS');
+                const specialNums = extractLastThreeNumbers(/SPECIAL\s*KILLS/);
                 if (specialNums) {
                     pendingOCRResults["p1-elite"] = specialNums[0];
                     pendingOCRResults["p2-elite"] = specialNums[1];
@@ -1250,7 +1265,7 @@
                 }
 
                 // Incapacitations -> Death
-                const incapNums = findThreeNumbers('INCAPACITATION');
+                const incapNums = extractLastThreeNumbers(/INCAPACITATION/);
                 if (incapNums) {
                     pendingOCRResults["p1-death"] = incapNums[0];
                     pendingOCRResults["p2-death"] = incapNums[1];
@@ -1258,7 +1273,7 @@
                 }
 
                 // Damage Taken -> Damage
-                const damageNums = findThreeNumbers('DAMAGE\\s*TAKEN');
+                const damageNums = extractLastThreeNumbers(/DAMAGE\s*TAKEN/);
                 if (damageNums) {
                     pendingOCRResults["p1-damage"] = damageNums[0];
                     pendingOCRResults["p2-damage"] = damageNums[1];
@@ -1266,21 +1281,10 @@
                 }
 
                 // === ARMOURY DATA ===
-                // Look for "ARMOURY DATA" or just a number near "ARMOURY"
-                const armouryMatch = upperSingleLine.match(/ARMOURY\s*(?:DATA)?[^0-9]*?(\d)/);
+                // Look for number after "REWARDS" - the armoury icon shows a small number
+                const armouryMatch = text.match(/REWARDS[\s\S]{0,30}?\b([0-3])\s+\d{2,3}\b/i);
                 if (armouryMatch) {
-                    const num = parseInt(armouryMatch[1]);
-                    if (num >= 0 && num <= 3) {
-                        pendingOCRResults["global-armoury"] = armouryMatch[1];
-                    }
-                }
-                
-                // Also check REWARDS section for small number
-                if (!pendingOCRResults["global-armoury"]) {
-                    const rewardsMatch = upperSingleLine.match(/REWARDS[^0-9]*?([0-3])\b/);
-                    if (rewardsMatch) {
-                        pendingOCRResults["global-armoury"] = rewardsMatch[1];
-                    }
+                    pendingOCRResults["global-armoury"] = armouryMatch[1];
                 }
             }
 
