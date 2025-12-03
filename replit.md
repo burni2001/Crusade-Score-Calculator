@@ -59,6 +59,17 @@ This automatically updates:
 The application is served using Python's built-in HTTP server on port 5000. No build step is required.
 
 ## Recent Changes
+- 2024-12-03: Improved OCR parsing for game-accurate terminology (v0.5.31)
+  - Fixed matrix layout bug where Damage row was missing its label cell
+  - OCR now recognizes actual game terms: "Special Kills"→Elite Kills, "Incapacitations"→Death, "Damage Taken"→Damage
+  - Added mission name extraction from "MISSION: X" format
+  - Added "STATUS: SUCCESS" and "VICTORY" detection for objective completion
+  - Added "Gene-Seed Found" detection for geneseed retrieval
+  - Player name extraction from header (name + class pattern like "John BULWARK")
+  - Multi-player stat extraction (3 columns: P1, P2, P3) for kills/elite/death/damage
+  - OCR review modal now shows all player fields (P1/P2/P3)
+  - Improved regex patterns for stricter matching and fewer false positives
+
 - 2024-12-03: Enhanced OCR functionality and added Clear Data button
   - OCR now shows review modal before applying values (instead of auto-filling)
   - Users can see detected values and raw OCR text for manual review
