@@ -544,7 +544,7 @@
                 <div>
                     <div>REF: SM-2/CRUSADE</div>
                     <div style="font-size: 0.8em; opacity: 0.7">
-                        V 0.5.36 - ADEPTUS ADMINISTRATUM
+                        V 0.5.37 - ADEPTUS ADMINISTRATUM
                     </div>
                 </div>
                 <h1>Mission Debrief</h1>
@@ -812,6 +812,43 @@
                                     />
                                 </th>
                                 <th>TOTAL</th>
+                            </tr>
+                            <tr>
+                                <th class="row-label" style="font-size: 0.9rem; opacity: 0.7;">Class</th>
+                                <th style="padding: 2px;">
+                                    <select id="p1-class" onchange="saveData();" style="font-size: 1rem;">
+                                        <option value="">-</option>
+                                        <option value="Tactical">Tactical</option>
+                                        <option value="Assault">Assault</option>
+                                        <option value="Vanguard">Vanguard</option>
+                                        <option value="Bulwark">Bulwark</option>
+                                        <option value="Sniper">Sniper</option>
+                                        <option value="Heavy">Heavy</option>
+                                    </select>
+                                </th>
+                                <th style="padding: 2px;">
+                                    <select id="p2-class" onchange="saveData();" style="font-size: 1rem;">
+                                        <option value="">-</option>
+                                        <option value="Tactical">Tactical</option>
+                                        <option value="Assault">Assault</option>
+                                        <option value="Vanguard">Vanguard</option>
+                                        <option value="Bulwark">Bulwark</option>
+                                        <option value="Sniper">Sniper</option>
+                                        <option value="Heavy">Heavy</option>
+                                    </select>
+                                </th>
+                                <th style="padding: 2px;">
+                                    <select id="p3-class" onchange="saveData();" style="font-size: 1rem;">
+                                        <option value="">-</option>
+                                        <option value="Tactical">Tactical</option>
+                                        <option value="Assault">Assault</option>
+                                        <option value="Vanguard">Vanguard</option>
+                                        <option value="Bulwark">Bulwark</option>
+                                        <option value="Sniper">Sniper</option>
+                                        <option value="Heavy">Heavy</option>
+                                    </select>
+                                </th>
+                                <th></th>
                             </tr>
                         </thead>
                         <tbody>
@@ -1140,9 +1177,9 @@
                 let normalized = text
                     .replace(/[★☆✦✧⭐\u2605\u2606]/g, '')  // Remove star symbols
                     .replace(/[|©®™]/g, ' ')                 // Remove special chars
-                    .replace(/\[.\]/g, '')                   // Remove [a], [i], [E] etc
                     .replace(/xp\s*\d+/gi, ' ')              // Remove "XP 10" badges
                     .replace(/xb\s*\d+/gi, ' ')              // Remove "XB 10" (OCR misread)
+                    .replace(/7k\b/gi, '')                   // Remove "7k" OCR artifact
                     .replace(/[''`]/g, "'")                  // Normalize quotes
                     .replace(/[""]/g, '"');                  // Normalize double quotes
                 
@@ -1182,46 +1219,55 @@
                     pendingOCRResults["global-geneseed"] = "1";
                 }
 
-                // === PLAYER NAME ===
-                // Class name patterns - including common OCR misreads
-                // VANGUARD often becomes "anGunro", "ANGUARD", etc.
-                const classPatterns = [
-                    /^BULWARK/i,
-                    /^ASSAULT/i,
-                    /^VANGUARD/i,
-                    /^TACTICAL/i,
-                    /^SNIPER/i,
-                    /^HEAVY/i,
-                    /ANGUARD/i,      // Partial match for VANGUARD
-                    /ANGUNRO/i,      // OCR misread of VANGUARD
-                ];
+                // === PLAYER NAME AND CLASS ===
+                // Map of class name patterns to their canonical names
+                const classMapping = {
+                    'BULWARK': 'Bulwark',
+                    'ASSAULT': 'Assault',
+                    'VANGUARD': 'Vanguard',
+                    'TACTICAL': 'Tactical',
+                    'SNIPER': 'Sniper',
+                    'HEAVY': 'Heavy',
+                    'ANGUARD': 'Vanguard',    // OCR partial match
+                    'ANGUNRO': 'Vanguard',    // OCR misread
+                };
                 
-                for (let i = 0; i < lines.length; i++) {
+                let playerIndex = 1;
+                
+                for (let i = 0; i < lines.length && playerIndex <= 3; i++) {
                     const line = lines[i].trim();
-                    const lineUpper = line.toUpperCase();
+                    // Remove bracket markers like [a], [i], [E] from line for matching
+                    const cleanLine = line.replace(/\[.\]/g, '').trim();
+                    const lineUpper = cleanLine.toUpperCase();
                     
-                    // Check if this line matches any class pattern
-                    const isClassLine = classPatterns.some(p => p.test(lineUpper));
+                    // Check if this line contains a class name
+                    let foundClass = null;
+                    for (const [pattern, className] of Object.entries(classMapping)) {
+                        if (lineUpper.includes(pattern) || lineUpper.startsWith(pattern.substring(0, 4))) {
+                            foundClass = className;
+                            break;
+                        }
+                    }
                     
-                    if (isClassLine && i > 0) {
+                    if (foundClass && i > 0) {
                         // Get name from previous line
                         let playerName = lines[i - 1].trim();
-                        // Remove brackets, numbers, and other noise
+                        // Remove bracket markers and clean up
                         playerName = playerName.replace(/\[.*?\]/g, '');
                         playerName = playerName.replace(/^[^A-Za-z\u00C0-\u024F]+/, '');
                         playerName = playerName.replace(/[^A-Za-z\u00C0-\u024F\s]+$/, '');
                         playerName = playerName.trim();
                         
-                        // Skip if it looks like a stat label or garbage
-                        if (playerName.length >= 2 && playerName.length < 30 &&
-                            !/^(kills|special|melee|ranged|damage|items|incap|team)/i.test(playerName)) {
-                            // Find next available player slot
-                            for (let p = 1; p <= 3; p++) {
-                                if (!pendingOCRResults[`p${p}-name`]) {
-                                    pendingOCRResults[`p${p}-name`] = playerName;
-                                    break;
-                                }
-                            }
+                        // Skip if it looks like a stat label, garbage, or too short
+                        const isValidName = playerName.length >= 2 && 
+                            playerName.length < 30 &&
+                            !/^(kills|special|melee|ranged|damage|items|incap|team|total|score|next|status)/i.test(playerName) &&
+                            !/^\d+$/.test(playerName);
+                        
+                        if (isValidName) {
+                            pendingOCRResults[`p${playerIndex}-name`] = playerName;
+                            pendingOCRResults[`p${playerIndex}-class`] = foundClass;
+                            playerIndex++;
                         }
                     }
                 }
@@ -1305,16 +1351,19 @@
                     "global-geneseed": "Geneseed Retrieved",
                     "global-armoury": "Armoury Data",
                     "p1-name": "Player 1 Name",
+                    "p1-class": "P1 Class",
                     "p1-kills": "P1 Kills",
                     "p1-elite": "P1 Elite Kills",
                     "p1-death": "P1 Deaths",
                     "p1-damage": "P1 Damage",
                     "p2-name": "Player 2 Name",
+                    "p2-class": "P2 Class",
                     "p2-kills": "P2 Kills",
                     "p2-elite": "P2 Elite Kills",
                     "p2-death": "P2 Deaths",
                     "p2-damage": "P2 Damage",
                     "p3-name": "Player 3 Name",
+                    "p3-class": "P3 Class",
                     "p3-kills": "P3 Kills",
                     "p3-elite": "P3 Elite Kills",
                     "p3-death": "P3 Deaths",
@@ -1388,6 +1437,9 @@
                     "p1-name",
                     "p2-name",
                     "p3-name",
+                    "p1-class",
+                    "p2-class",
+                    "p3-class",
                     "p1-kills",
                     "p2-kills",
                     "p3-kills",
@@ -1438,6 +1490,9 @@
                 "p1-name",
                 "p2-name",
                 "p3-name",
+                "p1-class",
+                "p2-class",
+                "p3-class",
                 "p1-kills",
                 "p2-kills",
                 "p3-kills",

@@ -59,6 +59,13 @@ This automatically updates:
 The application is served using Python's built-in HTTP server on port 5000. No build step is required.
 
 ## Recent Changes
+- 2024-12-03: Added Class field and improved OCR name extraction (v0.5.37)
+  - Added Class dropdown to Squad Performance Matrix (Tactical, Assault, Vanguard, Bulwark, Sniper, Heavy)
+  - OCR now extracts both player names AND class from screenshots
+  - Uses class mapping with fuzzy matching for OCR misreads (e.g., "ANGUARD" → Vanguard)
+  - Stats extraction takes last 3 numbers on each row (skips XP badge numbers like "XB 10")
+  - Class values are saved/loaded with localStorage and included in OCR review modal
+
 - 2024-12-03: Major OCR parsing improvements (v0.5.35)
   - Fixed matrix layout bug where Damage row was missing its label cell
   - Heavy text normalization: removes stars, XP badges, normalizes unicode
