@@ -547,7 +547,7 @@
                 <div>
                     <div>REF: SM-2/CRUSADE</div>
                     <div style="font-size: 0.8em; opacity: 0.7">
-                        V 0.5.49 - ADEPTUS ADMINISTRATUM
+                        V 0.5.50 - ADEPTUS ADMINISTRATUM
                     </div>
                 </div>
                 <h1>Mission Debrief</h1>
@@ -1222,11 +1222,54 @@
                 }
 
                 // === GENE-SEED ===
-                if (/GENE.?SEED\s*(FOUND|XP)/i.test(upperText)) {
+                // Look for "Gene-Seed Found" or similar patterns
+                if (/GENE.?SEED/i.test(upperText) && /FOUND|RETRIEVED|XP\s*\d/i.test(upperText)) {
                     pendingOCRResults["global-geneseed"] = "1";
                 }
 
                 // === PLAYER NAME AND CLASS ===
+                // Levenshtein distance for fuzzy matching
+                function levenshtein(a, b) {
+                    if (a.length === 0) return b.length;
+                    if (b.length === 0) return a.length;
+                    const matrix = [];
+                    for (let i = 0; i <= b.length; i++) matrix[i] = [i];
+                    for (let j = 0; j <= a.length; j++) matrix[0][j] = j;
+                    for (let i = 1; i <= b.length; i++) {
+                        for (let j = 1; j <= a.length; j++) {
+                            matrix[i][j] = b[i-1] === a[j-1] 
+                                ? matrix[i-1][j-1]
+                                : Math.min(matrix[i-1][j-1]+1, matrix[i][j-1]+1, matrix[i-1][j]+1);
+                        }
+                    }
+                    return matrix[b.length][a.length];
+                }
+                
+                // Canonical class names for fuzzy matching
+                const canonicalClasses = ['BULWARK', 'ASSAULT', 'VANGUARD', 'TACTICAL', 'SNIPER', 'HEAVY', 'TECHMARINE'];
+                
+                // Find best fuzzy match for a class name
+                function fuzzyMatchClass(word) {
+                    const upper = word.toUpperCase();
+                    // First try exact match
+                    if (canonicalClasses.includes(upper)) return upper;
+                    // Then try fuzzy match - find closest with distance <= 3
+                    let bestMatch = null;
+                    let bestDist = 4;
+                    for (const cls of canonicalClasses) {
+                        const dist = levenshtein(upper, cls);
+                        // Also check if word is contained in class name or vice versa
+                        if (cls.includes(upper) || upper.includes(cls.slice(0,4))) {
+                            return cls;
+                        }
+                        if (dist < bestDist) {
+                            bestDist = dist;
+                            bestMatch = cls;
+                        }
+                    }
+                    return bestDist <= 3 ? bestMatch : null;
+                }
+                
                 // Map of class name patterns to their canonical names
                 const classMapping = {
                     'BULWARK': 'Bulwark',
@@ -1253,17 +1296,35 @@
                     
                     // Check if this line contains a class name (but not "CLASS MAX" level indicators)
                     let foundClass = null;
-                    for (const [pattern, className] of Object.entries(classMapping)) {
-                        // Match if the pattern appears as a word
-                        const regex = new RegExp('\\b' + pattern, 'i');
-                        if (regex.test(lineUpper)) {
-                            // Skip if this is a level indicator like "Bulwark MAX" or "Bulwark 6"
-                            const levelIndicator = new RegExp(pattern + '\\s*(MAX|\\d+)', 'i');
-                            if (levelIndicator.test(lineUpper)) {
-                                continue; // Skip this, it's a class level not a player header
-                            }
-                            foundClass = className;
+                    
+                    // Extract all words from the line and try fuzzy matching
+                    const wordsInLine = lineUpper.match(/[A-Z]{4,}/g) || [];
+                    for (const word of wordsInLine) {
+                        // Skip if this looks like a level indicator (followed by MAX or number)
+                        const wordPos = lineUpper.indexOf(word);
+                        const afterWord = lineUpper.substring(wordPos + word.length).trim();
+                        if (/^(MAX|\d+)/.test(afterWord)) {
+                            continue; // Skip level indicators like "Bulwark MAX"
+                        }
+                        
+                        // Try fuzzy matching
+                        const matchedClass = fuzzyMatchClass(word);
+                        if (matchedClass) {
+                            foundClass = classMapping[matchedClass] || matchedClass.charAt(0) + matchedClass.slice(1).toLowerCase();
                             break;
+                        }
+                    }
+                    
+                    // Also try exact pattern matching as fallback
+                    if (!foundClass) {
+                        for (const [pattern, className] of Object.entries(classMapping)) {
+                            const regex = new RegExp('\\b' + pattern, 'i');
+                            if (regex.test(lineUpper)) {
+                                const levelIndicator = new RegExp(pattern + '\\s*(MAX|\\d+)', 'i');
+                                if (levelIndicator.test(lineUpper)) continue;
+                                foundClass = className;
+                                break;
+                            }
                         }
                     }
                     
