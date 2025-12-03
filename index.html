@@ -402,7 +402,7 @@
                 <div>
                     <div>REF: SM-2/CRUSADE</div>
                     <div style="font-size: 0.8em; opacity: 0.7">
-                        V 0.4.27 - ADEPTUS ADMINISTRATUM
+                        V 0.5.28 - ADEPTUS ADMINISTRATUM
                     </div>
                 </div>
                 <h1>Mission Debrief</h1>
@@ -494,8 +494,23 @@
                 <div class="section" style="margin-bottom: 0">
                     <!-- Remove bottom margin as parent handles spacing -->
                     <!-- Screenshot Upload Section -->
-                    <div style="margin-bottom: 15px; padding: 10px; background-color: rgba(51, 255, 0, 0.1); border: 1px solid var(--pip-green);">
-                        <label for="screenshot-upload" style="display: block; margin-bottom: 8px; font-weight: bold; text-align: center;">
+                    <div
+                        style="
+                            margin-bottom: 15px;
+                            padding: 10px;
+                            background-color: rgba(51, 255, 0, 0.1);
+                            border: 1px solid var(--pip-green);
+                        "
+                    >
+                        <label
+                            for="screenshot-upload"
+                            style="
+                                display: block;
+                                margin-bottom: 8px;
+                                font-weight: bold;
+                                text-align: center;
+                            "
+                        >
                             UPLOAD SCREENSHOTS
                         </label>
                         <input
@@ -503,10 +518,32 @@
                             id="screenshot-upload"
                             accept="image/png,image/jpeg,image/jpg"
                             multiple
-                            style="display: block; margin: 0 auto; padding: 8px; background-color: var(--panel-bg); cursor: pointer;"
+                            style="
+                                display: block;
+                                margin: 0 auto;
+                                padding: 8px;
+                                background-color: var(--panel-bg);
+                                cursor: pointer;
+                            "
                         />
-                        <div id="upload-status" style="margin-top: 10px; text-align: center; font-size: 0.9rem; min-height: 20px;"></div>
-                        <div id="upload-progress" style="margin-top: 5px; text-align: center; font-size: 0.85rem; color: var(--pip-dim);"></div>
+                        <div
+                            id="upload-status"
+                            style="
+                                margin-top: 10px;
+                                text-align: center;
+                                font-size: 0.9rem;
+                                min-height: 20px;
+                            "
+                        ></div>
+                        <div
+                            id="upload-progress"
+                            style="
+                                margin-top: 5px;
+                                text-align: center;
+                                font-size: 0.85rem;
+                                color: var(--pip-dim);
+                            "
+                        ></div>
                     </div>
                     <!-- NEW: Mission Played input field -->
                     <div class="mission-params">
@@ -841,70 +878,75 @@
         <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
         <script>
             // Screenshot Upload and OCR Processing
-            document.getElementById('screenshot-upload').addEventListener('change', async function(e) {
-                const files = e.target.files;
-                if (files.length === 0) return;
+            document
+                .getElementById("screenshot-upload")
+                .addEventListener("change", async function (e) {
+                    const files = e.target.files;
+                    if (files.length === 0) return;
 
-                const statusDiv = document.getElementById('upload-status');
-                const progressDiv = document.getElementById('upload-progress');
-                
-                statusDiv.textContent = 'Processing screenshots...';
-                statusDiv.style.color = 'var(--pip-green)';
-                
-                try {
-                    for (let i = 0; i < files.length; i++) {
-                        const file = files[i];
-                        progressDiv.textContent = `Processing image ${i + 1} of ${files.length}...`;
-                        
-                        await processScreenshot(file, statusDiv, progressDiv);
+                    const statusDiv = document.getElementById("upload-status");
+                    const progressDiv =
+                        document.getElementById("upload-progress");
+
+                    statusDiv.textContent = "Processing screenshots...";
+                    statusDiv.style.color = "var(--pip-green)";
+
+                    try {
+                        for (let i = 0; i < files.length; i++) {
+                            const file = files[i];
+                            progressDiv.textContent = `Processing image ${i + 1} of ${files.length}...`;
+
+                            await processScreenshot(
+                                file,
+                                statusDiv,
+                                progressDiv,
+                            );
+                        }
+
+                        statusDiv.textContent =
+                            "Screenshots processed successfully!";
+                        statusDiv.style.color = "#afffa6";
+                        progressDiv.textContent = "";
+
+                        // Recalculate after all data is filled
+                        calculate();
+                        saveData();
+                    } catch (error) {
+                        console.error("OCR Error:", error);
+                        statusDiv.textContent =
+                            "Error processing screenshots. Please try again.";
+                        statusDiv.style.color = "#ff3300";
+                        progressDiv.textContent = "";
                     }
-                    
-                    statusDiv.textContent = 'Screenshots processed successfully!';
-                    statusDiv.style.color = '#afffa6';
-                    progressDiv.textContent = '';
-                    
-                    // Recalculate after all data is filled
-                    calculate();
-                    saveData();
-                    
-                } catch (error) {
-                    console.error('OCR Error:', error);
-                    statusDiv.textContent = 'Error processing screenshots. Please try again.';
-                    statusDiv.style.color = '#ff3300';
-                    progressDiv.textContent = '';
-                }
-            });
+                });
 
             async function processScreenshot(file, statusDiv, progressDiv) {
                 return new Promise((resolve, reject) => {
                     const reader = new FileReader();
-                    
-                    reader.onload = async function(e) {
+
+                    reader.onload = async function (e) {
                         try {
                             const imageData = e.target.result;
-                            
+
                             // Use Tesseract.js to extract text
-                            const { data: { text } } = await Tesseract.recognize(
-                                imageData,
-                                'eng',
-                                {
-                                    logger: m => {
-                                        if (m.status === 'recognizing text') {
-                                            progressDiv.textContent = `OCR Progress: ${Math.round(m.progress * 100)}%`;
-                                        }
+                            const {
+                                data: { text },
+                            } = await Tesseract.recognize(imageData, "eng", {
+                                logger: (m) => {
+                                    if (m.status === "recognizing text") {
+                                        progressDiv.textContent = `OCR Progress: ${Math.round(m.progress * 100)}%`;
                                     }
-                                }
-                            );
-                            
+                                },
+                            });
+
                             // Parse the extracted text and fill form fields
                             parseGameData(text);
                             resolve();
-                            
                         } catch (error) {
                             reject(error);
                         }
                     };
-                    
+
                     reader.onerror = reject;
                     reader.readAsDataURL(file);
                 });
@@ -913,80 +955,111 @@
             function parseGameData(text) {
                 // Convert to lowercase for easier matching
                 const lowerText = text.toLowerCase();
-                
+
                 // Extract mission name (common patterns in Space Marine 2)
-                const missions = ['inferno', 'vox liberatis', 'fall of atreus', 'servant of the machine', 'voidsong', 'dawn\'s descent'];
-                missions.forEach(mission => {
+                const missions = [
+                    "inferno",
+                    "vox liberatis",
+                    "fall of atreus",
+                    "servant of the machine",
+                    "voidsong",
+                    "dawn's descent",
+                ];
+                missions.forEach((mission) => {
                     if (lowerText.includes(mission.toLowerCase())) {
-                        document.getElementById('mission-name').value = mission;
+                        document.getElementById("mission-name").value = mission;
                     }
                 });
-                
+
                 // Extract difficulty
-                const difficulties = ['minimal', 'average', 'substantial', 'ruthless', 'lethal', 'absolute'];
-                difficulties.forEach(diff => {
+                const difficulties = [
+                    "minimal",
+                    "average",
+                    "substantial",
+                    "ruthless",
+                    "lethal",
+                    "absolute",
+                ];
+                difficulties.forEach((diff) => {
                     if (lowerText.includes(diff)) {
-                        const select = document.getElementById('mission-difficulty');
-                        select.value = diff.charAt(0).toUpperCase() + diff.slice(1);
+                        const select =
+                            document.getElementById("mission-difficulty");
+                        select.value =
+                            diff.charAt(0).toUpperCase() + diff.slice(1);
                     }
                 });
-                
+
                 // Try to extract numeric data using regex patterns
                 // Look for patterns like "Kills: 123" or "Deaths: 2"
-                
+
                 // Kills pattern
                 const killsMatch = text.match(/kills?\s*[:\-]?\s*(\d+)/i);
                 if (killsMatch) {
                     const kills = parseInt(killsMatch[1]);
                     // Distribute to first player if not filled
-                    if (getVal('p1-kills') === 0) {
-                        document.getElementById('p1-kills').value = kills;
+                    if (getVal("p1-kills") === 0) {
+                        document.getElementById("p1-kills").value = kills;
                     }
                 }
-                
+
                 // Elite kills pattern
-                const eliteMatch = text.match(/elite\s*kills?\s*[:\-]?\s*(\d+)/i);
+                const eliteMatch = text.match(
+                    /elite\s*kills?\s*[:\-]?\s*(\d+)/i,
+                );
                 if (eliteMatch) {
                     const elite = parseInt(eliteMatch[1]);
-                    if (getVal('p1-elite') === 0) {
-                        document.getElementById('p1-elite').value = elite;
+                    if (getVal("p1-elite") === 0) {
+                        document.getElementById("p1-elite").value = elite;
                     }
                 }
-                
+
                 // Deaths pattern
                 const deathMatch = text.match(/deaths?\s*[:\-]?\s*(\d+)/i);
                 if (deathMatch) {
                     const deaths = parseInt(deathMatch[1]);
-                    if (getVal('p1-death') === 0) {
-                        document.getElementById('p1-death').value = deaths;
+                    if (getVal("p1-death") === 0) {
+                        document.getElementById("p1-death").value = deaths;
                     }
                 }
-                
+
                 // Damage taken pattern (often shown as percentage or number)
-                const damageMatch = text.match(/damage\s*(?:taken)?\s*[:\-]?\s*(\d+(?:\.\d+)?)/i);
+                const damageMatch = text.match(
+                    /damage\s*(?:taken)?\s*[:\-]?\s*(\d+(?:\.\d+)?)/i,
+                );
                 if (damageMatch) {
                     const damage = parseFloat(damageMatch[1]);
-                    if (getVal('p1-damage') === 0) {
-                        document.getElementById('p1-damage').value = damage;
+                    if (getVal("p1-damage") === 0) {
+                        document.getElementById("p1-damage").value = damage;
                     }
                 }
-                
+
                 // Check for objective completion
-                if (lowerText.includes('objective') && (lowerText.includes('complete') || lowerText.includes('success'))) {
-                    document.getElementById('global-objective').value = '1';
+                if (
+                    lowerText.includes("objective") &&
+                    (lowerText.includes("complete") ||
+                        lowerText.includes("success"))
+                ) {
+                    document.getElementById("global-objective").value = "1";
                 }
-                
+
                 // Check for geneseed
-                if (lowerText.includes('geneseed') && (lowerText.includes('retrieved') || lowerText.includes('collected'))) {
-                    document.getElementById('global-geneseed').value = '1';
+                if (
+                    lowerText.includes("geneseed") &&
+                    (lowerText.includes("retrieved") ||
+                        lowerText.includes("collected"))
+                ) {
+                    document.getElementById("global-geneseed").value = "1";
                 }
-                
+
                 // Try to extract armoury data count
-                const armouryMatch = text.match(/armoury\s*(?:data)?\s*[:\-]?\s*(\d+)/i);
+                const armouryMatch = text.match(
+                    /armoury\s*(?:data)?\s*[:\-]?\s*(\d+)/i,
+                );
                 if (armouryMatch) {
                     const armoury = parseInt(armouryMatch[1]);
                     if (armoury >= 0 && armoury <= 3) {
-                        document.getElementById('global-armoury').value = armoury.toString();
+                        document.getElementById("global-armoury").value =
+                            armoury.toString();
                     }
                 }
             }
@@ -1287,12 +1360,19 @@
                 const originalBodyOverflow = body.style.overflow;
                 const originalBodyWidth = body.style.width;
                 const originalHtmlWidth = html.style.width;
-                const originalViewport = document.querySelector('meta[name="viewport"]');
-                const originalViewportContent = originalViewport ? originalViewport.getAttribute('content') : null;
+                const originalViewport = document.querySelector(
+                    'meta[name="viewport"]',
+                );
+                const originalViewportContent = originalViewport
+                    ? originalViewport.getAttribute("content")
+                    : null;
 
                 // Temporarily change viewport to allow wider rendering on mobile
                 if (originalViewport) {
-                    originalViewport.setAttribute('content', 'width=1200, initial-scale=1.0');
+                    originalViewport.setAttribute(
+                        "content",
+                        "width=1200, initial-scale=1.0",
+                    );
                 }
 
                 // Force wide desktop layout for screenshot - set on all containers
@@ -1330,10 +1410,18 @@
 
                             // Restore viewport
                             if (originalViewport && originalViewportContent) {
-                                originalViewport.setAttribute('content', originalViewportContent);
+                                originalViewport.setAttribute(
+                                    "content",
+                                    originalViewportContent,
+                                );
                             }
 
-                            console.log("Canvas dimensions:", canvas.width, "x", canvas.height);
+                            console.log(
+                                "Canvas dimensions:",
+                                canvas.width,
+                                "x",
+                                canvas.height,
+                            );
 
                             const link = document.createElement("a");
                             link.download = "Mission_Debrief_Display.png";
@@ -1351,7 +1439,10 @@
 
                             // Restore viewport
                             if (originalViewport && originalViewportContent) {
-                                originalViewport.setAttribute('content', originalViewportContent);
+                                originalViewport.setAttribute(
+                                    "content",
+                                    originalViewportContent,
+                                );
                             }
 
                             console.error("PNG export failed:", err);
