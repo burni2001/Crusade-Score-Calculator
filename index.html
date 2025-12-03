@@ -544,7 +544,7 @@
                 <div>
                     <div>REF: SM-2/CRUSADE</div>
                     <div style="font-size: 0.8em; opacity: 0.7">
-                        V 0.5.29 - ADEPTUS ADMINISTRATUM
+                        V 0.5.31 - ADEPTUS ADMINISTRATUM
                     </div>
                 </div>
                 <h1>Mission Debrief</h1>
@@ -939,6 +939,7 @@
                             </tr>
                             <!-- Damage -->
                             <tr>
+                                <td class="row-label">Damage</td>
                                 <td class="input-cell">
                                     <input
                                         type="number"
@@ -1134,95 +1135,109 @@
             }
 
             function parseGameData(text) {
-                // Convert to lowercase for easier matching
                 const lowerText = text.toLowerCase();
+                const lines = text.split('\n');
 
-                // Extract mission name (common patterns in Space Marine 2)
-                const missions = [
-                    "inferno",
-                    "vox liberatis",
-                    "fall of atreus",
-                    "servant of the machine",
-                    "voidsong",
-                    "dawn's descent",
-                ];
-                missions.forEach((mission) => {
-                    if (lowerText.includes(mission.toLowerCase())) {
-                        pendingOCRResults["mission-name"] = mission;
+                // Extract mission name from "MISSION: X" format (on same line)
+                const missionLineMatch = text.match(/mission[:\s]+([A-Za-z][A-Za-z\s\-']{2,30})/i);
+                if (missionLineMatch) {
+                    let missionName = missionLineMatch[1].trim();
+                    // Remove "STATUS" if it got captured
+                    missionName = missionName.replace(/\s*status\s*$/i, '').trim();
+                    if (missionName.length > 2 && missionName.length < 40) {
+                        pendingOCRResults["mission-name"] = missionName;
                     }
-                });
+                }
 
-                // Extract difficulty
-                const difficulties = [
-                    "minimal",
-                    "average",
-                    "substantial",
-                    "ruthless",
-                    "lethal",
-                    "absolute",
-                ];
+                // Extract difficulty (exact word match)
+                const difficulties = ["minimal", "average", "substantial", "ruthless", "lethal", "absolute"];
                 difficulties.forEach((diff) => {
-                    if (lowerText.includes(diff)) {
-                        pendingOCRResults["mission-difficulty"] =
-                            diff.charAt(0).toUpperCase() + diff.slice(1);
+                    const diffRegex = new RegExp('\\b' + diff + '\\b', 'i');
+                    if (diffRegex.test(text)) {
+                        pendingOCRResults["mission-difficulty"] = diff.charAt(0).toUpperCase() + diff.slice(1);
                     }
                 });
 
-                // Try to extract numeric data using regex patterns
-                // Kills pattern
-                const killsMatch = text.match(/kills?\s*[:\-]?\s*(\d+)/i);
-                if (killsMatch) {
-                    pendingOCRResults["p1-kills"] = parseInt(killsMatch[1]);
+                // Check for STATUS: SUCCESS (strict pattern)
+                if (/status[:\s]+success/i.test(text)) {
+                    pendingOCRResults["global-objective"] = "1";
                 }
-
-                // Elite kills pattern
-                const eliteMatch = text.match(
-                    /elite\s*kills?\s*[:\-]?\s*(\d+)/i,
-                );
-                if (eliteMatch) {
-                    pendingOCRResults["p1-elite"] = parseInt(eliteMatch[1]);
-                }
-
-                // Deaths pattern
-                const deathMatch = text.match(/deaths?\s*[:\-]?\s*(\d+)/i);
-                if (deathMatch) {
-                    pendingOCRResults["p1-death"] = parseInt(deathMatch[1]);
-                }
-
-                // Damage taken pattern (often shown as percentage or number)
-                const damageMatch = text.match(
-                    /damage\s*(?:taken)?\s*[:\-]?\s*(\d+(?:\.\d+)?)/i,
-                );
-                if (damageMatch) {
-                    pendingOCRResults["p1-damage"] = parseFloat(damageMatch[1]);
-                }
-
-                // Check for objective completion
-                if (
-                    lowerText.includes("objective") &&
-                    (lowerText.includes("complete") ||
-                        lowerText.includes("success"))
-                ) {
+                // Also check for VICTORY (as standalone word)
+                if (/\bvictory\b/i.test(text)) {
                     pendingOCRResults["global-objective"] = "1";
                 }
 
-                // Check for geneseed
-                if (
-                    lowerText.includes("geneseed") &&
-                    (lowerText.includes("retrieved") ||
-                        lowerText.includes("collected"))
-                ) {
+                // Check for Gene-Seed Found (strict pattern)
+                if (/gene[-\s]?seed\s+(found|retrieved|collected)/i.test(text)) {
                     pendingOCRResults["global-geneseed"] = "1";
                 }
 
-                // Try to extract armoury data count
-                const armouryMatch = text.match(
-                    /armoury\s*(?:data)?\s*[:\-]?\s*(\d+)/i,
-                );
-                if (armouryMatch) {
-                    const armoury = parseInt(armouryMatch[1]);
-                    if (armoury >= 0 && armoury <= 3) {
-                        pendingOCRResults["global-armoury"] = armoury.toString();
+                // Extract player name from header (name + class pattern)
+                // Look for all matches, not just first
+                const nameClassRegex = /([A-Za-z][A-Za-z\s]{1,20}?)\s*\n?\s*(BULWARK|ASSAULT|VANGUARD|TACTICAL|SNIPER|HEAVY)/gi;
+                let nameMatch;
+                let playerIndex = 1;
+                while ((nameMatch = nameClassRegex.exec(text)) !== null && playerIndex <= 3) {
+                    const playerName = nameMatch[1].trim();
+                    if (playerName.length > 1 && playerName.length < 20) {
+                        if (!pendingOCRResults[`p${playerIndex}-name`]) {
+                            pendingOCRResults[`p${playerIndex}-name`] = playerName;
+                            playerIndex++;
+                        }
+                    }
+                }
+
+                // Helper function to extract 3 numbers from a stat line
+                function extractThreeNumbers(pattern, text) {
+                    const match = text.match(pattern);
+                    if (match) {
+                        const nums = [parseInt(match[1]), parseInt(match[2]), parseInt(match[3])];
+                        // Validate - all should be reasonable numbers
+                        if (nums.every(n => !isNaN(n) && n >= 0 && n < 100000)) {
+                            return nums;
+                        }
+                    }
+                    return null;
+                }
+
+                // Kills row - must be "Kills" not "Special Kills"
+                const killsNums = extractThreeNumbers(/\bkills\b(?!\s*\*)[^\d]*(\d+)[^\d]+(\d+)[^\d]+(\d+)/i, text);
+                if (killsNums) {
+                    pendingOCRResults["p1-kills"] = killsNums[0];
+                    pendingOCRResults["p2-kills"] = killsNums[1];
+                    pendingOCRResults["p3-kills"] = killsNums[2];
+                }
+
+                // Special Kills = Elite Kills
+                const specialNums = extractThreeNumbers(/special\s*kills[^\d]*(\d+)[^\d]+(\d+)[^\d]+(\d+)/i, text);
+                if (specialNums) {
+                    pendingOCRResults["p1-elite"] = specialNums[0];
+                    pendingOCRResults["p2-elite"] = specialNums[1];
+                    pendingOCRResults["p3-elite"] = specialNums[2];
+                }
+
+                // Incapacitations = Death
+                const incapNums = extractThreeNumbers(/incapacitations?[^\d]*(\d+)[^\d]+(\d+)[^\d]+(\d+)/i, text);
+                if (incapNums) {
+                    pendingOCRResults["p1-death"] = incapNums[0];
+                    pendingOCRResults["p2-death"] = incapNums[1];
+                    pendingOCRResults["p3-death"] = incapNums[2];
+                }
+
+                // Damage Taken = Damage
+                const damageNums = extractThreeNumbers(/damage\s*taken[^\d]*(\d+)[^\d]+(\d+)[^\d]+(\d+)/i, text);
+                if (damageNums) {
+                    pendingOCRResults["p1-damage"] = damageNums[0];
+                    pendingOCRResults["p2-damage"] = damageNums[1];
+                    pendingOCRResults["p3-damage"] = damageNums[2];
+                }
+
+                // Armoury data - look for number in REWARDS section (small digit 0-3)
+                const rewardsSection = text.match(/rewards[^\n]*\n?([^\n]*\d[^\n]*)/i);
+                if (rewardsSection) {
+                    const armouryMatch = rewardsSection[1].match(/\b([0-3])\b/);
+                    if (armouryMatch) {
+                        pendingOCRResults["global-armoury"] = armouryMatch[1];
                     }
                 }
             }
@@ -1236,17 +1251,28 @@
                 // Display raw text
                 rawTextDiv.textContent = rawOCRText || "No text detected";
 
-                // Build detected values grid
+                // Build detected values grid - organized by category
                 const fieldLabels = {
                     "mission-name": "Mission",
                     "mission-difficulty": "Difficulty",
-                    "p1-kills": "Kills (P1)",
-                    "p1-elite": "Elite Kills (P1)",
-                    "p1-death": "Deaths (P1)",
-                    "p1-damage": "Damage (P1)",
                     "global-objective": "Objective Complete",
                     "global-geneseed": "Geneseed Retrieved",
                     "global-armoury": "Armoury Data",
+                    "p1-name": "Player 1 Name",
+                    "p1-kills": "P1 Kills",
+                    "p1-elite": "P1 Elite Kills",
+                    "p1-death": "P1 Deaths",
+                    "p1-damage": "P1 Damage",
+                    "p2-name": "Player 2 Name",
+                    "p2-kills": "P2 Kills",
+                    "p2-elite": "P2 Elite Kills",
+                    "p2-death": "P2 Deaths",
+                    "p2-damage": "P2 Damage",
+                    "p3-name": "Player 3 Name",
+                    "p3-kills": "P3 Kills",
+                    "p3-elite": "P3 Elite Kills",
+                    "p3-death": "P3 Deaths",
+                    "p3-damage": "P3 Damage",
                 };
 
                 let gridHTML = "";
