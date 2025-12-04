@@ -1,0 +1,92 @@
+=== OCR DEBUG EXPORT ===
+Version: 0.6.10
+Timestamp: 2025-12-04T16:38:12.082Z
+
+=== DETECTED VALUES ===
+mission-name: Reclamation
+global-objective: 1
+p1-name: ShovelKnight
+p1-class: Tactical
+p1-kills: 898
+p2-kills: 140
+p3-kills: 185
+p1-elite: 26
+p1-death: 2
+p1-damage: 507
+p2-damage: 1156
+p3-damage: 1117
+global-geneseed: 0
+
+=== RAW OCR TEXT ===
+MISSION: RECLAMATION	
+STATUS: SUCCESS	
+REWARDS	
+260	
+CHARACTER PROGRESS	
+25	Tactical	MAX	
+TOTAL SCORE	
+X 7048	
+] Next (15)	
+
+
+---
+
+MISSION: RECLAMATION	
+STATUS: SUCCESS	
+ShovelKnight	
+TACTICAL	
+Kills	XP 10	898	140	185	
+Special Kills	XP 10	26	
+Melee Damage	XP 10	6569	4373	2170	
+Ranged Damage	XP 10	59169	5741	11986	
+Items Found	XP 10	17	
+Damage Taken	XP 10	507	1156	1117	
+Incapacitations	2	
+Teammates Revived	0	2	
+TOTAL SCORE	
+7048	
+* Next (15)	
+
+
+---
+
+MISSION: RECLAMATION	
+STATUS: SUCCESS	
+VICTORY	
+PRIMARY OBJECTIVES	
+Weapons Deck	XP 581	
+Ordnance Depot	XP 581	
+Reactor Cooling Hall	XP 581	
+Reactor Chamber	X: 581	
+Egress	X* 588	
+Extermination Rank	XP 4076	
+TOTAL SCORE	
+6988	
+Next (20]	
+Djepeto	
+is playing	
+Cyberpunk 2077	
+
+
+---
+
+
+
+=== ANALYSIS ===
+Lines containing 'KILL' (case-insensitive):
+  Line 14: Kills	XP 10	898	140	185	
+    Numbers found: 10, 898, 140, 185
+  Line 15: Special Kills	XP 10	26	
+    Numbers found: 10, 26
+
+Lines containing 'INCAP' (case-insensitive):
+  Line 20: Incapacitations	2	
+    Numbers found: 2
+
+Lines containing 'DAMAGE' (case-insensitive):
+  Line 16: Melee Damage	XP 10	6569	4373	2170	
+    Numbers found: 10, 6569, 4373, 2170
+  Line 17: Ranged Damage	XP 10	59169	5741	11986	
+    Numbers found: 10, 59169, 5741, 11986
+  Line 19: Damage Taken	XP 10	507	1156	1117	
+    Numbers found: 10, 507, 1156, 1117

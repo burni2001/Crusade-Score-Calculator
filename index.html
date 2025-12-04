@@ -618,7 +618,7 @@
                 <div>
                     <div>REF: SM-2/CRUSADE</div>
                     <div style="font-size: 0.8em; opacity: 0.7">
-                        V 0.8.2 - ADEPTUS ADMINISTRATUM
+                        V 0.8.3 - ADEPTUS ADMINISTRATUM
                     </div>
                 </div>
                 <h1>Mission Debrief</h1>
@@ -2088,8 +2088,13 @@
             
             // Export OCR debug data for troubleshooting
             function exportOCRDebug() {
+                // Get current version from header
+                const versionText = document.querySelector('.header-left')?.textContent || '';
+                const versionMatch = versionText.match(/V\s*(\d+\.\d+\.\d+)/i);
+                const currentVersion = versionMatch ? versionMatch[1] : 'unknown';
+                
                 const debugData = {
-                    version: "0.6.10",
+                    version: currentVersion,
                     timestamp: new Date().toISOString(),
                     detectedValues: pendingOCRResults,
                     rawOCRText: rawOCRText
