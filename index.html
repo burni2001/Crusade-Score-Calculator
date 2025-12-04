@@ -618,7 +618,7 @@
                 <div>
                     <div>REF: SM-2/CRUSADE</div>
                     <div style="font-size: 0.8em; opacity: 0.7">
-                        V 0.7.2 - ADEPTUS ADMINISTRATUM
+                        V 0.7.3 - ADEPTUS ADMINISTRATUM
                     </div>
                 </div>
                 <h1>Mission Debrief</h1>
@@ -1244,8 +1244,8 @@
                         e.target.value = "";
                     } catch (error) {
                         console.error("OCR Error:", error);
-                        statusDiv.textContent =
-                            "Error processing screenshots. Please try again.";
+                        const errorMsg = error.message || error.toString() || "Unknown error";
+                        statusDiv.textContent = `Error: ${errorMsg}`;
                         statusDiv.style.color = "#ff3300";
                         progressDiv.textContent = "";
                     }
@@ -1313,18 +1313,28 @@
                                 progressDiv.textContent = 'OCR complete';
                             } else {
                                 // Fallback to Tesseract.js (less accurate but works without key)
+                                if (typeof Tesseract === 'undefined') {
+                                    throw new Error('OCR library not loaded. Please refresh the page.');
+                                }
+                                
                                 progressDiv.textContent = 'Processing with basic OCR...';
                                 
-                                const { data: { text } } = await Tesseract.recognize(base64Image, 'eng', {
-                                    logger: (m) => {
-                                        if (m.status === 'recognizing text') {
-                                            progressDiv.textContent = `Basic OCR: ${Math.round(m.progress * 100)}%`;
+                                try {
+                                    const result = await Tesseract.recognize(base64Image, 'eng', {
+                                        logger: (m) => {
+                                            if (m.status === 'recognizing text') {
+                                                progressDiv.textContent = `Basic OCR: ${Math.round(m.progress * 100)}%`;
+                                            }
                                         }
-                                    }
-                                });
-                                
-                                rawOCRText += text + "\n\n---\n\n";
-                                progressDiv.textContent = 'OCR complete (basic mode)';
+                                    });
+                                    
+                                    const text = result.data.text;
+                                    rawOCRText += text + "\n\n---\n\n";
+                                    progressDiv.textContent = 'OCR complete (basic mode)';
+                                } catch (tessError) {
+                                    console.error('Tesseract error:', tessError);
+                                    throw new Error('Basic OCR failed. Try adding an API key for better results.');
+                                }
                             }
                             
                             resolve();
