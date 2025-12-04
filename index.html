@@ -618,7 +618,7 @@
                 <div>
                     <div>REF: SM-2/CRUSADE</div>
                     <div style="font-size: 0.8em; opacity: 0.7">
-                        V 0.7.5 - ADEPTUS ADMINISTRATUM
+                        V 0.7.6 - ADEPTUS ADMINISTRATUM
                     </div>
                 </div>
                 <h1>Mission Debrief</h1>
@@ -1859,11 +1859,15 @@
                                 if (excludeRegex && excludeRegex.test(upperLine)) continue;
                                 // Find all numbers in this line
                                 const nums = line.match(/\d+/g);
-                                if (nums && nums.length >= 3) {
-                                    // Take the last 3 numbers (skip XP badge numbers)
-                                    const last3 = nums.slice(-3).map(n => parseInt(n));
-                                    if (last3.every(n => !isNaN(n) && n >= 0 && n < 1000000)) {
-                                        return last3;
+                                if (nums && nums.length >= 1) {
+                                    // Take up to the last 3 numbers (skip XP badge numbers)
+                                    const lastNums = nums.slice(-Math.min(3, nums.length)).map(n => parseInt(n));
+                                    if (lastNums.every(n => !isNaN(n) && n >= 0 && n < 1000000)) {
+                                        // Pad with nulls if fewer than 3 numbers found
+                                        while (lastNums.length < 3) {
+                                            lastNums.push(null);
+                                        }
+                                        return lastNums;
                                     }
                                 }
                             }
@@ -1872,17 +1876,21 @@
                     return null;
                 }
 
+                // Helper to assign stats - only sets non-null values
+                function assignStats(nums, statName) {
+                    if (!nums) return;
+                    if (nums[0] !== null) pendingOCRResults[`p1-${statName}`] = nums[0];
+                    if (nums[1] !== null) pendingOCRResults[`p2-${statName}`] = nums[1];
+                    if (nums[2] !== null) pendingOCRResults[`p3-${statName}`] = nums[2];
+                }
+
                 // Kills - try multiple patterns (OCR can mangle text)
                 const killsNums = extractLastThreeNumbers([
                     /\bKILLS\b/,      // Standard: "Kills"
                     /K[I1l]{1,2}[L1]{1,2}S/i,  // OCR variants: "Ki11s", "Kllls"
                     /KILLS/           // No word boundary (catches "4Kills" etc.)
                 ], /SPECIAL|SPECIA/i);
-                if (killsNums) {
-                    pendingOCRResults["p1-kills"] = killsNums[0];
-                    pendingOCRResults["p2-kills"] = killsNums[1];
-                    pendingOCRResults["p3-kills"] = killsNums[2];
-                }
+                assignStats(killsNums, "kills");
 
                 // Special Kills -> Elite Kills
                 const specialNums = extractLastThreeNumbers([
@@ -1890,11 +1898,7 @@
                     /SPEC[I1]AL\s*K[I1]LLS/i,  // OCR variants
                     /SPECIA.*KILLS/i           // Partial match
                 ]);
-                if (specialNums) {
-                    pendingOCRResults["p1-elite"] = specialNums[0];
-                    pendingOCRResults["p2-elite"] = specialNums[1];
-                    pendingOCRResults["p3-elite"] = specialNums[2];
-                }
+                assignStats(specialNums, "elite");
 
                 // Incapacitations -> Death
                 const incapNums = extractLastThreeNumbers([
@@ -1902,11 +1906,7 @@
                     /INCAP/,                   // Short form
                     /[I1]NCAPAC[I1]TAT[I1]ON/i // OCR variants
                 ]);
-                if (incapNums) {
-                    pendingOCRResults["p1-death"] = incapNums[0];
-                    pendingOCRResults["p2-death"] = incapNums[1];
-                    pendingOCRResults["p3-death"] = incapNums[2];
-                }
+                assignStats(incapNums, "death");
 
                 // Damage Taken -> Damage
                 const damageNums = extractLastThreeNumbers([
@@ -1914,11 +1914,7 @@
                     /DAMAGE.*TAKEN/i,          // More flexible spacing
                     /DAM.*TAK/i                // Very short match
                 ]);
-                if (damageNums) {
-                    pendingOCRResults["p1-damage"] = damageNums[0];
-                    pendingOCRResults["p2-damage"] = damageNums[1];
-                    pendingOCRResults["p3-damage"] = damageNums[2];
-                }
+                assignStats(damageNums, "damage");
 
                 // === ARMOURY DATA ===
                 // Look for patterns near "REWARDS" section
