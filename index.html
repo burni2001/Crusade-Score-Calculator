@@ -618,7 +618,7 @@
                 <div>
                     <div>REF: SM-2/CRUSADE</div>
                     <div style="font-size: 0.8em; opacity: 0.7">
-                        V 0.8.0 - ADEPTUS ADMINISTRATUM
+                        V 0.8.1 - ADEPTUS ADMINISTRATUM
                     </div>
                 </div>
                 <h1>Mission Debrief</h1>
@@ -1410,7 +1410,13 @@
 
                 // === GENE-SEED ===
                 // Look for "Gene-Seed Found" or similar patterns
-                if (/GENE.?SEED/i.test(upperText) && /FOUND|RETRIEVED|XP\s*\d/i.test(upperText)) {
+                // Can appear as "Gene-Seed Found", "GENESEED", or near SECONDARY OBJECTIVES
+                const hasGeneseed = /GENE.?SEED/i.test(upperText);
+                const hasFound = /FOUND|RETRIEVED/i.test(upperText);
+                const hasSecondaryObj = /SECONDARY\s*OBJECTIVES/i.test(upperText);
+                const geneseedWithXP = /GENE.?SEED.*?XP\s*\d+/i.test(upperSingleLine);
+                
+                if (hasGeneseed && (hasFound || geneseedWithXP || hasSecondaryObj)) {
                     pendingOCRResults["global-geneseed"] = "1";
                 }
 
