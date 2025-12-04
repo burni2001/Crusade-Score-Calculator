@@ -618,7 +618,7 @@
                 <div>
                     <div>REF: SM-2/CRUSADE</div>
                     <div style="font-size: 0.8em; opacity: 0.7">
-                        V 0.8.5 - ADEPTUS ADMINISTRATUM
+                        V 0.8.6 - ADEPTUS ADMINISTRATUM
                     </div>
                 </div>
                 <h1>Mission Debrief</h1>
@@ -1243,9 +1243,9 @@
                         const origWidth = img.width;
                         const origHeight = img.height;
                         
-                        // Crop to right 55% of image (where stats panel is)
-                        // This makes the text larger and reduces file size
-                        const cropX = Math.round(origWidth * 0.45);
+                        // Crop to right 70% of image (keeps mission header + stats panel)
+                        // This makes the text larger while preserving mission info
+                        const cropX = Math.round(origWidth * 0.30);
                         const cropWidth = origWidth - cropX;
                         const cropHeight = origHeight;
                         
