@@ -1,0 +1,148 @@
+=== OCR DEBUG EXPORT ===
+Version: 0.8.7
+Timestamp: 2025-12-04T17:29:49.642Z
+
+=== DETECTED VALUES ===
+global-objective: 1
+p1-name: Börni
+p1-class: Heavy
+p2-name: Zephon
+p2-class: Bulwark
+p3-name: Boki Heldfeste
+p3-class: Assault
+p1-kills: 326
+p2-kills: 449
+p3-kills: 352
+p1-elite: 4
+p1-damage: 248
+p2-damage: 349
+p3-damage: 188
+global-geneseed: 0
+
+=== RAW OCR TEXT ===
+DN: RECLAMATION	
+ESS	
+REWARDS	
+260	
+CHARACTER PROGRESS	
+25	Heavy	MAX.	
+TOTAL SCORE	
+X# 7018	
+
+
+---
+
+ON: RECLAMATION	
+ESS	
+Boki Heldfeste	
+ASSAULT	
+Kills	326	449	352	
+Special Kills	
+Melee Damage	3265	11927	16038	
+Ranged Damage	25735	7888	5418	
+Items Found	16	13	
+Damage Taken *	248	349	188	
+Incapacitations	
+Teammates Revived	0	
+TOTAL SCORE	
+Xe 7018	
+
+
+---
+
+ON: RECLAMATION	
+ESS	
+Zephon	
+BULWARK	
+Kills	326	449	352	
+Special Kills	
+Melee Damage	3265	11927	16038	
+Ranged Damage	25735	7888	5418	
+Items Found	16	13	5	
+Damage Taken	248	349	188	
+Incapacitations	
+Teammates Revived *	0	1	
+TOTAL SCORE	
+X 7018	
+
+
+---
+
+ON: RECLAMATION	
+ESS	
+Börni	
+HEAVY	
+Kills	326	449	352	
+Special Kills	XP 10	4	
+Melee Damage	3265	11927	16038	
+Ranged Damage	XP 10	25735	7888	5418	
+Items Found *	XP 10	16	13	
+Damage Taken	248	349	188	
+Incapacitations	
+Teammates Revived	0	
+TOTAL SCORE	
+X 7018	
+
+
+---
+
+ON: RECLAMATION	
+ESS	
+VICTORY	
+PRIMARY OBJECTIVES	
+Weapons Deck	XP 581	
+Ordnance Depot	XP 581	
+Reactor Cooling Hall	XP 581	
+Reactor Chamber	XP 581|	
+Egress	XP 588	
+Extermination Rank	XP 4076	
+TOTAL SCORE	
+X# 6988	
+
+
+---
+
+
+
+=== ANALYSIS ===
+Lines containing 'KILL' (case-insensitive):
+  Line 13: Kills	326	449	352	
+    Numbers found: 326, 449, 352
+  Line 14: Special Kills	
+    Numbers found: NONE
+  Line 28: Kills	326	449	352	
+    Numbers found: 326, 449, 352
+  Line 29: Special Kills	
+    Numbers found: NONE
+  Line 43: Kills	326	449	352	
+    Numbers found: 326, 449, 352
+  Line 44: Special Kills	XP 10	4	
+    Numbers found: 10, 4
+
+Lines containing 'INCAP' (case-insensitive):
+  Line 19: Incapacitations	
+    Numbers found: NONE
+  Line 34: Incapacitations	
+    Numbers found: NONE
+  Line 49: Incapacitations	
+    Numbers found: NONE
+
+Lines containing 'DAMAGE' (case-insensitive):
+  Line 15: Melee Damage	3265	11927	16038	
+    Numbers found: 3265, 11927, 16038
+  Line 16: Ranged Damage	25735	7888	5418	
+    Numbers found: 25735, 7888, 5418
+  Line 18: Damage Taken *	248	349	188	
+    Numbers found: 248, 349, 188
+  Line 30: Melee Damage	3265	11927	16038	
+    Numbers found: 3265, 11927, 16038
+  Line 31: Ranged Damage	25735	7888	5418	
+    Numbers found: 25735, 7888, 5418
+  Line 33: Damage Taken	248	349	188	
+    Numbers found: 248, 349, 188
+  Line 45: Melee Damage	3265	11927	16038	
+    Numbers found: 3265, 11927, 16038
+  Line 46: Ranged Damage	XP 10	25735	7888	5418	
+    Numbers found: 10, 25735, 7888, 5418
+  Line 48: Damage Taken	248	349	188	
+    Numbers found: 248, 349, 188

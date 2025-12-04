@@ -618,7 +618,7 @@
                 <div>
                     <div>REF: SM-2/CRUSADE</div>
                     <div style="font-size: 0.8em; opacity: 0.7">
-                        V 0.8.7 - ADEPTUS ADMINISTRATUM
+                        V 0.8.8 - ADEPTUS ADMINISTRATUM
                     </div>
                 </div>
                 <h1>Mission Debrief</h1>
@@ -1243,10 +1243,10 @@
                         const origWidth = img.width;
                         const origHeight = img.height;
                         
-                        // Crop to right 85% of image (minimal crop to preserve mission header)
-                        // Only removes far-left character portion while keeping all text
-                        const cropX = Math.round(origWidth * 0.15);
-                        const cropWidth = origWidth - cropX;
+                        // No crop - keep full image to preserve mission header text
+                        // Just upscale for better OCR accuracy
+                        const cropX = 0;
+                        const cropWidth = origWidth;
                         const cropHeight = origHeight;
                         
                         // Target width for OCR (upscale cropped area for better text recognition)
@@ -1401,7 +1401,18 @@
                 const upperSingleLine = upperText.replace(/[\r\n]+/g, ' ').replace(/\s+/g, ' ');
 
                 // === MISSION NAME ===
-                const missionMatch = upperSingleLine.match(/MISSION\s*[:\-=]?\s*([A-Z][A-Z\s\-']{2,30})/);
+                // Try full "MISSION:" pattern first
+                let missionMatch = upperSingleLine.match(/MISSION\s*[:\-=]?\s*([A-Z][A-Z\s\-']{2,30})/);
+                // Fallback: OCR sometimes crops to "ON:" or "DN:" or "ION:" from "MISSION:"
+                if (!missionMatch) {
+                    missionMatch = upperSingleLine.match(/(?:^|[\s\t])([ND]?[IO]?N)\s*[:\-=]?\s*(RECLAMATION|INFERNO|BALLISTIC|DECAPITATION|SERVO|SKULL|VANGUARD|VOIDSONG|RELIQUARY|TERMINATION|EXTRACTION|ATHENA)/i);
+                    if (missionMatch) {
+                        // Use the mission name from second capture group
+                        let missionName = missionMatch[2].trim();
+                        pendingOCRResults["mission-name"] = missionName.charAt(0) + missionName.slice(1).toLowerCase();
+                        missionMatch = null; // Prevent double-processing
+                    }
+                }
                 if (missionMatch) {
                     let missionName = missionMatch[1].trim();
                     missionName = missionName.replace(/\s*STATUS.*$/i, '').trim();
