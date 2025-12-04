@@ -618,7 +618,7 @@
                 <div>
                     <div>REF: SM-2/CRUSADE</div>
                     <div style="font-size: 0.8em; opacity: 0.7">
-                        V 0.7.1 - ADEPTUS ADMINISTRATUM
+                        V 0.7.2 - ADEPTUS ADMINISTRATUM
                     </div>
                 </div>
                 <h1>Mission Debrief</h1>
@@ -739,10 +739,10 @@
                         </p>
                         <div style="margin-bottom: 10px;">
                             <label for="ocr-api-key" style="font-size: 0.8em; color: #7a7;">
-                                OCR API Key (free, 25k scans/month - <a href="https://ocr.space/ocrapi/freekey" target="_blank" style="color: var(--pip-green);">Get your key here</a>):
+                                For best results: <a href="https://ocr.space/ocrapi/freekey" target="_blank" style="color: var(--pip-green);">Get a free OCR API key</a> (25k scans/month)
                             </label>
                             <p style="font-size: 0.75em; color: #595; margin: 2px 0 4px 0;">
-                                Your key is stored only in your browser and sent directly to OCR.space. We never see or store it.
+                                Optional - works without key but with lower accuracy. Your key stays in your browser only.
                             </p>
                             <input
                                 type="password"
@@ -1191,7 +1191,9 @@
 
         <!-- html2canvas library for PNG export -->
         <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-        <!-- OCR powered by OCR.space API -->
+        <!-- Tesseract.js for fallback OCR -->
+        <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+        <!-- OCR powered by OCR.space API (with Tesseract fallback) -->
         <script>
             // Store OCR results for review
             let pendingOCRResults = {};
@@ -1269,9 +1271,6 @@
             
             async function processScreenshot(file, statusDiv, progressDiv) {
                 const apiKey = document.getElementById('ocr-api-key').value;
-                if (!apiKey) {
-                    throw new Error('Please enter your OCR.space API key first');
-                }
                 
                 return new Promise((resolve, reject) => {
                     const reader = new FileReader();
@@ -1279,37 +1278,55 @@
                     reader.onload = async function (e) {
                         try {
                             const base64Image = e.target.result;
-                            progressDiv.textContent = 'Sending to OCR.space...';
                             
-                            // Call OCR.space API with Engine 2 (better for numbers)
-                            const formData = new FormData();
-                            formData.append('base64Image', base64Image);
-                            formData.append('language', 'eng');
-                            formData.append('isOverlayRequired', 'false');
-                            formData.append('OCREngine', '2');  // Engine 2 is better for numbers
-                            formData.append('isTable', 'true'); // Better line-by-line parsing
-                            formData.append('scale', 'true');   // Upscale for better recognition
-                            
-                            const response = await fetch('https://api.ocr.space/parse/image', {
-                                method: 'POST',
-                                headers: {
-                                    'apikey': apiKey
-                                },
-                                body: formData
-                            });
-                            
-                            const result = await response.json();
-                            
-                            if (result.IsErroredOnProcessing) {
-                                throw new Error(result.ErrorMessage || 'OCR processing failed');
-                            }
-                            
-                            if (result.ParsedResults && result.ParsedResults.length > 0) {
-                                const text = result.ParsedResults[0].ParsedText;
+                            if (apiKey) {
+                                // Use OCR.space API (better accuracy)
+                                progressDiv.textContent = 'Sending to OCR.space...';
+                                
+                                const formData = new FormData();
+                                formData.append('base64Image', base64Image);
+                                formData.append('language', 'eng');
+                                formData.append('isOverlayRequired', 'false');
+                                formData.append('OCREngine', '2');
+                                formData.append('isTable', 'true');
+                                formData.append('scale', 'true');
+                                
+                                const response = await fetch('https://api.ocr.space/parse/image', {
+                                    method: 'POST',
+                                    headers: {
+                                        'apikey': apiKey
+                                    },
+                                    body: formData
+                                });
+                                
+                                const result = await response.json();
+                                
+                                if (result.IsErroredOnProcessing) {
+                                    throw new Error(result.ErrorMessage || 'OCR processing failed');
+                                }
+                                
+                                if (result.ParsedResults && result.ParsedResults.length > 0) {
+                                    const text = result.ParsedResults[0].ParsedText;
+                                    rawOCRText += text + "\n\n---\n\n";
+                                }
+                                
+                                progressDiv.textContent = 'OCR complete';
+                            } else {
+                                // Fallback to Tesseract.js (less accurate but works without key)
+                                progressDiv.textContent = 'Processing with basic OCR...';
+                                
+                                const { data: { text } } = await Tesseract.recognize(base64Image, 'eng', {
+                                    logger: (m) => {
+                                        if (m.status === 'recognizing text') {
+                                            progressDiv.textContent = `Basic OCR: ${Math.round(m.progress * 100)}%`;
+                                        }
+                                    }
+                                });
+                                
                                 rawOCRText += text + "\n\n---\n\n";
+                                progressDiv.textContent = 'OCR complete (basic mode)';
                             }
                             
-                            progressDiv.textContent = 'OCR complete';
                             resolve();
                         } catch (error) {
                             reject(error);

@@ -66,6 +66,8 @@ The application is served using Python's built-in HTTP server on port 5000. No b
   - Users get their own free API key from ocr.space (25,000 requests/month)
   - Enabled table mode and image upscaling for better stats recognition
   - API key is private - stored only in user's browser, not in code
+  - Added Tesseract.js fallback for basic OCR without API key (v0.7.2)
+  - Created README.md for GitHub with setup instructions
 
 - 2024-12-03: OCR image preprocessing and debug export (v0.6.11)
   - Added image preprocessing before OCR: converts to high-contrast black/white

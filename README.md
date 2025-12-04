@@ -15,17 +15,20 @@ A Progressive Web App (PWA) for calculating Warhammer 40K Space Marine 2 mission
 
 ## Screenshot OCR Setup
 
-The app uses OCR (Optical Character Recognition) to automatically read your mission stats from screenshots. This requires a free API key:
+The app uses OCR (Optical Character Recognition) to automatically read your mission stats from screenshots.
 
-1. **Get your free API key** at [ocr.space/ocrapi/freekey](https://ocr.space/ocrapi/freekey)
-2. The free tier includes **25,000 scans per month** (more than enough for personal use)
+**Basic mode:** Works without any setup - just upload screenshots. Uses browser-based OCR.
+
+**For best results:** Get a free API key for improved accuracy:
+1. Register at [ocr.space/ocrapi/freekey](https://ocr.space/ocrapi/freekey)
+2. Free tier includes **25,000 scans per month**
 3. Paste your key into the app - it's saved in your browser only
 
 **Privacy:** Your API key is stored only in your browser's local storage and sent directly to OCR.space when processing screenshots. The app never sees, stores, or transmits your key anywhere else.
 
 ## How to Use
 
-1. Enter your OCR API key (one-time setup)
+1. (Optional) Enter your OCR API key for better accuracy
 2. Upload screenshots from your Space Marine 2 mission debrief screen
 3. Review the detected values and make any corrections
 4. Click "Apply Values" to fill in the form
