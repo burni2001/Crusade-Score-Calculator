@@ -618,7 +618,7 @@
                 <div>
                     <div>REF: SM-2/CRUSADE</div>
                     <div style="font-size: 0.8em; opacity: 0.7">
-                        V 0.9.3.1 - ADEPTUS ADMINISTRATUM
+                        V 0.9.1 - ADEPTUS ADMINISTRATUM
                     </div>
                 </div>
                 <h1>Mission Debrief</h1>
@@ -642,7 +642,7 @@
                         />
                     </div>
                     <div>
-                        <label>Elite Kills</label>
+                        <label>Special Kills</label>
                         <input
                             type="number"
                             id="mod-elite"
@@ -1093,7 +1093,7 @@
                             </tr>
                             <!-- Damage -->
                             <tr>
-                                <td class="row-label">Damage</td>
+                                <td class="row-label">Damage Taken</td>
                                 <td class="input-cell">
                                     <input
                                         type="number"
@@ -1329,15 +1329,21 @@
 
                         // Aggressive crop: keep only middle 80% vertically (skip headers/footers)
                         // and right 90% horizontally (skip left labels/edges)
-                        const cropTopPercent = 0.10;    // Skip top 10%
+                        const cropTopPercent = 0.1; // Skip top 10%
                         const cropBottomPercent = 0.15; // Skip bottom 15%
-                        const cropLeftPercent = 0.05;   // Skip left edge 5%
-                        const cropRightPercent = 0.05;  // Skip right edge 5%
+                        const cropLeftPercent = 0.05; // Skip left edge 5%
+                        const cropRightPercent = 0.05; // Skip right edge 5%
 
                         const statsX = Math.round(rightWidth * cropLeftPercent);
                         const statsY = Math.round(origHeight * cropTopPercent);
-                        const statsWidth = Math.round(rightWidth * (1 - cropLeftPercent - cropRightPercent));
-                        const statsHeight = Math.round(origHeight * (1 - cropTopPercent - cropBottomPercent));
+                        const statsWidth = Math.round(
+                            rightWidth *
+                                (1 - cropLeftPercent - cropRightPercent),
+                        );
+                        const statsHeight = Math.round(
+                            origHeight *
+                                (1 - cropTopPercent - cropBottomPercent),
+                        );
 
                         // Upscale cropped stats area to 1200px width for better OCR
                         const targetWidth = 1200;

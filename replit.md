@@ -25,17 +25,19 @@ A Progressive Web App (PWA) calculator for Warhammer 40K Space Marine 2 mission 
 ```
 
 ## Version Management
-Run these commands in the Shell to update the version:
+Version is now stored as major.minor only (no patch versioning). Current version: **0.9**
 
-```bash
-./bump-version.sh patch   # For smaller updates: 0.5.29 -> 0.5.30
-./bump-version.sh minor   # For bigger updates: 0.5.29 -> 0.6.0
+To manually update version, edit `version.json`:
+```json
+{
+  "major": 0,
+  "minor": 9
+}
 ```
 
-This automatically updates:
-- `version.json` - Central version storage
+Then update:
+- `service-worker.js` - Cache version (e.g., `v09`)
 - `index.html` - Display version in header
-- `service-worker.js` - Cache version for PWA updates
 
 ## Features
 - Mission score calculation based on customizable modifiers
@@ -59,6 +61,14 @@ This automatically updates:
 The application is served using Python's built-in HTTP server on port 5000. No build step is required.
 
 ## Recent Changes
+- 2024-12-04: Dual-pass OCR with aggressive right-side crop (v0.9) ✅ STABLE
+  - **Dual-pass OCR**: Left half for mission headers, right half (upscaled) for stats table
+  - **Aggressive cropping**: Right side crops to 75% height (skip top 10%, bottom 15%) and 90% width (skip edges)
+  - **Zero detection**: Treats "U" and "O" as "0" specifically on Incapacitations line
+  - **Mission detection**: Finds mission names anywhere in OCR text (handles split lines)
+  - **Result**: Very few missing data points, high accuracy on digits and stats
+  - GUI wording updated: "Damage Taken" instead of "Damage", "Special Kills" instead of "Elite Kills"
+
 - 2024-12-04: Embedded OCR API key for seamless user experience (v0.8.0)
   - API key now embedded in app (base64 obfuscated) - no user setup required
   - Removed API key input field from UI
