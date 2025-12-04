@@ -618,7 +618,7 @@
                 <div>
                     <div>REF: SM-2/CRUSADE</div>
                     <div style="font-size: 0.8em; opacity: 0.7">
-                        V 0.8.1 - ADEPTUS ADMINISTRATUM
+                        V 0.8.2 - ADEPTUS ADMINISTRATUM
                     </div>
                 </div>
                 <h1>Mission Debrief</h1>
@@ -1961,7 +1961,8 @@
                 // Helper to create input HTML
                 function createInput(key, type, label) {
                     const value = pendingOCRResults[key];
-                    const hasValue = value !== undefined && value !== "";
+                    // Explicitly handle 0 as a valid detected value (not missing)
+                    const hasValue = value !== undefined && value !== null && String(value) !== "";
                     let displayValue = hasValue ? value : "";
                     
                     // Format special values
