@@ -1,0 +1,95 @@
+=== OCR DEBUG EXPORT ===
+Version: 0.9.1
+Timestamp: 2025-12-04T19:23:27.613Z
+
+=== DETECTED VALUES ===
+mission-name: Decapitation
+global-objective: 1
+p1-name: RIGHT
+p1-class: Heavy
+p1-kills: 440
+p2-kills: 378
+p3-kills: 95
+p1-elite: 3
+p2-elite: 3
+p3-elite: 0
+p1-death: 1
+p2-death: 0
+p3-death: 0
+p1-damage: 436
+p2-damage: 504
+p3-damage: 399
+global-geneseed: 0
+
+=== RAW OCR TEXT ===
+[LEFT]
+MISSION: DECAPITATION
+STATUS: SUCCESS
+Next (16).
+[RIGHT]
+BuyingBird9	
+HEAVY	
+Kills	440	378	95	
+Special Kills	3	3	0	
+Melee Damage	13791	2107	2548	
+Ranged Damage	5469	6859	2951	
+Items Found	13	12	0	
+Damage Taken	436	504	399	
+Incapacitations	1	0	0	
+Teammates Revived	0	1	
+TOTAL SCORE	
+X= 3534	
+
+
+---
+
+[LEFT]
+MISSION: DECAPITATION
+STATUS: SUCCESS
+VICT
+PRIMARY O
+A
+Imperial City
+Tower
+Station
+Station Ducts
+Hive Tyrant Arena
+Extermination Rank
+TOTAL
+XP 3-
+Next (22)
+[RIGHT]
+ORY	
+TIVES	
+287	
+XP 287	
+XP	287	
+XP 287	
+XP 308	
+XP 2038	
+RE	
+14	
+
+
+---
+
+
+
+=== ANALYSIS ===
+Lines containing 'KILL' (case-insensitive):
+  Line 7: Kills	440	378	95	
+    Numbers found: 440, 378, 95
+  Line 8: Special Kills	3	3	0	
+    Numbers found: 3, 3, 0
+
+Lines containing 'INCAP' (case-insensitive):
+  Line 13: Incapacitations	1	0	0	
+    Numbers found: 1, 0, 0
+
+Lines containing 'DAMAGE' (case-insensitive):
+  Line 9: Melee Damage	13791	2107	2548	
+    Numbers found: 13791, 2107, 2548
+  Line 10: Ranged Damage	5469	6859	2951	
+    Numbers found: 5469, 6859, 2951
+  Line 12: Damage Taken	436	504	399	
+    Numbers found: 436, 504, 399

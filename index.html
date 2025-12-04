@@ -1007,9 +1007,9 @@
                                 </td>
                                 <td class="total-cell" id="total-kills">0</td>
                             </tr>
-                            <!-- Elite Kills -->
+                            <!-- Special Kills -->
                             <tr>
-                                <td class="row-label">Elite Kills</td>
+                                <td class="row-label">Special Kills</td>
                                 <td class="input-cell">
                                     <input
                                         type="number"
@@ -1761,6 +1761,11 @@
 
                     // Remove brackets and clean the line
                     const cleanLine = line.replace(/\[.*?\]/g, "").trim();
+                    
+                    // Filter out OCR preprocessing markers
+                    if (/^\[?(LEFT|RIGHT)\]?$/i.test(cleanLine)) {
+                        return null;
+                    }
 
                     // Game terms and garbage patterns to filter out
                     const gameTerms =
@@ -2547,7 +2552,7 @@
                     gridHTML += createInput(`p${p}-class`, "class", "Class");
                     gridHTML += `<div class="ocr-stats-row">`;
                     gridHTML += createInput(`p${p}-kills`, "number", "Kills");
-                    gridHTML += createInput(`p${p}-elite`, "number", "Elite");
+                    gridHTML += createInput(`p${p}-elite`, "number", "Special Kills");
                     gridHTML += createInput(`p${p}-death`, "number", "Deaths");
                     gridHTML += createInput(`p${p}-damage`, "number", "Damage");
                     gridHTML += `</div></div>`;
@@ -2948,7 +2953,7 @@
                 // Add Modifiers
                 csv.push("MODIFIERS,,,,,"); // Header for modifiers row
                 csv.push(`Kills:,${getVal("mod-kills")}`);
-                csv.push(`Elite Kills:,${getVal("mod-elite")}`);
+                csv.push(`Special Kills:,${getVal("mod-elite")}`);
                 csv.push(`Death:,${getVal("mod-death")}`);
                 csv.push(`Damage:,${getVal("mod-damage")}`);
                 csv.push(`Geneseed:,${getVal("mod-gene")}`);

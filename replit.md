@@ -61,6 +61,11 @@ Then update:
 The application is served using Python's built-in HTTP server on port 5000. No build step is required.
 
 ## Recent Changes
+- 2024-12-04: Fixed OCR name extraction and updated wording (v0.9) ✅ LATEST
+  - **OCR name filtering**: Now filters out "[RIGHT]" and "[LEFT]" markers from player names
+  - **Consistent wording**: Updated all labels to use "Special Kills" and "Damage Taken" throughout (GUI, OCR modal, CSV export)
+  - **Result**: Clean player name extraction, no more "RIGHT" appearing as player names
+
 - 2024-12-04: Dual-pass OCR with aggressive right-side crop (v0.9) ✅ STABLE
   - **Dual-pass OCR**: Left half for mission headers, right half (upscaled) for stats table
   - **Aggressive cropping**: Right side crops to 75% height (skip top 10%, bottom 15%) and 90% width (skip edges)
