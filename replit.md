@@ -59,6 +59,14 @@ This automatically updates:
 The application is served using Python's built-in HTTP server on port 5000. No build step is required.
 
 ## Recent Changes
+- 2024-12-04: Switched to OCR.space API for better accuracy (v0.7.0)
+  - Replaced Tesseract.js with OCR.space cloud API
+  - Uses Engine 2 which is optimized for numbers and special characters
+  - Added API key input field (stored securely in browser localStorage)
+  - Users get their own free API key from ocr.space (25,000 requests/month)
+  - Enabled table mode and image upscaling for better stats recognition
+  - API key is private - stored only in user's browser, not in code
+
 - 2024-12-03: OCR image preprocessing and debug export (v0.6.11)
   - Added image preprocessing before OCR: converts to high-contrast black/white
   - Enhances green text on dark background for better Tesseract recognition
