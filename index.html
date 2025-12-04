@@ -618,7 +618,7 @@
                 <div>
                     <div>REF: SM-2/CRUSADE</div>
                     <div style="font-size: 0.8em; opacity: 0.7">
-                        V 0.8.8 - ADEPTUS ADMINISTRATUM
+                        V 0.8.9 - ADEPTUS ADMINISTRATUM
                     </div>
                 </div>
                 <h1>Mission Debrief</h1>
@@ -1842,9 +1842,10 @@
                 // For stats, look for the last 3 numbers on a line containing the label
                 // This handles cases like "Kills XB 10 460 453 425" where we want the last 3
 
-                function extractLastThreeNumbers(labelPatterns, excludeRegex = null) {
+                function extractLastThreeNumbers(labelPatterns, excludeRegex = null, defaultToZero = false) {
                     // Accept array of patterns to try (more lenient options)
                     const patterns = Array.isArray(labelPatterns) ? labelPatterns : [labelPatterns];
+                    let labelFound = false;
                     
                     for (const labelRegex of patterns) {
                         for (const line of lines) {
@@ -1852,6 +1853,7 @@
                             if (labelRegex.test(upperLine)) {
                                 // Skip if exclude pattern matches (e.g., skip "SPECIAL KILLS" for "KILLS")
                                 if (excludeRegex && excludeRegex.test(upperLine)) continue;
+                                labelFound = true;
                                 // Find all numbers in this line
                                 const nums = line.match(/\d+/g);
                                 if (nums && nums.length >= 1) {
@@ -1867,6 +1869,11 @@
                                 }
                             }
                         }
+                    }
+                    // If label was found but no numbers, and defaultToZero is true, return zeros
+                    // This handles OCR missing small "0" characters for counter fields
+                    if (labelFound && defaultToZero) {
+                        return [0, 0, 0];
                     }
                     return null;
                 }
@@ -1887,20 +1894,20 @@
                 ], /SPECIAL|SPECIA/i);
                 assignStats(killsNums, "kills");
 
-                // Special Kills -> Elite Kills
+                // Special Kills -> Elite Kills (default to 0 if label found but no numbers)
                 const specialNums = extractLastThreeNumbers([
                     /SPECIAL\s*KILLS/,
                     /SPEC[I1]AL\s*K[I1]LLS/i,  // OCR variants
                     /SPECIA.*KILLS/i           // Partial match
-                ]);
+                ], null, true);  // defaultToZero = true
                 assignStats(specialNums, "elite");
 
-                // Incapacitations -> Death
+                // Incapacitations -> Death (default to 0 if label found but no numbers)
                 const incapNums = extractLastThreeNumbers([
                     /INCAPACITATION/,
                     /INCAP/,                   // Short form
                     /[I1]NCAPAC[I1]TAT[I1]ON/i // OCR variants
-                ]);
+                ], null, true);  // defaultToZero = true
                 assignStats(incapNums, "death");
 
                 // Damage Taken -> Damage
