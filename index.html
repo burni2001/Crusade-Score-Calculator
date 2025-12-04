@@ -618,7 +618,7 @@
                 <div>
                     <div>REF: SM-2/CRUSADE</div>
                     <div style="font-size: 0.8em; opacity: 0.7">
-                        V 0.7.6 - ADEPTUS ADMINISTRATUM
+                        V 0.8.0 - ADEPTUS ADMINISTRATUM
                     </div>
                 </div>
                 <h1>Mission Debrief</h1>
@@ -737,30 +737,6 @@
                         ">
                             Upload your post-mission screenshots. Select multiple player stat screens for best results. Review and edit detected values before applying.
                         </p>
-                        <div style="margin-bottom: 10px;">
-                            <label for="ocr-api-key" style="font-size: 0.8em; color: #7a7;">
-                                For best results: <a href="https://ocr.space/ocrapi/freekey" target="_blank" style="color: var(--pip-green);">Get a free OCR API key</a> (25k scans/month)
-                            </label>
-                            <p style="font-size: 0.75em; color: #595; margin: 2px 0 4px 0;">
-                                Optional - works without key but with lower accuracy. Your key stays in your browser only.
-                            </p>
-                            <input
-                                type="password"
-                                id="ocr-api-key"
-                                placeholder="Enter your OCR.space API key"
-                                style="
-                                    width: 100%;
-                                    padding: 6px 8px;
-                                    margin-top: 4px;
-                                    background-color: var(--panel-bg);
-                                    border: 1px solid var(--pip-green);
-                                    color: var(--pip-green);
-                                    font-family: inherit;
-                                    font-size: 0.9em;
-                                "
-                                onchange="saveOCRKey()"
-                            />
-                        </div>
                         <input
                             type="file"
                             id="screenshot-upload"
@@ -1251,23 +1227,9 @@
                     }
                 });
 
-            // Save/Load OCR API key from localStorage
-            function saveOCRKey() {
-                const key = document.getElementById('ocr-api-key').value;
-                if (key) {
-                    localStorage.setItem('ocr_api_key', key);
-                }
-            }
-            
-            function loadOCRKey() {
-                const key = localStorage.getItem('ocr_api_key');
-                if (key) {
-                    document.getElementById('ocr-api-key').value = key;
-                }
-            }
-            
-            // Load OCR key on page load
-            document.addEventListener('DOMContentLoaded', loadOCRKey);
+            // OCR API key (base64 encoded for light obfuscation - not security)
+            const _k = 'Szg4MDc3MzI3NTg4OTU3';
+            function getOCRKey() { return atob(_k); }
             
             // Compress image to fit within size limit (1MB for OCR.space free tier)
             async function compressImage(dataUrl, maxSizeKB = 900) {
@@ -1319,7 +1281,7 @@
             }
             
             async function processScreenshot(file, statusDiv, progressDiv) {
-                const apiKey = document.getElementById('ocr-api-key').value;
+                const apiKey = getOCRKey();
                 
                 return new Promise((resolve, reject) => {
                     const reader = new FileReader();

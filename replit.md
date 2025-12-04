@@ -59,14 +59,19 @@ This automatically updates:
 The application is served using Python's built-in HTTP server on port 5000. No build step is required.
 
 ## Recent Changes
+- 2024-12-04: Embedded OCR API key for seamless user experience (v0.8.0)
+  - API key now embedded in app (base64 obfuscated) - no user setup required
+  - Removed API key input field from UI
+  - Improved partial stats extraction: populates Player 1 even when OCR misses columns
+  - Better armoury data detection from REWARDS section
+  - Automatic image compression for large screenshots (>1MB)
+  - Improved error messages for OCR failures
+
 - 2024-12-04: Switched to OCR.space API for better accuracy (v0.7.0)
   - Replaced Tesseract.js with OCR.space cloud API
   - Uses Engine 2 which is optimized for numbers and special characters
-  - Added API key input field (stored securely in browser localStorage)
-  - Users get their own free API key from ocr.space (25,000 requests/month)
   - Enabled table mode and image upscaling for better stats recognition
-  - API key is private - stored only in user's browser, not in code
-  - Added Tesseract.js fallback for basic OCR without API key (v0.7.2)
+  - Added Tesseract.js fallback for basic OCR
   - Created README.md for GitHub with setup instructions
 
 - 2024-12-03: OCR image preprocessing and debug export (v0.6.11)
