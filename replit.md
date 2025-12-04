@@ -62,6 +62,11 @@ Then update:
 The application is served using Python's built-in HTTP server on port 5000. No build step is required.
 
 ## Recent Changes
+- 2024-12-04: Updated OCR modal labels and added missing Absolute difficulty (v0.9.6) ✅ LATEST
+  - Changed "Deaths" to "Incapacitations" in OCR modal
+  - Changed "Damage" to "Damage Taken" in OCR modal
+  - Added missing "Absolute" difficulty option to match main form
+
 - 2024-12-04: Fixed OCR name extraction and updated wording (v0.9) ✅ LATEST
   - **OCR name filtering**: Now filters out "[RIGHT]" and "[LEFT]" markers from player names
   - **Consistent wording**: Updated all labels to use "Special Kills" and "Damage Taken" throughout (GUI, OCR modal, CSV export)
