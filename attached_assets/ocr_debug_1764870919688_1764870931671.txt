@@ -1,0 +1,186 @@
+=== OCR DEBUG EXPORT ===
+Version: 0.9.0
+Timestamp: 2025-12-04T17:55:19.687Z
+
+=== DETECTED VALUES ===
+global-objective: 1
+p1-name: Börni
+p1-class: Heavy
+p2-name: Zephon
+p2-class: Bulwark
+p3-name: Boki Heldfeste
+p3-class: Assault
+p1-kills: 326
+p2-kills: 449
+p3-kills: 352
+p1-elite: 7
+p2-elite: 4
+p1-death: 0
+p1-damage: 248
+p2-damage: 349
+p3-damage: 188
+global-armoury: 3
+global-geneseed: 0
+
+=== RAW OCR TEXT ===
+[LEFT]
+MISSION:
+STATUS: SUCCESS
+RECLAMATION
+Next (17)
+[RIGHT]
+REWARDS	
+3	260	
+CHARACTER PROGRESS	
+25	Heavy	MAX.	
+TOTAL SCORE	
+SUEr	
+× 7018	
+
+
+---
+
+[LEFT]
+MISSION: RECLAMATION
+STATUS: SUCCESS
+• Next (15)
+[RIGHT]
+Boki Heldfeste	
+E	
+ASSAULT	
+Kills	326	449	352	
+Special Kills	7	4	
+Melee Damage	3265	11927	16038	
+Ranged Damage	25735	7888	5418	
+Items Found	16	13	5	
+Damage Taken	248	349	188	
+Incapacitations	0	
+Teammates Revived	0	
+TOTAL SCORE	
+=UE	
+XE 7018	
+
+
+---
+
+[LEFT]
+MISSION: RECLAMATION
+STATUS: SUCCESS
+My Duty Sis Sap date
+elevat Is Guernal Serbie
+Next (16)
+[RIGHT]
+Zephon	
+E	
+BULWARK	
+Kills	326	449	352	
+Special Kills	7	4	
+Melee Damage	3265	11927	16038	
+Ranged Damage	25735	7888	5418	
+Items Found	16	13	5	
+Damage Taken	248	349	188	
+Incapacitations	U	
+Teammates Revived	0	0	
+TOTAL SCORE	
+XT 7018	
+
+
+---
+
+[LEFT]
+MISSION: RECLAMATION
+STATUS: SUCCESS
+Next (18)
+[RIGHT]
+Börni	
+E	
+HEAVY	
+Kills	326	449	352	
+Special Kills *	XP 10	7	4	
+Melee Damage	3265	11927	16038	
+Ranged Damage	XP 10	25735	7888	5418	
+Items Found	XP 10	16	13	5	
+Damage Taken	248	349	188	
+Incapacitations	0	
+Teammates Revived	0	
+TOTAL SCORE	
+=UE	
+* 7018	
+
+
+---
+
+[LEFT]
+MISSION: RECLAMATION
+STATUS: SUCCESS
+VICT
+PRIMARY O
+A
+Weapons Deck
+Ordnance Depot
+Reactor Cooling Hall
+Reactor Chamber
+Egress
+Extermination Rank
+TOTAL
+X 6-
+Next (23)
+[RIGHT]
+ORY	
+BJECTIVES	
+XP 581	
+XP 581	
+XP 581	
+XP 581	
+XP 588	
+XP 4076	
+SCORE	
+988	
+
+
+---
+
+
+
+=== ANALYSIS ===
+Lines containing 'KILL' (case-insensitive):
+  Line 22: Kills	326	449	352	
+    Numbers found: 326, 449, 352
+  Line 23: Special Kills	7	4	
+    Numbers found: 7, 4
+  Line 44: Kills	326	449	352	
+    Numbers found: 326, 449, 352
+  Line 45: Special Kills	7	4	
+    Numbers found: 7, 4
+  Line 63: Kills	326	449	352	
+    Numbers found: 326, 449, 352
+  Line 64: Special Kills *	XP 10	7	4	
+    Numbers found: 10, 7, 4
+
+Lines containing 'INCAP' (case-insensitive):
+  Line 28: Incapacitations	0	
+    Numbers found: 0
+  Line 50: Incapacitations	U	
+    Numbers found: NONE
+  Line 69: Incapacitations	0	
+    Numbers found: 0
+
+Lines containing 'DAMAGE' (case-insensitive):
+  Line 24: Melee Damage	3265	11927	16038	
+    Numbers found: 3265, 11927, 16038
+  Line 25: Ranged Damage	25735	7888	5418	
+    Numbers found: 25735, 7888, 5418
+  Line 27: Damage Taken	248	349	188	
+    Numbers found: 248, 349, 188
+  Line 46: Melee Damage	3265	11927	16038	
+    Numbers found: 3265, 11927, 16038
+  Line 47: Ranged Damage	25735	7888	5418	
+    Numbers found: 25735, 7888, 5418
+  Line 49: Damage Taken	248	349	188	
+    Numbers found: 248, 349, 188
+  Line 65: Melee Damage	3265	11927	16038	
+    Numbers found: 3265, 11927, 16038
+  Line 66: Ranged Damage	XP 10	25735	7888	5418	
+    Numbers found: 10, 25735, 7888, 5418
+  Line 68: Damage Taken	248	349	188	
+    Numbers found: 248, 349, 188
