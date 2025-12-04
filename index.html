@@ -618,7 +618,7 @@
                 <div>
                     <div>REF: SM-2/CRUSADE</div>
                     <div style="font-size: 0.8em; opacity: 0.7">
-                        V 0.7.4 - ADEPTUS ADMINISTRATUM
+                        V 0.7.5 - ADEPTUS ADMINISTRATUM
                     </div>
                 </div>
                 <h1>Mission Debrief</h1>
@@ -1922,8 +1922,8 @@
 
                 // === ARMOURY DATA ===
                 // Look for patterns near "REWARDS" section
-                // Game shows: [armoury_icon 3] [requisition_icon 260]
-                // OCR often mangles this badly - be conservative to avoid garbage matches
+                // Game shows: [armoury_icon 2] [requisition_icon 260]
+                // OCR often reads these as separate lines or tab-separated
                 let armouryFound = false;
                 
                 const rewardsIdx = upperText.indexOf('REWARDS');
@@ -1936,38 +1936,38 @@
                     const progressIdx = afterRewardsUpper.indexOf('CHARACTER');
                     const cleanText = progressIdx > 0 ? afterRewards.substring(0, progressIdx) : afterRewards;
                     
-                    // Pattern 1: Look for "[digit] 260" or "[digit] [2-3 digit]" pattern
-                    // The armoury count (0-3) followed by requisition (typically 260)
-                    const armouryMatch1 = cleanText.match(/\b([0-3])\s+(\d{2,3})\b/);
-                    if (armouryMatch1 && parseInt(armouryMatch1[2]) >= 100) {
-                        pendingOCRResults["global-armoury"] = armouryMatch1[1];
-                        armouryFound = true;
-                    }
+                    // Split by lines AND tabs to find individual numbers
+                    const tokens = cleanText.split(/[\r\n\t]+/).map(t => t.trim()).filter(t => t);
                     
-                    // Pattern 2: Look for pattern anywhere in clean text
-                    if (!armouryFound) {
-                        // Try to find "2 260" or similar pattern more flexibly
-                        const flexMatch = cleanText.match(/([0-3])\s+2[56]\d/);
-                        if (flexMatch) {
-                            pendingOCRResults["global-armoury"] = flexMatch[1];
-                            armouryFound = true;
+                    // Find all numbers in the REWARDS area
+                    const numbersFound = [];
+                    for (const token of tokens) {
+                        const nums = token.match(/\d+/g);
+                        if (nums) {
+                            nums.forEach(n => numbersFound.push(parseInt(n)));
                         }
                     }
                     
-                    // Pattern 3: Check each line for the armoury/requisition pattern
-                    if (!armouryFound) {
-                        const rewardLines = cleanText.split(/[\r\n]+/);
-                        for (const line of rewardLines) {
-                            // Only check short lines (the REWARDS area is compact)
-                            if (line.length > 40) continue;
-                            
-                            // Look for pattern like "2 260" anywhere in line
-                            const lineMatch = line.match(/([0-3])\s+(\d{2,3})/);
-                            if (lineMatch && parseInt(lineMatch[2]) >= 100) {
-                                pendingOCRResults["global-armoury"] = lineMatch[1];
+                    // Armoury is 0-3, requisition is typically 260
+                    // Find the small number (0-3) that's NOT the requisition value
+                    for (const num of numbersFound) {
+                        if (num >= 0 && num <= 3) {
+                            // Make sure there's also a larger number (requisition) present
+                            const hasRequisition = numbersFound.some(n => n >= 100 && n <= 500);
+                            if (hasRequisition || numbersFound.length >= 1) {
+                                pendingOCRResults["global-armoury"] = num.toString();
                                 armouryFound = true;
                                 break;
                             }
+                        }
+                    }
+                    
+                    // Fallback: Look for tab-separated pattern "2\t260" or "2 260"
+                    if (!armouryFound) {
+                        const tabMatch = cleanText.match(/([0-3])[\t\s]+(\d{2,3})/);
+                        if (tabMatch && parseInt(tabMatch[2]) >= 100) {
+                            pendingOCRResults["global-armoury"] = tabMatch[1];
+                            armouryFound = true;
                         }
                     }
                 }
