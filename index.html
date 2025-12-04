@@ -618,7 +618,7 @@
                 <div>
                     <div>REF: SM-2/CRUSADE</div>
                     <div style="font-size: 0.8em; opacity: 0.7">
-                        V 0.9.1.1 - ADEPTUS ADMINISTRATUM
+                        V 0.9.3.1 - ADEPTUS ADMINISTRATUM
                     </div>
                 </div>
                 <h1>Mission Debrief</h1>
@@ -1322,24 +1322,36 @@
                         }
 
                         // === RIGHT HALF (for stats panel) ===
-                        // Crop to right half and upscale for better digit recognition
+                        // Crop aggressively to stats table only (skip headers, footers, edges)
                         const rightCanvas = document.createElement("canvas");
                         const rightCtx = rightCanvas.getContext("2d");
                         const rightWidth = origWidth - splitX;
 
-                        // Upscale right half to 1200px width for better OCR on small numbers
+                        // Aggressive crop: keep only middle 80% vertically (skip headers/footers)
+                        // and right 90% horizontally (skip left labels/edges)
+                        const cropTopPercent = 0.10;    // Skip top 10%
+                        const cropBottomPercent = 0.15; // Skip bottom 15%
+                        const cropLeftPercent = 0.05;   // Skip left edge 5%
+                        const cropRightPercent = 0.05;  // Skip right edge 5%
+
+                        const statsX = Math.round(rightWidth * cropLeftPercent);
+                        const statsY = Math.round(origHeight * cropTopPercent);
+                        const statsWidth = Math.round(rightWidth * (1 - cropLeftPercent - cropRightPercent));
+                        const statsHeight = Math.round(origHeight * (1 - cropTopPercent - cropBottomPercent));
+
+                        // Upscale cropped stats area to 1200px width for better OCR
                         const targetWidth = 1200;
-                        const scale = targetWidth / rightWidth;
-                        const targetHeight = Math.round(origHeight * scale);
+                        const scale = targetWidth / statsWidth;
+                        const targetHeight = Math.round(statsHeight * scale);
 
                         rightCanvas.width = targetWidth;
                         rightCanvas.height = targetHeight;
                         rightCtx.drawImage(
                             img,
-                            splitX,
-                            0,
-                            rightWidth,
-                            origHeight,
+                            splitX + statsX,
+                            statsY,
+                            statsWidth,
+                            statsHeight,
                             0,
                             0,
                             targetWidth,
