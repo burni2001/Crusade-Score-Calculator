@@ -25,19 +25,20 @@ A Progressive Web App (PWA) calculator for Warhammer 40K Space Marine 2 mission 
 ```
 
 ## Version Management
-Version is now stored as major.minor only (no patch versioning). Current version: **0.9**
+Current version: **0.9.5**
 
 To manually update version, edit `version.json`:
 ```json
 {
   "major": 0,
-  "minor": 9
+  "minor": 9,
+  "patch": 5
 }
 ```
 
 Then update:
-- `service-worker.js` - Cache version (e.g., `v09`)
-- `index.html` - Display version in header
+- `service-worker.js` - Cache version (e.g., `v095`)
+- `index.html` - Display version in header (e.g., `V 0.9.5`)
 
 ## Features
 - Mission score calculation based on customizable modifiers
