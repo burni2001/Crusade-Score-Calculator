@@ -16,10 +16,12 @@ const urlsToCache = [
 self.addEventListener("install", (event) => {
     event.waitUntil(
         caches.open(CACHE_NAME).then((cache) => {
-            console.log("Opened cache");
+            console.log("Opened cache: " + CACHE_NAME);
             return cache.addAll(urlsToCache);
         }),
     );
+    // Force this worker to become active immediately
+    self.skipWaiting();
 });
 
 self.addEventListener("fetch", (event) => {
@@ -59,6 +61,8 @@ self.addEventListener("activate", (event) => {
     const cacheWhitelist = [CACHE_NAME];
     event.waitUntil(
         caches.keys().then((cacheNames) => {
+            console.log("Current caches:", cacheNames);
+            console.log("Keeping only:", CACHE_NAME);
             return Promise.all(
                 cacheNames.map((cacheName) => {
                     if (cacheWhitelist.indexOf(cacheName) === -1) {
@@ -69,4 +73,6 @@ self.addEventListener("activate", (event) => {
             );
         }),
     );
+    // Claim all clients immediately
+    self.clients.claim();
 });
