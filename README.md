@@ -7,7 +7,6 @@ A Progressive Web App (PWA) for calculating Warhammer 40K Space Marine 2 mission
 - Mission score calculation with customizable modifiers
 - Support for up to 3 players
 - Screenshot OCR to automatically extract stats from game screenshots
-- Difficulty level and objective tracking
 - Geneseed and Armoury data tracking
 - Export to CSV and PNG formats
 - Retro CRT-style interface
@@ -15,25 +14,15 @@ A Progressive Web App (PWA) for calculating Warhammer 40K Space Marine 2 mission
 
 ## Screenshot OCR Setup
 
-The app uses OCR (Optical Character Recognition) to automatically read your mission stats from screenshots.
-
-**Basic mode:** Works without any setup - just upload screenshots. Uses browser-based OCR.
-
-**For best results:** Get a free API key for improved accuracy:
-1. Register at [ocr.space/ocrapi/freekey](https://ocr.space/ocrapi/freekey)
-2. Free tier includes **25,000 scans per month**
-3. Paste your key into the app - it's saved in your browser only
-
-**Privacy:** Your API key is stored only in your browser's local storage and sent directly to OCR.space when processing screenshots. The app never sees, stores, or transmits your key anywhere else.
+The app uses OCR (Optical Character Recognition) by https://ocr.space to automatically read your mission stats from screenshots.
 
 ## How to Use
 
-1. (Optional) Enter your OCR API key for better accuracy
-2. Upload screenshots from your Space Marine 2 mission debrief screen
-3. Review the detected values and make any corrections
-4. Click "Apply Values" to fill in the form
-5. Adjust modifiers and other settings as needed
-6. Export your results as CSV or PNG
+1. Upload screenshots from your Space Marine 2 mission debrief screen
+2. Review the detected values and make any corrections
+3. Click "Apply Values" to fill in the form
+4. Adjust modifiers and other settings as needed
+5. Export your results as CSV or PNG
 
 ## Technology
 
