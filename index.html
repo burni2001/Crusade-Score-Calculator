@@ -618,7 +618,7 @@
                 <div>
                     <div>REF: SM-2/CRUSADE</div>
                     <div style="font-size: 0.8em; opacity: 0.7">
-                        V 0.9.0 - ADEPTUS ADMINISTRATUM
+                        V 0.9.1 - ADEPTUS ADMINISTRATUM
                     </div>
                 </div>
                 <h1>Mission Debrief</h1>
@@ -1416,23 +1416,26 @@
                 const upperSingleLine = upperText.replace(/[\r\n]+/g, ' ').replace(/\s+/g, ' ');
 
                 // === MISSION NAME ===
-                // Try full "MISSION:" pattern first
+                // Known mission names in the game
+                const knownMissions = ["RECLAMATION", "INFERNO", "BALLISTIC", "DECAPITATION", "SERVO", "SKULL", "VANGUARD", "VOIDSONG", "RELIQUARY", "TERMINATION", "EXTRACTION", "ATHENA"];
+                
+                // Try full "MISSION: NAME" pattern first
                 let missionMatch = upperSingleLine.match(/MISSION\s*[:\-=]?\s*([A-Z][A-Z\s\-']{2,30})/);
-                // Fallback: OCR sometimes crops to "ON:" or "DN:" or "ION:" from "MISSION:"
-                if (!missionMatch) {
-                    missionMatch = upperSingleLine.match(/(?:^|[\s\t])([ND]?[IO]?N)\s*[:\-=]?\s*(RECLAMATION|INFERNO|BALLISTIC|DECAPITATION|SERVO|SKULL|VANGUARD|VOIDSONG|RELIQUARY|TERMINATION|EXTRACTION|ATHENA)/i);
-                    if (missionMatch) {
-                        // Use the mission name from second capture group
-                        let missionName = missionMatch[2].trim();
-                        pendingOCRResults["mission-name"] = missionName.charAt(0) + missionName.slice(1).toLowerCase();
-                        missionMatch = null; // Prevent double-processing
-                    }
-                }
                 if (missionMatch) {
                     let missionName = missionMatch[1].trim();
                     missionName = missionName.replace(/\s*STATUS.*$/i, '').trim();
                     if (missionName.length > 2) {
                         pendingOCRResults["mission-name"] = missionName.charAt(0) + missionName.slice(1).toLowerCase();
+                    }
+                }
+                
+                // Fallback: Look for known mission names anywhere in text (handles split lines)
+                if (!pendingOCRResults["mission-name"]) {
+                    for (const mission of knownMissions) {
+                        if (upperText.includes(mission)) {
+                            pendingOCRResults["mission-name"] = mission.charAt(0) + mission.slice(1).toLowerCase();
+                            break;
+                        }
                     }
                 }
 
@@ -1918,11 +1921,27 @@
                 assignStats(specialNums, "elite");
 
                 // Incapacitations -> Death
-                const incapNums = extractLastThreeNumbers([
-                    /INCAPACITATION/,
-                    /INCAP/,                   // Short form
-                    /[I1]NCAPAC[I1]TAT[I1]ON/i // OCR variants
-                ]);
+                // Special handling: OCR sometimes reads "0" as "U" or "O" on this line
+                let incapNums = null;
+                const incapPatterns = [/INCAPACITATION/i, /INCAP/i];
+                for (const pattern of incapPatterns) {
+                    for (const line of lines) {
+                        if (pattern.test(line.toUpperCase())) {
+                            // Replace U and O with 0 for this specific line (OCR misreads)
+                            const fixedLine = line.replace(/\b[UO]\b/g, '0');
+                            const nums = fixedLine.match(/\d+/g);
+                            if (nums && nums.length >= 1) {
+                                const lastNums = nums.slice(-Math.min(3, nums.length)).map(n => parseInt(n));
+                                if (lastNums.every(n => !isNaN(n) && n >= 0 && n < 100)) {
+                                    while (lastNums.length < 3) lastNums.push(null);
+                                    incapNums = lastNums;
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                    if (incapNums) break;
+                }
                 assignStats(incapNums, "death");
 
                 // Damage Taken -> Damage
