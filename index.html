@@ -1286,10 +1286,12 @@
                     }
                 });
 
-            // OCR API key (base64 encoded for light obfuscation - not security)
-            const _k = "Szg4MDc3MzI3NTg4OTU3";
-            function getOCRKey() {
-                return atob(_k);
+            // OCR API keys (base64 encoded for light obfuscation - not security)
+            // Primary and fallback keys for rate limit resilience
+            const _k1 = "Szg4MDc3MzI3NTg4OTU3";
+            const _k2 = "Szg1NjUwNzU2OTg4OTU3";
+            function getOCRKey(index = 0) {
+                return atob(index === 0 ? _k1 : _k2);
             }
 
             // Split image into left and right halves for dual-pass OCR
@@ -1436,8 +1438,8 @@
                 });
             }
 
-            // Helper function to call OCR.space API
-            async function callOCRAPI(base64Image, apiKey, useTable = false) {
+            // Helper function to call OCR.space API with fallback support
+            async function callOCRAPI(base64Image, apiKey, useTable = false, isRetry = false) {
                 const formData = new FormData();
                 formData.append("base64Image", base64Image);
                 formData.append("language", "eng");
@@ -1460,9 +1462,12 @@
                 const result = await response.json();
 
                 if (result.IsErroredOnProcessing) {
-                    throw new Error(
-                        result.ErrorMessage || "OCR processing failed",
-                    );
+                    const errorMsg = result.ErrorMessage || "OCR processing failed";
+                    // Check if it's a rate limit or key issue
+                    if ((errorMsg.includes("limit") || errorMsg.includes("Invalid API")) && !isRetry) {
+                        throw new Error(`${errorMsg} [RETRY_WITH_FALLBACK]`);
+                    }
+                    throw new Error(errorMsg);
                 }
 
                 if (result.ParsedResults && result.ParsedResults.length > 0) {
@@ -1472,7 +1477,8 @@
             }
 
             async function processScreenshot(file, statusDiv, progressDiv) {
-                const apiKey = getOCRKey();
+                let apiKey = getOCRKey(0); // Start with primary key
+                let keyIndex = 0;
 
                 return new Promise((resolve, reject) => {
                     const reader = new FileReader();
@@ -1490,11 +1496,30 @@
                                 // Pass 1: OCR left half for mission header (no table mode)
                                 progressDiv.textContent =
                                     "OCR: left half (headers)...";
-                                const leftText = await callOCRAPI(
-                                    left,
-                                    apiKey,
-                                    false,
-                                );
+                                let leftText = "";
+                                try {
+                                    leftText = await callOCRAPI(
+                                        left,
+                                        apiKey,
+                                        false,
+                                        false,
+                                    );
+                                } catch (err) {
+                                    if (err.message.includes("RETRY_WITH_FALLBACK") && keyIndex === 0) {
+                                        apiKey = getOCRKey(1); // Switch to fallback key
+                                        keyIndex = 1;
+                                        progressDiv.textContent =
+                                            "OCR: trying fallback key...";
+                                        leftText = await callOCRAPI(
+                                            left,
+                                            apiKey,
+                                            false,
+                                            true,
+                                        );
+                                    } else {
+                                        throw err;
+                                    }
+                                }
 
                                 // Pass 2: OCR right half for stats table (table mode + upscaled)
                                 progressDiv.textContent =
@@ -1503,6 +1528,7 @@
                                     right,
                                     apiKey,
                                     true,
+                                    keyIndex > 0,
                                 );
 
                                 // Combine results: left half first (headers), then right half (stats)
