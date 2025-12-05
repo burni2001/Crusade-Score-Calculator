@@ -1,0 +1,130 @@
+=== OCR DEBUG EXPORT ===
+Version: 0.9.6
+Timestamp: 2025-12-05T11:49:31.776Z
+
+=== DETECTED VALUES ===
+mission-name: Fortress
+p1-name: The Old Bear
+p1-class: Sniper
+p2-name: Boki Heldfeste
+p2-class: Assault
+p1-kills: 783
+p2-kills: 1116
+p3-kills: 382
+p1-elite: 57
+p2-elite: 66
+p3-elite: 19
+p1-death: 10
+p2-death: 8
+p3-death: 8
+p1-damage: 1483
+p2-damage: 1615
+p3-damage: 993
+global-geneseed: 0
+
+=== RAW OCR TEXT ===
+[LEFT]
+MISSION: FORTRESS
+STATUS: WAVE 15
+Sector 1
+Sector 2
+Sector 3
+15
+15
+Next (23]
+WAV
+PRIMARY O
+BATTLE H
+15
+10
+TOTAL
+XE 17
+[RIGHT]
+, 15	
+TIVES	
+240	XP 4662	
+3	XP 5824	
+650	XP 6993	
+URS	
+O 10	O 15	O 10	
+RE	
+19	
+
+
+---
+
+[LEFT]
+MISSION: FORTRESS
+STATUS: WAVE 15
+• Next (16)
+[RIGHT]
+Boki Heldfeste	
+ASSAULT	
+Kills	783	1116	382	
+Special Kills	57	66	19	
+Melee Damage	6266	69441	8165	
+Ranged Damage	80242	43779	36706	
+Items Found	49	68	67	
+Damage Taken	1483	1615	993	
+Incapacitations	10	8	8	
+Teammates Revived	6	1	6	
+TOTAL SCORE	
+X= 17499	
+
+
+---
+
+[LEFT]
+MISSION: FORTRESS
+STATUS: WAVE 15
+Ganguinius
+Next (13)
+[RIGHT]
+The Old Bear	
+SNIPER	
+Kills	783	1116	382	
+Special Kills	57	66	19	
+Melee Damage	6266	69441	8165	
+Ranged Damage	80242	43779	36706	
+Items Found	49	68	67	
+Damage Taken	1483	1615	993	
+Incapacitations	10	8	8	
+Teammates Revived	6	1	6	
+TOTAL SCORE	
+X= 17499	
+
+
+---
+
+
+
+=== ANALYSIS ===
+Lines containing 'KILL' (case-insensitive):
+  Line 34: Kills	783	1116	382	
+    Numbers found: 783, 1116, 382
+  Line 35: Special Kills	57	66	19	
+    Numbers found: 57, 66, 19
+  Line 53: Kills	783	1116	382	
+    Numbers found: 783, 1116, 382
+  Line 54: Special Kills	57	66	19	
+    Numbers found: 57, 66, 19
+
+Lines containing 'INCAP' (case-insensitive):
+  Line 40: Incapacitations	10	8	8	
+    Numbers found: 10, 8, 8
+  Line 59: Incapacitations	10	8	8	
+    Numbers found: 10, 8, 8
+
+Lines containing 'DAMAGE' (case-insensitive):
+  Line 36: Melee Damage	6266	69441	8165	
+    Numbers found: 6266, 69441, 8165
+  Line 37: Ranged Damage	80242	43779	36706	
+    Numbers found: 80242, 43779, 36706
+  Line 39: Damage Taken	1483	1615	993	
+    Numbers found: 1483, 1615, 993
+  Line 55: Melee Damage	6266	69441	8165	
+    Numbers found: 6266, 69441, 8165
+  Line 56: Ranged Damage	80242	43779	36706	
+    Numbers found: 80242, 43779, 36706
+  Line 58: Damage Taken	1483	1615	993	
+    Numbers found: 1483, 1615, 993

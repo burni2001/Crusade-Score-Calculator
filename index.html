@@ -618,7 +618,7 @@
                 <div>
                     <div>REF: SM-2/CRUSADE</div>
                     <div style="font-size: 0.8em; opacity: 0.7">
-                        V 0.9.6 - ADEPTUS ADMINISTRATUM
+                        V 0.9.7 - ADEPTUS ADMINISTRATUM
                     </div>
                 </div>
                 <h1>Mission Debrief</h1>
@@ -843,6 +843,18 @@
                             <option value="2">2</option>
                             <option value="3">3</option>
                         </select>
+                    </div>
+                    <div class="mission-params">
+                        <label>Waves Reached (Siege Mode)</label>
+                        <input
+                            type="number"
+                            id="global-waves"
+                            value="0"
+                            min="0"
+                            inputmode="numeric"
+                            onchange="saveData();"
+                            placeholder="e.g., 15"
+                        />
                     </div>
                 </div>
                 <!-- THIS IS WHERE YOU WRITE YOUR DESCRIPTION TEXT! -->
@@ -2352,12 +2364,19 @@
                 ]);
                 assignStats(damageNums, "damage");
 
+                // === WAVES (Siege Mode) ===
+                // Extract wave number from "STATUS: WAVE 15" or similar
+                const waveMatch = upperText.match(/STATUS\s*[:\-=]?\s*WAVE\s+(\d+)/i);
+                if (waveMatch) {
+                    pendingOCRResults["global-waves"] = waveMatch[1];
+                }
+
                 // === ARMOURY DATA ===
-                // Look for patterns near "REWARDS" section
-                // Game shows: [armoury_icon 2] [requisition_icon 260]
-                // OCR often reads these as separate lines or tab-separated
+                // Look for patterns near "REWARDS" section (Operations mode)
+                // Also check for armoury in Battle Honours area (Siege mode) or other areas
                 let armouryFound = false;
 
+                // First try REWARDS section
                 const rewardsIdx = upperText.indexOf("REWARDS");
                 if (rewardsIdx !== -1) {
                     // Get text after REWARDS (next 150 chars)
@@ -2413,6 +2432,26 @@
                         );
                         if (tabMatch && parseInt(tabMatch[2]) >= 100) {
                             pendingOCRResults["global-armoury"] = tabMatch[1];
+                            armouryFound = true;
+                        }
+                    }
+                }
+
+                // Fallback for Siege Mode: Look for armoury data anywhere in the text (not just REWARDS)
+                if (!armouryFound) {
+                    // Look for icon patterns or numbers near "ARMOURY" text
+                    const armouryIdx = upperText.indexOf("ARMOURY");
+                    if (armouryIdx !== -1) {
+                        const nearArmoury = text.substring(
+                            Math.max(0, armouryIdx - 50),
+                            armouryIdx + 100,
+                        );
+                        const armouryMatch = nearArmoury.match(
+                            /([0-3])[\s\t]+(?:XP|\d{2,}|.*)/i,
+                        );
+                        if (armouryMatch) {
+                            pendingOCRResults["global-armoury"] =
+                                armouryMatch[1];
                             armouryFound = true;
                         }
                     }
@@ -2545,6 +2584,11 @@
                     "global-armoury",
                     "armoury",
                     "Armoury Data",
+                );
+                gridHTML += createInput(
+                    "global-waves",
+                    "number",
+                    "Waves Reached",
                 );
                 gridHTML += `</div>`;
 

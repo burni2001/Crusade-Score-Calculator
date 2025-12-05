@@ -25,20 +25,20 @@ A Progressive Web App (PWA) calculator for Warhammer 40K Space Marine 2 mission 
 ```
 
 ## Version Management
-Current version: **0.9.6**
+Current version: **0.9.7**
 
 To manually update version, edit `version.json`:
 ```json
 {
   "major": 0,
   "minor": 9,
-  "patch": 6
+  "patch": 7
 }
 ```
 
 Then update:
-- `service-worker.js` - Cache version (e.g., `v096`)
-- `index.html` - Display version in header (e.g., `V 0.9.6`)
+- `service-worker.js` - Cache version (e.g., `v097`)
+- `index.html` - Display version in header (e.g., `V 0.9.7`)
 
 ## Features
 - Mission score calculation based on customizable modifiers
@@ -62,7 +62,13 @@ Then update:
 The application is served using Python's built-in HTTP server on port 5000. No build step is required.
 
 ## Recent Changes
-- 2024-12-04: Updated OCR modal labels and added missing Absolute difficulty (v0.9.6) ✅ LATEST
+- 2024-12-05: Added Siege Mode support with waves tracking and improved armoury detection (v0.9.7) ✅ LATEST
+  - **Waves field**: Added "Waves Reached" input to GUI and OCR modal for Siege Mode tracking
+  - **Wave extraction**: Automatically detects wave number from "STATUS: WAVE X" in OCR
+  - **Siege Mode armoury**: Now searches for armoury data outside REWARDS section (handles Siege Mode screens)
+  - **Result**: Full support for Siege Mode missions alongside Operations mode
+
+- 2024-12-04: Updated OCR modal labels and added missing Absolute difficulty (v0.9.6)
   - Changed "Deaths" to "Incapacitations" in OCR modal
   - Changed "Damage" to "Damage Taken" in OCR modal
   - Added missing "Absolute" difficulty option to match main form
