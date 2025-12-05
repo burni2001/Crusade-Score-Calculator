@@ -252,6 +252,13 @@
                 -moz-appearance: textfield;
             }
 
+            /* Ensure input and select fields have matching width */
+            .mission-params input[type="number"],
+            .mission-params select {
+                width: 100%;
+                box-sizing: border-box;
+            }
+
             /* Styling for selected options in dropdowns */
             select option {
                 background-color: #000; /* Dark background for dropdown options */
