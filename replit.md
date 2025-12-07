@@ -25,14 +25,14 @@ A Progressive Web App (PWA) calculator for Warhammer 40K Space Marine 2 mission 
 ```
 
 ## Version Management
-Current version: **0.9.7**
+Current version: **0.9.8**
 
 To manually update version, edit `version.json`:
 ```json
 {
   "major": 0,
   "minor": 9,
-  "patch": 7
+  "patch": 8
 }
 ```
 
@@ -62,7 +62,16 @@ Then update:
 The application is served using Python's built-in HTTP server on port 5000. No build step is required.
 
 ## Recent Changes
-- 2024-12-05: Added Siege Mode support with waves tracking and improved armoury detection (v0.9.7) ✅ LATEST
+- 2024-12-07: Added Waves Modifier, per-player waves, Items Found, and Teammates Revived (v0.9.8)
+  - **Waves Modifier**: Added 8th column to modifier grid with new Waves modifier
+  - **Per-player Waves**: Added waves input field for each Battle Brother in Squad Performance Matrix
+  - **Items Found**: New stat field per player in Additional Statistics section
+  - **Teammates Revived**: New stat field with differential calculation (Revived - Incapacitations)
+  - **OCR extraction**: Updated to detect Items Found and Teammates Revived from screenshots
+  - **Modifier grid CSS**: Enforced 2-line labels when text wraps for consistent appearance
+  - **Calculation update**: Modifier Score now includes +(Waves × Wave Modifier) per player
+
+- 2024-12-05: Added Siege Mode support with waves tracking and improved armoury detection (v0.9.7)
   - **Waves field**: Added "Waves Reached" input to GUI and OCR modal for Siege Mode tracking
   - **Wave extraction**: Automatically detects wave number from "STATUS: WAVE X" in OCR
   - **Siege Mode armoury**: Now searches for armoury data outside REWARDS section (handles Siege Mode screens)
