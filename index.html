@@ -120,9 +120,9 @@
             /* Modifier Grid */
             .modifier-grid {
                 display: grid;
-                grid-template-columns: 100px repeat(7, 1fr);
+                grid-template-columns: 100px repeat(8, 1fr);
                 gap: 10px;
-                align-items: center;
+                align-items: start;
                 text-align: center;
                 font-size: 1.1rem;
             }
@@ -130,6 +130,9 @@
             .modifier-grid label {
                 font-size: 0.9rem;
                 opacity: 0.8;
+                display: block;
+                min-height: 2.4em;
+                line-height: 1.2;
             }
             /* Global Toggles (Dropdowns) styling inside .section */
             /* To make labels and selects align */
@@ -710,6 +713,16 @@
                             onchange="calculate(); saveData();"
                         />
                     </div>
+                    <div>
+                        <label>Waves</label>
+                        <input
+                            type="number"
+                            id="mod-waves"
+                            value="10"
+                            inputmode="numeric"
+                            onchange="calculate(); saveData();"
+                        />
+                    </div>
                 </div>
             </div>
             <!-- NEW: Mission Info Area: Dropdowns (left) and Description (right) -->
@@ -1151,6 +1164,44 @@
                                     />
                                 </td>
                                 <td class="total-cell" id="total-damage">0</td>
+                            </tr>
+                            <!-- Waves -->
+                            <tr>
+                                <td class="row-label">Waves</td>
+                                <td class="input-cell">
+                                    <input
+                                        type="number"
+                                        class="p1-input"
+                                        id="p1-waves"
+                                        value="0"
+                                        min="0"
+                                        inputmode="numeric"
+                                        onchange="calculate(); saveData();"
+                                    />
+                                </td>
+                                <td class="input-cell">
+                                    <input
+                                        type="number"
+                                        class="p2-input"
+                                        id="p2-waves"
+                                        value="0"
+                                        min="0"
+                                        inputmode="numeric"
+                                        onchange="calculate(); saveData();"
+                                    />
+                                </td>
+                                <td class="input-cell">
+                                    <input
+                                        type="number"
+                                        class="p3-input"
+                                        id="p3-waves"
+                                        value="0"
+                                        min="0"
+                                        inputmode="numeric"
+                                        onchange="calculate(); saveData();"
+                                    />
+                                </td>
+                                <td class="total-cell" id="total-waves">0</td>
                             </tr>
 
                             <!-- Modifier Score Result -->
