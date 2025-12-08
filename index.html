@@ -628,7 +628,7 @@
                 <div>
                     <div>REF: SM-2/CRUSADE</div>
                     <div style="font-size: 0.8em; opacity: 0.7">
-                        V 0.9.9 - ADEPTUS ADMINISTRATUM
+                        V 1.0 - ADEPTUS ADMINISTRATUM
                     </div>
                 </div>
                 <h1>Mission Debrief</h1>
@@ -866,37 +866,14 @@
                     </div>
                     <div class="mission-params">
                         <label>Waves Reached (Siege Mode)</label>
-                        <select
+                        <input
+                            type="number"
                             id="global-waves"
-                            onchange="saveData();"
-                        >
-                            <option value="0">0</option>
-                            <option value="1">1</option>
-                            <option value="2">2</option>
-                            <option value="3">3</option>
-                            <option value="4">4</option>
-                            <option value="5">5</option>
-                            <option value="6">6</option>
-                            <option value="7">7</option>
-                            <option value="8">8</option>
-                            <option value="9">9</option>
-                            <option value="10">10</option>
-                            <option value="11">11</option>
-                            <option value="12">12</option>
-                            <option value="13">13</option>
-                            <option value="14">14</option>
-                            <option value="15">15</option>
-                            <option value="16">16</option>
-                            <option value="17">17</option>
-                            <option value="18">18</option>
-                            <option value="19">19</option>
-                            <option value="20">20</option>
-                            <option value="21">21</option>
-                            <option value="22">22</option>
-                            <option value="23">23</option>
-                            <option value="24">24</option>
-                            <option value="25">25</option>
-                        </select>
+                            value="0"
+                            min="0"
+                            inputmode="numeric"
+                            onchange="calculate(); saveData();"
+                        />
                     </div>
                 </div>
                 <!-- THIS IS WHERE YOU WRITE YOUR DESCRIPTION TEXT! -->
@@ -1188,44 +1165,6 @@
                                     />
                                 </td>
                                 <td class="total-cell" id="total-damage">0</td>
-                            </tr>
-                            <!-- Waves -->
-                            <tr>
-                                <td class="row-label">Waves</td>
-                                <td class="input-cell">
-                                    <input
-                                        type="number"
-                                        class="p1-input"
-                                        id="p1-waves"
-                                        value="0"
-                                        min="0"
-                                        inputmode="numeric"
-                                        onchange="calculate(); saveData();"
-                                    />
-                                </td>
-                                <td class="input-cell">
-                                    <input
-                                        type="number"
-                                        class="p2-input"
-                                        id="p2-waves"
-                                        value="0"
-                                        min="0"
-                                        inputmode="numeric"
-                                        onchange="calculate(); saveData();"
-                                    />
-                                </td>
-                                <td class="input-cell">
-                                    <input
-                                        type="number"
-                                        class="p3-input"
-                                        id="p3-waves"
-                                        value="0"
-                                        min="0"
-                                        inputmode="numeric"
-                                        onchange="calculate(); saveData();"
-                                    />
-                                </td>
-                                <td class="total-cell" id="total-waves">0</td>
                             </tr>
 
                             <!-- Modifier Score Result -->
@@ -2935,7 +2874,6 @@
                     gridHTML += createInput(`p${p}-ranged`, "number", "Ranged Damage");
                     gridHTML += createInput(`p${p}-items`, "number", "Items Found");
                     gridHTML += createInput(`p${p}-revived`, "number", "Revived");
-                    gridHTML += createInput(`p${p}-waves`, "number", "Waves");
                     gridHTML += `</div></div>`;
                 }
 
@@ -3136,9 +3074,6 @@
                 "p1-damage",
                 "p2-damage",
                 "p3-damage",
-                "p1-waves",
-                "p2-waves",
-                "p3-waves",
                 "p1-items",
                 "p2-items",
                 "p3-items",
@@ -3248,13 +3183,13 @@
                     document.getElementById("global-armoury").value === ""
                         ? 0
                         : getVal("global-armoury");
+                const globalWaves = getVal("global-waves");
 
                 // Initialize Total Accumulators for individual stats (for the TOTAL column)
                 let sumKills = 0;
                 let sumElite = 0;
                 let sumDeath = 0;
                 let sumDamage = 0;
-                let sumWaves = 0;
                 let sumMelee = 0;
                 let sumRanged = 0;
                 let sumItems = 0;
@@ -3267,7 +3202,6 @@
                     const elite = getVal(`p${i}-elite`);
                     const death = getVal(`p${i}-death`);
                     const damage = getVal(`p${i}-damage`);
-                    const waves = getVal(`p${i}-waves`);
                     const melee = getVal(`p${i}-melee`);
                     const ranged = getVal(`p${i}-ranged`);
                     const items = getVal(`p${i}-items`);
@@ -3278,7 +3212,6 @@
                     sumElite += elite;
                     sumDeath += death;
                     sumDamage += damage;
-                    sumWaves += waves;
                     sumMelee += melee;
                     sumRanged += ranged;
                     sumItems += items;
@@ -3290,11 +3223,11 @@
                         elite * modElite +
                         globalObj * modObj;
 
-                    // Calculate Player's Modifier Score (individual death/damage/waves + global geneseed/armoury)
+                    // Calculate Player's Modifier Score (individual death/damage + global waves/geneseed/armoury)
                     const playerModifierScore =
                         death * modDeath +
                         damage * modDamage +
-                        waves * modWaves +
+                        globalWaves * modWaves +
                         globalGene * modGene +
                         globalArmoury * modArmoury;
 
@@ -3327,7 +3260,6 @@
                 setTxt("total-elite", sumElite);
                 setTxt("total-death", sumDeath);
                 setTxt("total-damage", sumDamage);
-                setTxt("total-waves", sumWaves);
                 setTxt("total-melee", sumMelee);
                 setTxt("total-ranged", sumRanged);
                 setTxt("total-items", sumItems);
@@ -3352,11 +3284,11 @@
                     globalObj * modObj;
 
                 // Calculate TOTAL Modifier Score for the squad
-                // This is the sum of all individual death/damage/waves-based scores PLUS the global geneseed/armoury scores ONCE
+                // This is the sum of all individual death/damage-based scores PLUS the global waves/geneseed/armoury scores ONCE
                 const totalSquadModifierScore =
                     sumDeath * modDeath +
                     sumDamage * modDamage +
-                    sumWaves * modWaves +
+                    globalWaves * modWaves +
                     globalGene * modGene +
                     globalArmoury * modArmoury;
 

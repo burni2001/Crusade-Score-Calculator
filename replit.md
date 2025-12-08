@@ -25,14 +25,14 @@ A Progressive Web App (PWA) calculator for Warhammer 40K Space Marine 2 mission 
 ```
 
 ## Version Management
-Current version: **0.9.9**
+Current version: **1.0.0**
 
 To manually update version, edit `version.json`:
 ```json
 {
-  "major": 0,
-  "minor": 9,
-  "patch": 9
+  "major": 1,
+  "minor": 0,
+  "patch": 0
 }
 ```
 
@@ -62,6 +62,11 @@ Then update:
 The application is served using Python's built-in HTTP server on port 5000. No build step is required.
 
 ## Recent Changes
+- 2024-12-08: Version 1.0 Release
+  - Removed per-player Waves fields (Waves is now global only)
+  - Changed Waves back to number input field (not dropdown)
+  - Fixed Waves calculation to use global value for all players
+
 - 2024-12-08: UI improvements and added Melee/Ranged Damage tracking (v0.9.9)
   - **Modifier spacing**: Reduced gap between labels and input fields for cleaner appearance
   - **Waves alignment**: Changed Waves field to dropdown aligned with other mission parameters
