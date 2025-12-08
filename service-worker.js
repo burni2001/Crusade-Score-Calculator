@@ -1,9 +1,9 @@
-const CACHE_NAME = "mission-debrief-v103"; // Increment this version number when you make changes to cached assets
+const CACHE_NAME = "mission-debrief-v104"; // Increment this version number when you make changes to cached assets
 const urlsToCache = [
     "./", // Caches the root, i.e., index.html
     "index.html",
     "manifest.json",
-    "attached_assets/LFLogo_1765204235411.gif",
+    "attached_assets/FFFvLV2Ld6_crt_1765204552094.png",
     "service-worker.js", // It's good practice to cache the service worker itself
     "https://fonts.googleapis.com/css2?family=VT323&display=swap", // Cache the Google Font CSS
     // --- Add your PWA icons here ---

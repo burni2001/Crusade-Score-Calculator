@@ -22,7 +22,7 @@ A Progressive Web App (PWA) calculator for Warhammer 40K Space Marine 2 mission 
 │   ├── icon-maskable-192x192.png
 │   └── icon-maskable-512x512.png
 ├── attached_assets/        # User-provided assets
-│   └── LFLogo_1765204235411.gif  # Animated header logo
+│   └── FFFvLV2Ld6_crt_1765204552094.png  # Header logo (CRT flicker effect)
 └── replit.md              # This documentation file
 ```
 

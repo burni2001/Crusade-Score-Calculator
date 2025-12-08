@@ -92,6 +92,14 @@
             .header-logo {
                 width: 50px;
                 height: 50px;
+                animation: crt-flicker 8s infinite;
+            }
+            @keyframes crt-flicker {
+                0%, 95%, 100% { opacity: 1; }
+                96% { opacity: 0.4; }
+                97% { opacity: 1; }
+                98% { opacity: 0.6; }
+                99% { opacity: 1; }
             }
             /* Inputs and Selects Styling */
             input,
@@ -638,7 +646,7 @@
                 <h1>Mission Debrief</h1>
                 <div style="display: flex; align-items: center; gap: 15px;">
                     <span>DAT: M42.024</span>
-                    <img src="attached_assets/LFLogo_1765204235411.gif" alt="Logo" class="header-logo" />
+                    <img src="attached_assets/FFFvLV2Ld6_crt_1765204552094.png" alt="Logo" class="header-logo" />
                 </div>
             </div>
             <!-- Modifiers Section -->
