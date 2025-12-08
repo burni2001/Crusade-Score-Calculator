@@ -25,14 +25,14 @@ A Progressive Web App (PWA) calculator for Warhammer 40K Space Marine 2 mission 
 ```
 
 ## Version Management
-Current version: **0.9.8**
+Current version: **0.9.9**
 
 To manually update version, edit `version.json`:
 ```json
 {
   "major": 0,
   "minor": 9,
-  "patch": 8
+  "patch": 9
 }
 ```
 
@@ -62,6 +62,14 @@ Then update:
 The application is served using Python's built-in HTTP server on port 5000. No build step is required.
 
 ## Recent Changes
+- 2024-12-08: UI improvements and added Melee/Ranged Damage tracking (v0.9.9)
+  - **Modifier spacing**: Reduced gap between labels and input fields for cleaner appearance
+  - **Waves alignment**: Changed Waves field to dropdown aligned with other mission parameters
+  - **Dynamic headers**: Additional Statistics section now uses player names from Squad Matrix
+  - **Melee Damage**: New stat field per player in Additional Statistics
+  - **Ranged Damage**: New stat field per player in Additional Statistics
+  - **OCR extraction**: Updated to detect Melee Damage and Ranged Damage from screenshots
+
 - 2024-12-07: Added Waves Modifier, per-player waves, Items Found, and Teammates Revived (v0.9.8)
   - **Waves Modifier**: Added 8th column to modifier grid with new Waves modifier
   - **Per-player Waves**: Added waves input field for each Battle Brother in Squad Performance Matrix
