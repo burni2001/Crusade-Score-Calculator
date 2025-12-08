@@ -92,7 +92,11 @@
             .header-logo {
                 width: 50px;
                 height: 50px;
-                filter: brightness(0) saturate(100%) invert(85%) sepia(50%) saturate(500%) hue-rotate(70deg) brightness(1.1);
+                animation: spin 3s linear infinite;
+            }
+            @keyframes spin {
+                from { transform: rotate(0deg); }
+                to { transform: rotate(360deg); }
             }
             /* Inputs and Selects Styling */
             input,
@@ -639,7 +643,7 @@
                 <h1>Mission Debrief</h1>
                 <div style="display: flex; align-items: center; gap: 15px;">
                     <span>DAT: M42.024</span>
-                    <img src="attached_assets/LFLogo_1765203106411.gif" alt="Logo" class="header-logo" />
+                    <img src="attached_assets/image_1765204104636.png" alt="Logo" class="header-logo" />
                 </div>
             </div>
             <!-- Modifiers Section -->
