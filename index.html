@@ -121,8 +121,8 @@
             .modifier-grid {
                 display: grid;
                 grid-template-columns: 100px repeat(8, 1fr);
-                gap: 10px;
-                align-items: start;
+                gap: 5px 10px;
+                align-items: end;
                 text-align: center;
                 font-size: 1.1rem;
             }
@@ -131,8 +131,7 @@
                 font-size: 0.9rem;
                 opacity: 0.8;
                 display: block;
-                min-height: 2.4em;
-                line-height: 1.2;
+                margin-bottom: 2px;
             }
             /* Global Toggles (Dropdowns) styling inside .section */
             /* To make labels and selects align */
@@ -867,15 +866,37 @@
                     </div>
                     <div class="mission-params">
                         <label>Waves Reached (Siege Mode)</label>
-                        <input
-                            type="number"
+                        <select
                             id="global-waves"
-                            value="0"
-                            min="0"
-                            inputmode="numeric"
                             onchange="saveData();"
-                            placeholder="e.g., 15"
-                        />
+                        >
+                            <option value="0">0</option>
+                            <option value="1">1</option>
+                            <option value="2">2</option>
+                            <option value="3">3</option>
+                            <option value="4">4</option>
+                            <option value="5">5</option>
+                            <option value="6">6</option>
+                            <option value="7">7</option>
+                            <option value="8">8</option>
+                            <option value="9">9</option>
+                            <option value="10">10</option>
+                            <option value="11">11</option>
+                            <option value="12">12</option>
+                            <option value="13">13</option>
+                            <option value="14">14</option>
+                            <option value="15">15</option>
+                            <option value="16">16</option>
+                            <option value="17">17</option>
+                            <option value="18">18</option>
+                            <option value="19">19</option>
+                            <option value="20">20</option>
+                            <option value="21">21</option>
+                            <option value="22">22</option>
+                            <option value="23">23</option>
+                            <option value="24">24</option>
+                            <option value="25">25</option>
+                        </select>
                     </div>
                 </div>
                 <!-- THIS IS WHERE YOU WRITE YOUR DESCRIPTION TEXT! -->
@@ -907,7 +928,8 @@
                                         placeholder="Name"
                                         class="player-name-input"
                                         id="p1-name"
-                                        onchange="saveData();"
+                                        onchange="saveData(); updateAdditionalStatsHeaders();"
+                                        oninput="updateAdditionalStatsHeaders();"
                                     />
                                 </th>
                                 <th>
@@ -917,7 +939,8 @@
                                         placeholder="Name"
                                         class="player-name-input"
                                         id="p2-name"
-                                        onchange="saveData();"
+                                        onchange="saveData(); updateAdditionalStatsHeaders();"
+                                        oninput="updateAdditionalStatsHeaders();"
                                     />
                                 </th>
                                 <th>
@@ -927,7 +950,8 @@
                                         placeholder="Name"
                                         class="player-name-input"
                                         id="p3-name"
-                                        onchange="saveData();"
+                                        onchange="saveData(); updateAdditionalStatsHeaders();"
+                                        oninput="updateAdditionalStatsHeaders();"
                                     />
                                 </th>
                                 <th>TOTAL</th>
@@ -1237,13 +1261,89 @@
                         <thead>
                             <tr>
                                 <th class="empty-header"></th>
-                                <th>Battle Brother 1</th>
-                                <th>Battle Brother 2</th>
-                                <th>Battle Brother 3</th>
+                                <th id="addstats-p1-header">Battle Brother 1</th>
+                                <th id="addstats-p2-header">Battle Brother 2</th>
+                                <th id="addstats-p3-header">Battle Brother 3</th>
                                 <th>TOTAL</th>
                             </tr>
                         </thead>
                         <tbody>
+                            <!-- Melee Damage -->
+                            <tr>
+                                <td class="row-label">Melee Damage</td>
+                                <td class="input-cell">
+                                    <input
+                                        type="number"
+                                        class="p1-input"
+                                        id="p1-melee"
+                                        value="0"
+                                        min="0"
+                                        inputmode="numeric"
+                                        onchange="calculate(); saveData();"
+                                    />
+                                </td>
+                                <td class="input-cell">
+                                    <input
+                                        type="number"
+                                        class="p2-input"
+                                        id="p2-melee"
+                                        value="0"
+                                        min="0"
+                                        inputmode="numeric"
+                                        onchange="calculate(); saveData();"
+                                    />
+                                </td>
+                                <td class="input-cell">
+                                    <input
+                                        type="number"
+                                        class="p3-input"
+                                        id="p3-melee"
+                                        value="0"
+                                        min="0"
+                                        inputmode="numeric"
+                                        onchange="calculate(); saveData();"
+                                    />
+                                </td>
+                                <td class="total-cell" id="total-melee">0</td>
+                            </tr>
+                            <!-- Ranged Damage -->
+                            <tr>
+                                <td class="row-label">Ranged Damage</td>
+                                <td class="input-cell">
+                                    <input
+                                        type="number"
+                                        class="p1-input"
+                                        id="p1-ranged"
+                                        value="0"
+                                        min="0"
+                                        inputmode="numeric"
+                                        onchange="calculate(); saveData();"
+                                    />
+                                </td>
+                                <td class="input-cell">
+                                    <input
+                                        type="number"
+                                        class="p2-input"
+                                        id="p2-ranged"
+                                        value="0"
+                                        min="0"
+                                        inputmode="numeric"
+                                        onchange="calculate(); saveData();"
+                                    />
+                                </td>
+                                <td class="input-cell">
+                                    <input
+                                        type="number"
+                                        class="p3-input"
+                                        id="p3-ranged"
+                                        value="0"
+                                        min="0"
+                                        inputmode="numeric"
+                                        onchange="calculate(); saveData();"
+                                    />
+                                </td>
+                                <td class="total-cell" id="total-ranged">0</td>
+                            </tr>
                             <!-- Items Found -->
                             <tr>
                                 <td class="row-label">Items Found</td>
@@ -2559,6 +2659,22 @@
                 ]);
                 assignStats(damageNums, "damage");
 
+                // Melee Damage
+                const meleeNums = extractLastThreeNumbers([
+                    /MELEE\s*DAMAGE/i,
+                    /MELEE.*DAMAGE/i,
+                    /MELEE.*DAM/i,
+                ]);
+                assignStats(meleeNums, "melee");
+
+                // Ranged Damage
+                const rangedNums = extractLastThreeNumbers([
+                    /RANGED\s*DAMAGE/i,
+                    /RANGED.*DAMAGE/i,
+                    /RANGED.*DAM/i,
+                ]);
+                assignStats(rangedNums, "ranged");
+
                 // Items Found
                 const itemsNums = extractLastThreeNumbers([
                     /ITEMS\s*FOUND/i,
@@ -2815,6 +2931,8 @@
                     gridHTML += createInput(`p${p}-damage`, "number", "Damage Taken");
                     gridHTML += `</div>`;
                     gridHTML += `<div class="ocr-stats-row">`;
+                    gridHTML += createInput(`p${p}-melee`, "number", "Melee Damage");
+                    gridHTML += createInput(`p${p}-ranged`, "number", "Ranged Damage");
                     gridHTML += createInput(`p${p}-items`, "number", "Items Found");
                     gridHTML += createInput(`p${p}-revived`, "number", "Revived");
                     gridHTML += createInput(`p${p}-waves`, "number", "Waves");
@@ -3027,6 +3145,12 @@
                 "p1-revived",
                 "p2-revived",
                 "p3-revived",
+                "p1-melee",
+                "p2-melee",
+                "p3-melee",
+                "p1-ranged",
+                "p2-ranged",
+                "p3-ranged",
                 "mod-waves",
                 "global-waves",
             ];
@@ -3088,6 +3212,18 @@
                 if (el) el.textContent = txt;
             }
 
+            // Update Additional Stats headers with player names from Squad Matrix
+            function updateAdditionalStatsHeaders() {
+                for (let i = 1; i <= 3; i++) {
+                    const nameInput = document.getElementById(`p${i}-name`);
+                    const header = document.getElementById(`addstats-p${i}-header`);
+                    if (header && nameInput) {
+                        const name = nameInput.value.trim();
+                        header.textContent = name || `Battle Brother ${i}`;
+                    }
+                }
+            }
+
             function calculate() {
                 // 1. Get Modifiers
                 const modKills = getVal("mod-kills");
@@ -3119,6 +3255,8 @@
                 let sumDeath = 0;
                 let sumDamage = 0;
                 let sumWaves = 0;
+                let sumMelee = 0;
+                let sumRanged = 0;
                 let sumItems = 0;
                 let sumRevived = 0;
 
@@ -3130,6 +3268,8 @@
                     const death = getVal(`p${i}-death`);
                     const damage = getVal(`p${i}-damage`);
                     const waves = getVal(`p${i}-waves`);
+                    const melee = getVal(`p${i}-melee`);
+                    const ranged = getVal(`p${i}-ranged`);
                     const items = getVal(`p${i}-items`);
                     const revived = getVal(`p${i}-revived`);
 
@@ -3139,6 +3279,8 @@
                     sumDeath += death;
                     sumDamage += damage;
                     sumWaves += waves;
+                    sumMelee += melee;
+                    sumRanged += ranged;
                     sumItems += items;
                     sumRevived += revived;
 
@@ -3186,8 +3328,13 @@
                 setTxt("total-death", sumDeath);
                 setTxt("total-damage", sumDamage);
                 setTxt("total-waves", sumWaves);
+                setTxt("total-melee", sumMelee);
+                setTxt("total-ranged", sumRanged);
                 setTxt("total-items", sumItems);
                 setTxt("total-revived", sumRevived);
+
+                // Update Additional Stats headers from player names
+                updateAdditionalStatsHeaders();
 
                 // Update total differential
                 const totalDiff = sumRevived - sumDeath;
