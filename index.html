@@ -3480,15 +3480,15 @@
                         foreignObjectRendering: false,
                     })
                         .then((canvas) => {
-                            // Restore original styles
-                            element.style.width = originalElementWidth;
-                            element.style.maxWidth = originalElementMaxWidth;
-                            element.style.minWidth = originalElementMinWidth;
-                            body.style.overflow = originalBodyOverflow;
-                            body.style.width = originalBodyWidth;
-                            body.style.minWidth = originalBodyMinWidth;
-                            html.style.width = originalHtmlWidth;
-                            html.style.minWidth = originalHtmlMinWidth;
+                            // Restore original styles by removing inline styles completely
+                            element.style.removeProperty("width");
+                            element.style.removeProperty("max-width");
+                            element.style.removeProperty("min-width");
+                            body.style.removeProperty("overflow");
+                            body.style.removeProperty("width");
+                            body.style.removeProperty("min-width");
+                            html.style.removeProperty("width");
+                            html.style.removeProperty("min-width");
 
                             // Restore viewport
                             if (originalViewport && originalViewportContent) {
@@ -3511,15 +3511,15 @@
                             link.click();
                         })
                         .catch((err) => {
-                            // Restore styles on error too
-                            element.style.width = originalElementWidth;
-                            element.style.maxWidth = originalElementMaxWidth;
-                            element.style.minWidth = originalElementMinWidth;
-                            body.style.overflow = originalBodyOverflow;
-                            body.style.width = originalBodyWidth;
-                            body.style.minWidth = originalBodyMinWidth;
-                            html.style.width = originalHtmlWidth;
-                            html.style.minWidth = originalHtmlMinWidth;
+                            // Restore styles on error too by removing inline styles completely
+                            element.style.removeProperty("width");
+                            element.style.removeProperty("max-width");
+                            element.style.removeProperty("min-width");
+                            body.style.removeProperty("overflow");
+                            body.style.removeProperty("width");
+                            body.style.removeProperty("min-width");
+                            html.style.removeProperty("width");
+                            html.style.removeProperty("min-width");
 
                             // Restore viewport
                             if (originalViewport && originalViewportContent) {
