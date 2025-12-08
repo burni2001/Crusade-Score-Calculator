@@ -27,13 +27,13 @@ A Progressive Web App (PWA) calculator for Warhammer 40K Space Marine 2 mission 
 ```
 
 ## Version Management
-Current version: **1.1.0**
+Current version: **1.2.0**
 
 To manually update version, edit `version.json`:
 ```json
 {
   "major": 1,
-  "minor": 1,
+  "minor": 2,
   "patch": 0
 }
 ```
@@ -64,6 +64,12 @@ Then update:
 The application is served using Python's built-in HTTP server on port 5000. No build step is required.
 
 ## Recent Changes
+- 2024-12-08: Version 1.2 Release
+  - Completely redesigned CSV export to match GUI display format
+  - CSV now includes: Mission Parameters, Modifiers (with Waves), Squad Performance Matrix (with Class), Additional Statistics
+  - Teammates Revived in CSV shows differential (+/-) same as GUI
+  - Fixed PNG export responsiveness (properly removes all inline styles after capture)
+
 - 2024-12-08: Version 1.1 Release
   - Fixed Clear Data button to clear all fields (including Additional Statistics)
   - Added CRT flicker effect to header logo

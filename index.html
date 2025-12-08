@@ -640,7 +640,7 @@
                 <div>
                     <div>REF: SM-2/CRUSADE</div>
                     <div style="font-size: 0.8em; opacity: 0.7">
-                        V 1.1 - ADEPTUS ADMINISTRATUM
+                        V 1.2 - ADEPTUS ADMINISTRATUM
                     </div>
                 </div>
                 <h1>Mission Debrief</h1>
@@ -3344,8 +3344,7 @@
             // Function to export table data to CSV
             function exportToCSV() {
                 const missionName = getStr("mission-name");
-                const missionDifficulty =
-                    document.getElementById("mission-difficulty").value; // Get value here
+                const missionDifficulty = document.getElementById("mission-difficulty").value;
 
                 let filename = "Mission_Debrief_Data";
                 if (missionName) {
@@ -3353,65 +3352,69 @@
                 }
                 filename += ".csv";
 
-                const table = document.querySelector(".score-table");
-                const rows = table.querySelectorAll("tr");
                 const csv = [];
 
-                // Add Mission Name and Global Parameters
-                csv.push(`Mission Played:,${getStr("mission-name")}`);
-                csv.push(`Difficulty:,${missionDifficulty}`); // NEW LINE HERE
-                csv.push(
-                    `Objective Completion:,${document.getElementById("global-objective").value === "1" ? "Yes" : "No"}`,
-                );
-                csv.push(
-                    `Geneseed Retrieved:,${document.getElementById("global-geneseed").value === "1" ? "Yes" : "No"}`,
-                );
-                csv.push(`Armoury Data Retrieved:,${getVal("global-armoury")}`);
-                csv.push(""); // Empty line for separation
+                // Get player names
+                const p1Name = getStr("p1-name") || "Battle Brother 1";
+                const p2Name = getStr("p2-name") || "Battle Brother 2";
+                const p3Name = getStr("p3-name") || "Battle Brother 3";
 
-                // Add Modifiers
-                csv.push("MODIFIERS,,,,,"); // Header for modifiers row
+                // MISSION PARAMETERS
+                csv.push("MISSION PARAMETERS");
+                csv.push(`Mission Played:,${getStr("mission-name")}`);
+                csv.push(`Difficulty:,${missionDifficulty}`);
+                csv.push(`Waves Reached:,${getVal("global-waves")}`);
+                csv.push(`Objective Completion:,${document.getElementById("global-objective").value === "1" ? "Yes" : "No"}`);
+                csv.push(`Geneseed Retrieved:,${document.getElementById("global-geneseed").value === "1" ? "Yes" : "No"}`);
+                csv.push(`Armoury Data Retrieved:,${getVal("global-armoury")}`);
+                csv.push("");
+
+                // MODIFIERS
+                csv.push("MODIFIERS");
                 csv.push(`Kills:,${getVal("mod-kills")}`);
                 csv.push(`Special Kills:,${getVal("mod-elite")}`);
-                csv.push(`Death:,${getVal("mod-death")}`);
-                csv.push(`Damage:,${getVal("mod-damage")}`);
+                csv.push(`Incapacitations:,${getVal("mod-death")}`);
+                csv.push(`Damage Taken:,${getVal("mod-damage")}`);
                 csv.push(`Geneseed:,${getVal("mod-gene")}`);
                 csv.push(`Armoury:,${getVal("mod-armoury")}`);
                 csv.push(`Objective:,${getVal("mod-obj")}`);
-                csv.push(""); // Empty line for separation
+                csv.push(`Waves:,${getVal("mod-waves")}`);
+                csv.push("");
 
-                // Iterate over table rows
-                rows.forEach((row, rowIndex) => {
-                    const rowData = [];
-                    const cells = row.querySelectorAll("th, td");
+                // SQUAD PERFORMANCE MATRIX
+                csv.push("SQUAD PERFORMANCE MATRIX");
+                csv.push(`,${p1Name},${p2Name},${p3Name},TOTAL`);
+                csv.push(`Class,${document.getElementById("p1-class").value},${document.getElementById("p2-class").value},${document.getElementById("p3-class").value},`);
+                csv.push(`Kills,${getVal("p1-kills")},${getVal("p2-kills")},${getVal("p3-kills")},${document.getElementById("total-kills").textContent}`);
+                csv.push(`Special Kills,${getVal("p1-elite")},${getVal("p2-elite")},${getVal("p3-elite")},${document.getElementById("total-elite").textContent}`);
+                csv.push(`Incapacitations,${getVal("p1-death")},${getVal("p2-death")},${getVal("p3-death")},${document.getElementById("total-death").textContent}`);
+                csv.push(`Damage Taken,${getVal("p1-damage")},${getVal("p2-damage")},${getVal("p3-damage")},${document.getElementById("total-damage").textContent}`);
+                csv.push(`Base Score,${document.getElementById("p1-base").textContent},${document.getElementById("p2-base").textContent},${document.getElementById("p3-base").textContent},${document.getElementById("total-base").textContent}`);
+                csv.push(`Modifier Score,${document.getElementById("p1-mod").textContent},${document.getElementById("p2-mod").textContent},${document.getElementById("p3-mod").textContent},${document.getElementById("total-mod").textContent}`);
+                csv.push(`TOTAL SCORE,${document.getElementById("p1-final").textContent},${document.getElementById("p2-final").textContent},${document.getElementById("p3-final").textContent},${document.getElementById("total-final").textContent}`);
+                csv.push("");
 
-                    cells.forEach((cell, cellIndex) => {
-                        let cellValue = "";
-                        // For input fields in headers (player names)
-                        if (
-                            rowIndex === 0 &&
-                            cell.querySelector('input[type="text"]')
-                        ) {
-                            cellValue =
-                                cell.querySelector('input[type="text"]')
-                                    .value ||
-                                cell.querySelector('input[type="text"]')
-                                    .placeholder;
-                        }
-                        // For input fields in data cells
-                        else if (cell.querySelector('input[type="number"]')) {
-                            cellValue = cell.querySelector(
-                                'input[type="number"]',
-                            ).value;
-                        }
-                        // For text content
-                        else {
-                            cellValue = cell.textContent.trim();
-                        }
-                        rowData.push(`"${cellValue.replace(/"/g, '""')}"`); // Quote and escape double quotes
-                    });
-                    csv.push(rowData.join(","));
-                });
+                // ADDITIONAL STATISTICS
+                csv.push("ADDITIONAL STATISTICS");
+                csv.push(`,${p1Name},${p2Name},${p3Name},TOTAL`);
+                csv.push(`Melee Damage,${getVal("p1-melee")},${getVal("p2-melee")},${getVal("p3-melee")},${document.getElementById("total-melee").textContent}`);
+                csv.push(`Ranged Damage,${getVal("p1-ranged")},${getVal("p2-ranged")},${getVal("p3-ranged")},${document.getElementById("total-ranged").textContent}`);
+                csv.push(`Items Found,${getVal("p1-items")},${getVal("p2-items")},${getVal("p3-items")},${document.getElementById("total-items").textContent}`);
+                
+                // Teammates Revived with differential
+                const p1Revived = getVal("p1-revived");
+                const p2Revived = getVal("p2-revived");
+                const p3Revived = getVal("p3-revived");
+                const p1Deaths = getVal("p1-death");
+                const p2Deaths = getVal("p2-death");
+                const p3Deaths = getVal("p3-death");
+                const p1Diff = p1Revived - p1Deaths;
+                const p2Diff = p2Revived - p2Deaths;
+                const p3Diff = p3Revived - p3Deaths;
+                const totalRevived = p1Revived + p2Revived + p3Revived;
+                const totalDeaths = p1Deaths + p2Deaths + p3Deaths;
+                const totalDiff = totalRevived - totalDeaths;
+                csv.push(`Teammates Revived,${p1Revived} (${p1Diff >= 0 ? '+' : ''}${p1Diff}),${p2Revived} (${p2Diff >= 0 ? '+' : ''}${p2Diff}),${p3Revived} (${p3Diff >= 0 ? '+' : ''}${p3Diff}),${totalRevived} (${totalDiff >= 0 ? '+' : ''}${totalDiff})`);
 
                 const csvFile = new Blob([csv.join("\n")], {
                     type: "text/csv;charset=utf-8;",
