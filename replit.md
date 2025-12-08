@@ -27,13 +27,13 @@ A Progressive Web App (PWA) calculator for Warhammer 40K Space Marine 2 mission 
 ```
 
 ## Version Management
-Current version: **1.0.0**
+Current version: **1.1.0**
 
 To manually update version, edit `version.json`:
 ```json
 {
   "major": 1,
-  "minor": 0,
+  "minor": 1,
   "patch": 0
 }
 ```
@@ -64,6 +64,10 @@ Then update:
 The application is served using Python's built-in HTTP server on port 5000. No build step is required.
 
 ## Recent Changes
+- 2024-12-08: Version 1.1 Release
+  - Fixed Clear Data button to clear all fields (including Additional Statistics)
+  - Added CRT flicker effect to header logo
+
 - 2024-12-08: Version 1.0 Release
   - Removed per-player Waves fields (Waves is now global only)
   - Changed Waves back to number input field (not dropdown)
