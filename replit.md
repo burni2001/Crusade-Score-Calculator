@@ -21,6 +21,8 @@ A Progressive Web App (PWA) calculator for Warhammer 40K Space Marine 2 mission 
 │   ├── icon-512x512.png
 │   ├── icon-maskable-192x192.png
 │   └── icon-maskable-512x512.png
+├── attached_assets/        # User-provided assets
+│   └── LFLogo_1765203106411.gif  # Animated header logo
 └── replit.md              # This documentation file
 ```
 
@@ -66,6 +68,7 @@ The application is served using Python's built-in HTTP server on port 5000. No b
   - Removed per-player Waves fields (Waves is now global only)
   - Changed Waves back to number input field (not dropdown)
   - Fixed Waves calculation to use global value for all players
+  - Added animated logo in upper right header corner (converted to green via CSS filters)
 
 - 2024-12-08: UI improvements and added Melee/Ranged Damage tracking (v0.9.9)
   - **Modifier spacing**: Reduced gap between labels and input fields for cleaner appearance

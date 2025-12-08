@@ -89,6 +89,11 @@
                 justify-content: space-between;
                 align-items: flex-end;
             }
+            .header-logo {
+                width: 50px;
+                height: 50px;
+                filter: brightness(0) saturate(100%) invert(85%) sepia(50%) saturate(500%) hue-rotate(70deg) brightness(1.1);
+            }
             /* Inputs and Selects Styling */
             input,
             select {
@@ -632,7 +637,10 @@
                     </div>
                 </div>
                 <h1>Mission Debrief</h1>
-                <div>DAT: M42.024</div>
+                <div style="display: flex; align-items: center; gap: 15px;">
+                    <span>DAT: M42.024</span>
+                    <img src="attached_assets/LFLogo_1765203106411.gif" alt="Logo" class="header-logo" />
+                </div>
             </div>
             <!-- Modifiers Section -->
             <div class="section">
