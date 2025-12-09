@@ -95,11 +95,23 @@
                 animation: crt-flicker 8s infinite;
             }
             @keyframes crt-flicker {
-                0%, 95%, 100% { opacity: 1; }
-                96% { opacity: 0.4; }
-                97% { opacity: 1; }
-                98% { opacity: 0.6; }
-                99% { opacity: 1; }
+                0%,
+                95%,
+                100% {
+                    opacity: 1;
+                }
+                96% {
+                    opacity: 0.4;
+                }
+                97% {
+                    opacity: 1;
+                }
+                98% {
+                    opacity: 0.6;
+                }
+                99% {
+                    opacity: 1;
+                }
             }
             /* Inputs and Selects Styling */
             input,
@@ -640,13 +652,17 @@
                 <div>
                     <div>REF: SM-2/CRUSADE</div>
                     <div style="font-size: 0.8em; opacity: 0.7">
-                        V 1.2 - ADEPTUS ADMINISTRATUM
+                        V 1.21 - ADEPTUS ADMINISTRATUM
                     </div>
                 </div>
                 <h1>Mission Debrief</h1>
-                <div style="display: flex; align-items: center; gap: 15px;">
+                <div style="display: flex; align-items: center; gap: 15px">
                     <span>DAT: M42.024</span>
-                    <img src="attached_assets/FFFvLV2Ld6_crt_1765204552094.png" alt="Logo" class="header-logo" />
+                    <img
+                        src="attached_assets/FFFvLV2Ld6_crt_frei.png"
+                        alt="Logo"
+                        class="header-logo"
+                    />
                 </div>
             </div>
             <!-- Modifiers Section -->
@@ -1215,9 +1231,15 @@
                         <thead>
                             <tr>
                                 <th class="empty-header"></th>
-                                <th id="addstats-p1-header">Battle Brother 1</th>
-                                <th id="addstats-p2-header">Battle Brother 2</th>
-                                <th id="addstats-p3-header">Battle Brother 3</th>
+                                <th id="addstats-p1-header">
+                                    Battle Brother 1
+                                </th>
+                                <th id="addstats-p2-header">
+                                    Battle Brother 2
+                                </th>
+                                <th id="addstats-p3-header">
+                                    Battle Brother 3
+                                </th>
                                 <th>TOTAL</th>
                             </tr>
                         </thead>
@@ -1340,7 +1362,13 @@
                             <tr>
                                 <td class="row-label">Teammates Revived</td>
                                 <td class="input-cell">
-                                    <div style="display: flex; align-items: center; gap: 5px;">
+                                    <div
+                                        style="
+                                            display: flex;
+                                            align-items: center;
+                                            gap: 5px;
+                                        "
+                                    >
                                         <input
                                             type="number"
                                             class="p1-input"
@@ -1349,13 +1377,26 @@
                                             min="0"
                                             inputmode="numeric"
                                             onchange="calculate(); saveData();"
-                                            style="flex: 1;"
+                                            style="flex: 1"
                                         />
-                                        <span id="p1-diff" style="color: #afffa6; font-size: 0.9em;">(0)</span>
+                                        <span
+                                            id="p1-diff"
+                                            style="
+                                                color: #afffa6;
+                                                font-size: 0.9em;
+                                            "
+                                            >(0)</span
+                                        >
                                     </div>
                                 </td>
                                 <td class="input-cell">
-                                    <div style="display: flex; align-items: center; gap: 5px;">
+                                    <div
+                                        style="
+                                            display: flex;
+                                            align-items: center;
+                                            gap: 5px;
+                                        "
+                                    >
                                         <input
                                             type="number"
                                             class="p2-input"
@@ -1364,13 +1405,26 @@
                                             min="0"
                                             inputmode="numeric"
                                             onchange="calculate(); saveData();"
-                                            style="flex: 1;"
+                                            style="flex: 1"
                                         />
-                                        <span id="p2-diff" style="color: #afffa6; font-size: 0.9em;">(0)</span>
+                                        <span
+                                            id="p2-diff"
+                                            style="
+                                                color: #afffa6;
+                                                font-size: 0.9em;
+                                            "
+                                            >(0)</span
+                                        >
                                     </div>
                                 </td>
                                 <td class="input-cell">
-                                    <div style="display: flex; align-items: center; gap: 5px;">
+                                    <div
+                                        style="
+                                            display: flex;
+                                            align-items: center;
+                                            gap: 5px;
+                                        "
+                                    >
                                         <input
                                             type="number"
                                             class="p3-input"
@@ -1379,14 +1433,25 @@
                                             min="0"
                                             inputmode="numeric"
                                             onchange="calculate(); saveData();"
-                                            style="flex: 1;"
+                                            style="flex: 1"
                                         />
-                                        <span id="p3-diff" style="color: #afffa6; font-size: 0.9em;">(0)</span>
+                                        <span
+                                            id="p3-diff"
+                                            style="
+                                                color: #afffa6;
+                                                font-size: 0.9em;
+                                            "
+                                            >(0)</span
+                                        >
                                     </div>
                                 </td>
                                 <td class="total-cell">
                                     <span id="total-revived">0</span>
-                                    <span id="total-diff" style="font-size: 0.9em;">(0)</span>
+                                    <span
+                                        id="total-diff"
+                                        style="font-size: 0.9em"
+                                        >(0)</span
+                                    >
                                 </td>
                             </tr>
                         </tbody>
@@ -1655,7 +1720,12 @@
             }
 
             // Helper function to call OCR.space API with fallback support
-            async function callOCRAPI(base64Image, apiKey, useTable = false, isRetry = false) {
+            async function callOCRAPI(
+                base64Image,
+                apiKey,
+                useTable = false,
+                isRetry = false,
+            ) {
                 const formData = new FormData();
                 formData.append("base64Image", base64Image);
                 formData.append("language", "eng");
@@ -1678,9 +1748,14 @@
                 const result = await response.json();
 
                 if (result.IsErroredOnProcessing) {
-                    const errorMsg = result.ErrorMessage || "OCR processing failed";
+                    const errorMsg =
+                        result.ErrorMessage || "OCR processing failed";
                     // Check if it's a rate limit or key issue
-                    if ((errorMsg.includes("limit") || errorMsg.includes("Invalid API")) && !isRetry) {
+                    if (
+                        (errorMsg.includes("limit") ||
+                            errorMsg.includes("Invalid API")) &&
+                        !isRetry
+                    ) {
                         throw new Error(`${errorMsg} [RETRY_WITH_FALLBACK]`);
                     }
                     throw new Error(errorMsg);
@@ -1721,7 +1796,12 @@
                                         false,
                                     );
                                 } catch (err) {
-                                    if (err.message.includes("RETRY_WITH_FALLBACK") && keyIndex === 0) {
+                                    if (
+                                        err.message.includes(
+                                            "RETRY_WITH_FALLBACK",
+                                        ) &&
+                                        keyIndex === 0
+                                    ) {
                                         apiKey = getOCRKey(1); // Switch to fallback key
                                         keyIndex = 1;
                                         progressDiv.textContent =
@@ -2022,7 +2102,7 @@
 
                     // Remove brackets and clean the line
                     const cleanLine = line.replace(/\[.*?\]/g, "").trim();
-                    
+
                     // Filter out OCR preprocessing markers
                     if (/^\[?(LEFT|RIGHT)\]?$/i.test(cleanLine)) {
                         return null;
@@ -2647,7 +2727,9 @@
 
                 // === WAVES (Siege Mode) ===
                 // Extract wave number from "STATUS: WAVE 15" or similar
-                const waveMatch = upperText.match(/STATUS\s*[:\-=]?\s*WAVE\s+(\d+)/i);
+                const waveMatch = upperText.match(
+                    /STATUS\s*[:\-=]?\s*WAVE\s+(\d+)/i,
+                );
                 if (waveMatch) {
                     pendingOCRResults["global-waves"] = waveMatch[1];
                 }
@@ -2880,15 +2962,43 @@
                     gridHTML += createInput(`p${p}-class`, "class", "Class");
                     gridHTML += `<div class="ocr-stats-row">`;
                     gridHTML += createInput(`p${p}-kills`, "number", "Kills");
-                    gridHTML += createInput(`p${p}-elite`, "number", "Special Kills");
-                    gridHTML += createInput(`p${p}-death`, "number", "Incapacitations");
-                    gridHTML += createInput(`p${p}-damage`, "number", "Damage Taken");
+                    gridHTML += createInput(
+                        `p${p}-elite`,
+                        "number",
+                        "Special Kills",
+                    );
+                    gridHTML += createInput(
+                        `p${p}-death`,
+                        "number",
+                        "Incapacitations",
+                    );
+                    gridHTML += createInput(
+                        `p${p}-damage`,
+                        "number",
+                        "Damage Taken",
+                    );
                     gridHTML += `</div>`;
                     gridHTML += `<div class="ocr-stats-row">`;
-                    gridHTML += createInput(`p${p}-melee`, "number", "Melee Damage");
-                    gridHTML += createInput(`p${p}-ranged`, "number", "Ranged Damage");
-                    gridHTML += createInput(`p${p}-items`, "number", "Items Found");
-                    gridHTML += createInput(`p${p}-revived`, "number", "Revived");
+                    gridHTML += createInput(
+                        `p${p}-melee`,
+                        "number",
+                        "Melee Damage",
+                    );
+                    gridHTML += createInput(
+                        `p${p}-ranged`,
+                        "number",
+                        "Ranged Damage",
+                    );
+                    gridHTML += createInput(
+                        `p${p}-items`,
+                        "number",
+                        "Items Found",
+                    );
+                    gridHTML += createInput(
+                        `p${p}-revived`,
+                        "number",
+                        "Revived",
+                    );
                     gridHTML += `</div></div>`;
                 }
 
@@ -3062,7 +3172,9 @@
                         } else {
                             el.value = "";
                         }
-                        el.dispatchEvent(new Event("change", { bubbles: true }));
+                        el.dispatchEvent(
+                            new Event("change", { bubbles: true }),
+                        );
                     }
                 });
 
@@ -3186,7 +3298,9 @@
             function updateAdditionalStatsHeaders() {
                 for (let i = 1; i <= 3; i++) {
                     const nameInput = document.getElementById(`p${i}-name`);
-                    const header = document.getElementById(`addstats-p${i}-header`);
+                    const header = document.getElementById(
+                        `addstats-p${i}-header`,
+                    );
                     if (header && nameInput) {
                         const name = nameInput.value.trim();
                         header.textContent = name || `Battle Brother ${i}`;
@@ -3283,8 +3397,8 @@
                     const diff = revived - death;
                     const diffEl = document.getElementById(`p${i}-diff`);
                     if (diffEl) {
-                        diffEl.textContent = `(${diff >= 0 ? '+' : ''}${diff})`;
-                        diffEl.style.color = diff >= 0 ? '#afffa6' : '#ff6600';
+                        diffEl.textContent = `(${diff >= 0 ? "+" : ""}${diff})`;
+                        diffEl.style.color = diff >= 0 ? "#afffa6" : "#ff6600";
                     }
                 }
 
@@ -3307,8 +3421,9 @@
                 const totalDiff = sumRevived - sumDeath;
                 const totalDiffEl = document.getElementById("total-diff");
                 if (totalDiffEl) {
-                    totalDiffEl.textContent = `(${totalDiff >= 0 ? '+' : ''}${totalDiff})`;
-                    totalDiffEl.style.color = totalDiff >= 0 ? '#afffa6' : '#ff6600';
+                    totalDiffEl.textContent = `(${totalDiff >= 0 ? "+" : ""}${totalDiff})`;
+                    totalDiffEl.style.color =
+                        totalDiff >= 0 ? "#afffa6" : "#ff6600";
                 }
 
                 // Calculate TOTAL Base Score for the squad
@@ -3344,7 +3459,8 @@
             // Function to export table data to CSV
             function exportToCSV() {
                 const missionName = getStr("mission-name");
-                const missionDifficulty = document.getElementById("mission-difficulty").value;
+                const missionDifficulty =
+                    document.getElementById("mission-difficulty").value;
 
                 let filename = "Mission_Debrief_Data";
                 if (missionName) {
@@ -3364,8 +3480,12 @@
                 csv.push(`Mission Played:,${getStr("mission-name")}`);
                 csv.push(`Difficulty:,${missionDifficulty}`);
                 csv.push(`Waves Reached:,${getVal("global-waves")}`);
-                csv.push(`Objective Completion:,${document.getElementById("global-objective").value === "1" ? "Yes" : "No"}`);
-                csv.push(`Geneseed Retrieved:,${document.getElementById("global-geneseed").value === "1" ? "Yes" : "No"}`);
+                csv.push(
+                    `Objective Completion:,${document.getElementById("global-objective").value === "1" ? "Yes" : "No"}`,
+                );
+                csv.push(
+                    `Geneseed Retrieved:,${document.getElementById("global-geneseed").value === "1" ? "Yes" : "No"}`,
+                );
                 csv.push(`Armoury Data Retrieved:,${getVal("global-armoury")}`);
                 csv.push("");
 
@@ -3384,23 +3504,45 @@
                 // SQUAD PERFORMANCE MATRIX
                 csv.push("SQUAD PERFORMANCE MATRIX");
                 csv.push(`,${p1Name},${p2Name},${p3Name},TOTAL`);
-                csv.push(`Class,${document.getElementById("p1-class").value},${document.getElementById("p2-class").value},${document.getElementById("p3-class").value},`);
-                csv.push(`Kills,${getVal("p1-kills")},${getVal("p2-kills")},${getVal("p3-kills")},${document.getElementById("total-kills").textContent}`);
-                csv.push(`Special Kills,${getVal("p1-elite")},${getVal("p2-elite")},${getVal("p3-elite")},${document.getElementById("total-elite").textContent}`);
-                csv.push(`Incapacitations,${getVal("p1-death")},${getVal("p2-death")},${getVal("p3-death")},${document.getElementById("total-death").textContent}`);
-                csv.push(`Damage Taken,${getVal("p1-damage")},${getVal("p2-damage")},${getVal("p3-damage")},${document.getElementById("total-damage").textContent}`);
-                csv.push(`Base Score,${document.getElementById("p1-base").textContent},${document.getElementById("p2-base").textContent},${document.getElementById("p3-base").textContent},${document.getElementById("total-base").textContent}`);
-                csv.push(`Modifier Score,${document.getElementById("p1-mod").textContent},${document.getElementById("p2-mod").textContent},${document.getElementById("p3-mod").textContent},${document.getElementById("total-mod").textContent}`);
-                csv.push(`TOTAL SCORE,${document.getElementById("p1-final").textContent},${document.getElementById("p2-final").textContent},${document.getElementById("p3-final").textContent},${document.getElementById("total-final").textContent}`);
+                csv.push(
+                    `Class,${document.getElementById("p1-class").value},${document.getElementById("p2-class").value},${document.getElementById("p3-class").value},`,
+                );
+                csv.push(
+                    `Kills,${getVal("p1-kills")},${getVal("p2-kills")},${getVal("p3-kills")},${document.getElementById("total-kills").textContent}`,
+                );
+                csv.push(
+                    `Special Kills,${getVal("p1-elite")},${getVal("p2-elite")},${getVal("p3-elite")},${document.getElementById("total-elite").textContent}`,
+                );
+                csv.push(
+                    `Incapacitations,${getVal("p1-death")},${getVal("p2-death")},${getVal("p3-death")},${document.getElementById("total-death").textContent}`,
+                );
+                csv.push(
+                    `Damage Taken,${getVal("p1-damage")},${getVal("p2-damage")},${getVal("p3-damage")},${document.getElementById("total-damage").textContent}`,
+                );
+                csv.push(
+                    `Base Score,${document.getElementById("p1-base").textContent},${document.getElementById("p2-base").textContent},${document.getElementById("p3-base").textContent},${document.getElementById("total-base").textContent}`,
+                );
+                csv.push(
+                    `Modifier Score,${document.getElementById("p1-mod").textContent},${document.getElementById("p2-mod").textContent},${document.getElementById("p3-mod").textContent},${document.getElementById("total-mod").textContent}`,
+                );
+                csv.push(
+                    `TOTAL SCORE,${document.getElementById("p1-final").textContent},${document.getElementById("p2-final").textContent},${document.getElementById("p3-final").textContent},${document.getElementById("total-final").textContent}`,
+                );
                 csv.push("");
 
                 // ADDITIONAL STATISTICS
                 csv.push("ADDITIONAL STATISTICS");
                 csv.push(`,${p1Name},${p2Name},${p3Name},TOTAL`);
-                csv.push(`Melee Damage,${getVal("p1-melee")},${getVal("p2-melee")},${getVal("p3-melee")},${document.getElementById("total-melee").textContent}`);
-                csv.push(`Ranged Damage,${getVal("p1-ranged")},${getVal("p2-ranged")},${getVal("p3-ranged")},${document.getElementById("total-ranged").textContent}`);
-                csv.push(`Items Found,${getVal("p1-items")},${getVal("p2-items")},${getVal("p3-items")},${document.getElementById("total-items").textContent}`);
-                
+                csv.push(
+                    `Melee Damage,${getVal("p1-melee")},${getVal("p2-melee")},${getVal("p3-melee")},${document.getElementById("total-melee").textContent}`,
+                );
+                csv.push(
+                    `Ranged Damage,${getVal("p1-ranged")},${getVal("p2-ranged")},${getVal("p3-ranged")},${document.getElementById("total-ranged").textContent}`,
+                );
+                csv.push(
+                    `Items Found,${getVal("p1-items")},${getVal("p2-items")},${getVal("p3-items")},${document.getElementById("total-items").textContent}`,
+                );
+
                 // Teammates Revived with differential
                 const p1Revived = getVal("p1-revived");
                 const p2Revived = getVal("p2-revived");
@@ -3414,7 +3556,9 @@
                 const totalRevived = p1Revived + p2Revived + p3Revived;
                 const totalDeaths = p1Deaths + p2Deaths + p3Deaths;
                 const totalDiff = totalRevived - totalDeaths;
-                csv.push(`Teammates Revived,${p1Revived} (${p1Diff >= 0 ? '+' : ''}${p1Diff}),${p2Revived} (${p2Diff >= 0 ? '+' : ''}${p2Diff}),${p3Revived} (${p3Diff >= 0 ? '+' : ''}${p3Diff}),${totalRevived} (${totalDiff >= 0 ? '+' : ''}${totalDiff})`);
+                csv.push(
+                    `Teammates Revived,${p1Revived} (${p1Diff >= 0 ? "+" : ""}${p1Diff}),${p2Revived} (${p2Diff >= 0 ? "+" : ""}${p2Diff}),${p3Revived} (${p3Diff >= 0 ? "+" : ""}${p3Diff}),${totalRevived} (${totalDiff >= 0 ? "+" : ""}${totalDiff})`,
+                );
 
                 const csvFile = new Blob([csv.join("\n")], {
                     type: "text/csv;charset=utf-8;",
