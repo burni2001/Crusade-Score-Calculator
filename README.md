@@ -1,6 +1,6 @@
 # Adeptus Astartes - Mission Debrief Calculator
 
-A Progressive Web App (PWA) for calculating Warhammer 40K Space Marine 2 mission debriefing scores.
+A Progressive Web App (PWA) for calculating mission debriefing scores.
 
 ## Features
 
