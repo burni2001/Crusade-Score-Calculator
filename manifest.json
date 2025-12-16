@@ -1,6 +1,6 @@
 {
-    "name": "Adeptus Astartes - Mission Debrief",
-    "short_name": "Mission Debrief",
+    "name": "Crusade Score Calculator",
+    "short_name": "Crusade Score",
     "description": "A calculator for Adeptus Astartes mission debriefing scores.",
     "start_url": "./",
     "display": "standalone",
