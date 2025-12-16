@@ -44,7 +44,8 @@ python -m http.server 5000
 For personal use.
 
 ## Credits
-Development & Implementation: burni2001 (Börni)
-Development Tools: Replit AI, Gemini and Claude
-Scoring System & Event Concept: gilzvit (Gideon)
-Joins us on Discord: Lightning Fist • For the Emperor!
+- Development & Implementation: burni2001 (Börni)
+- Development Tools: Replit AI, Gemini and Claude
+- Scoring System & Event Concept: gilzvit (Gideon)
+
+Joins us on Discord: [Lightning Fist](https://Discord.gg/KtJDBvpBRR) • For the Emperor!
