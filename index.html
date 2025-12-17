@@ -1,328 +1,743 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Crusade Score Calculator</title>
-    <link rel="manifest" href="manifest.json" />
-    <meta name="theme-color" content="#050a05" />
-    
-    <link rel="stylesheet" href="style.css"> 
-</head>
-<body>
-    <div class="cogitator-frame">
-        <div class="header-decor">
-            <div>
-                <div>REF: SM-2/CRUSADE</div>
-                <div style="font-size: 0.8em; opacity: 0.7">
-                    V 3.0 - ADEPTUS ADMINISTRATUM
-                </div>
-            </div>
-            <h1>Adeptus Astartes - Mission&nbsp;Debrief</h1>
-            <div style="display: flex; align-items: center; gap: 15px">
-                <span>DAT: X.959.025.M42</span>
-                <img src="attached_assets/FFFvLV2Ld6_crt_frei.png" alt="Logo" class="header-logo" />
-            </div>
-        </div>
-
-        <div style="text-align:center; margin:10px auto 25px auto; max-width:900px; line-height:1.4; color:#afffa6; font-size:1.1rem;">
-            Welcome, Brothers and Sisters! Use this debriefing tool to calculate your mission scores. 
-            Select the Mission parameters. Enter your mission statistics below. 
-            The Modifier section allows customization of score values if necessary.
-            <br /><br />
-            <span style="font-weight:bold; letter-spacing:1px; text-shadow: 0 0 5px var(--pip-green);">* Glory to the Imperium! *</span>
-        </div>
-
-        <div style="margin-top: 20px; margin-bottom: 25px; padding: 15px; background-color: rgba(51, 255, 0, 0.1); border: 1px dashed var(--pip-green); text-align: center;">
-            <label for="screenshot-upload" style="cursor: pointer; display: block; width: 100%;">
-                <div style="font-weight: bold; font-size: 1.2rem; margin-bottom: 5px;">[+] UPLOAD SCREENSHOTS</div>
-                <div style="font-size: 0.85em; opacity: 0.8;">
-                    Upload post-mission screenshots to auto-fill data (OCR)
-                </div>
-            </label>
-            <input type="file" id="screenshot-upload" accept="image/*" multiple style="display: none;" />
-            <div id="upload-status" style="margin-top: 10px; font-weight: bold; min-height: 20px;"></div>
-            <div id="upload-progress" style="font-size: 0.85rem; color: var(--pip-dim);"></div>
-        </div>
-
-        <div class="divider-line"></div>
-
-        <div class="dashboard-wrapper">
-            
-            <div class="mission-panel">
-                <div class="section">
-                    <div class="section-header">MISSION PARAMETERS</div>
-                    
-                    <div class="mission-params">
-                        <label for="mission-name">Mission Played</label>
-                        <input type="text" id="mission-name" placeholder="e.g., Inferno" oninput="saveData()">
-                    </div>
-                    
-                    <div class="mission-params">
-                        <label for="mission-difficulty">Difficulty</label>
-                        <select id="mission-difficulty" onchange="saveData()">
-                            <option value="Minimal">Minimal</option>
-                            <option value="Average">Average</option>
-                            <option value="Substantial">Substantial</option>
-                            <option value="Ruthless">Ruthless</option>
-                            <option value="Lethal">Lethal</option>
-                            <option value="Absolute">Absolute</option>
-                        </select>
-                    </div>
-                    
-                    <div class="mission-params">
-                        <label for="global-waves">Waves Reached</label>
-                        <input type="number" id="global-waves" value="0" oninput="calculate(); saveData()">
-                    </div>
-                    
-                    <div class="mission-params">
-                        <label for="global-objective">Obj. Completion</label>
-                        <select id="global-objective" onchange="calculate(); saveData()">
-                            <option value="0">No</option>
-                            <option value="1">Yes</option>
-                        </select>
-                    </div>
-                    
-                    <div class="mission-params">
-                        <label for="global-geneseed">Geneseed</label>
-                        <select id="global-geneseed" onchange="calculate(); saveData()">
-                            <option value="0">Not Found</option>
-                            <option value="1">Retrieved</option>
-                        </select>
-                    </div>
-                    
-                    <div class="mission-params">
-                        <label for="global-armoury">Armoury Data</label>
-                        <select id="global-armoury" onchange="calculate(); saveData()">
-                            <option value="0">0</option>
-                            <option value="1">1</option>
-                            <option value="2">2</option>
-                            <option value="3">3</option>
-                        </select>
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Crusade Score Calculator</title>
+        <link rel="manifest" href="manifest.json" />
+        <meta name="theme-color" content="#050a05" />
+        
+        <link rel="stylesheet" href="style.css">
+    </head>
+    <body>
+        <div class="cogitator-frame">
+            <div class="header-decor">
+                <div>
+                    <div>REF: SM-2/CRUSADE</div>
+                    <div style="font-size: 0.8em; opacity: 0.7">
+                        V 2.5 - ADEPTUS ADMINISTRATUM
                     </div>
                 </div>
+                <h1>Adeptus Astartes - Mission&nbsp;Debrief</h1>
+                <div style="display: flex; align-items: center; gap: 15px">
+                    <span>DAT: X.959.025.M42</span>
+                    <img
+                        src="attached_assets/FFFvLV2Ld6_crt_frei.png"
+                        alt="Logo"
+                        class="header-logo"
+                    />
+                </div>
+            </div>
+            <div style="
+                text-align: center; 
+                margin: 10px auto 25px auto; 
+                max-width: 900px; 
+                line-height: 1.4; 
+                color: #afffa6; 
+                font-size: 1.1rem;
+            ">
+                Welcome, Brothers and Sisters! Use this debriefing tool to calculate your mission scores. 
+                Select the Mission parameters. Enter your mission statistics below. 
+                The Modifier section allows customization of score values if necessary.
+                <br /><br />
+                <span style="font-weight:bold; letter-spacing:1px; text-shadow: 0 0 5px var(--pip-green);">* Glory to the Imperium! *</span>
+            </div> <div style="
+                margin-top: 20px;      /* Added space from Welcome Message */
+                margin-bottom: 25px;
+                padding: 0px;          /* Reduced padding to shrink height */
+                background-color: rgba(51, 255, 0, 0.1);
+                border: 1px solid var(--pip-green);
+                text-align: center;
+            ">
+                <div style="font-weight: bold; margin-top: 5px; margin-bottom: 2px;">UPLOAD SCREENSHOTS</div>
+                <p style="font-size: 0.85em; color: #7a7; margin: 0 0 5px 0;">
+                    Upload post-mission screenshots to auto-fill data.
+                </p>
+                <input type="file" id="screenshot-upload" accept="image/png,image/jpeg,image/jpg" multiple style="
+                    display: block;
+                    margin: 0 auto;
+                    padding: 8px;
+                    background-color: var(--panel-bg);
+                    cursor: pointer;
+                    color: var(--pip-green);
+                    border: 1px solid var(--pip-green);
+                    width: 100%;
+                    max-width: 500px;
+                " />
+                <div id="upload-status" style="margin-top: 5px; font-weight: bold; min-height: 20px;"></div>
+                <div id="upload-progress" style="font-size: 0.85rem; color: var(--pip-dim);"></div>
             </div>
 
-            <div class="modifiers-panel">
-                <div class="section" style="height: 100%;">
-                    <div class="section-header">MODIFIERS</div>
-                    <div class="mod-grid-clean">
-                        <div class="mod-row">
-                            <label>Kills</label>
-                            <input type="number" id="mod-kills" value="1" step="0.1" oninput="calculate(); saveData()">
+            <div class="dashboard-wrapper">
+                
+                <div class="mission-panel">
+                    <div class="section">
+                        <div style="font-weight: bold; font-size: 1.2rem; margin-bottom: 15px; text-align: center; color: var(--pip-green);">
+                            MISSION PARAMETERS
                         </div>
-                        <div class="mod-row">
-                            <label>Special Kills</label>
-                            <input type="number" id="mod-elite" value="20" oninput="calculate(); saveData()">
+                        
+                        <div class="mission-params">
+                            <label for="mission-name">Mission Played</label>
+                            <input type="text" id="mission-name" placeholder="e.g., Inferno" onchange="saveData();" />
                         </div>
-                        <div class="mod-row">
-                            <label>Incapacitations</label>
-                            <input type="number" id="mod-death" value="-100" oninput="calculate(); saveData()">
+                        <div class="mission-params">
+                            <label for="mission-difficulty">Difficulty</label>
+                            <select id="mission-difficulty" onchange="calculate(); saveData();">
+                                <option value="" disabled selected hidden>Select Difficulty</option>
+                                <option value="Minimal">Minimal</option>
+                                <option value="Average">Average</option>
+                                <option value="Substantial">Substantial</option>
+                                <option value="Ruthless">Ruthless</option>
+                                <option value="Lethal">Lethal</option>
+                                <option value="Absolute">Absolute</option>
+                                <option value="Normal">Normal</option>
+                                <option value="Hard">Hard</option>
+                            </select>
                         </div>
-                        <div class="mod-row">
-                            <label>Damage Taken</label>
-                            <input type="number" id="mod-damage" value="-0.1" step="0.1" oninput="calculate(); saveData()">
+                        <div class="mission-params">
+                            <label>Objective Completion</label>
+                            <select id="global-objective" onchange="calculate(); saveData();">
+                                <option value="" disabled selected hidden>Select</option>
+                                <option value="0">No</option>
+                                <option value="1">Yes</option>
+                            </select>
                         </div>
-                        <div class="mod-row">
-                            <label>Geneseed</label>
-                            <input type="number" id="mod-gene" value="100" oninput="calculate(); saveData()">
+                        <div class="mission-params">
+                            <label>Gene-Seed Retrieved</label>
+                            <select id="global-geneseed" onchange="calculate(); saveData();">
+                                <option value="" disabled selected hidden>Select</option>
+                                <option value="0">No</option>
+                                <option value="1">Yes</option>
+                            </select>
                         </div>
-                        <div class="mod-row">
-                            <label>Armoury</label>
-                            <input type="number" id="mod-armoury" value="75" oninput="calculate(); saveData()">
+                        <div class="mission-params">
+                            <label>Armoury Data Retrieved</label>
+                            <select id="global-armoury" onchange="calculate(); saveData();">
+                                <option value="" disabled selected hidden>Select</option>
+                                <option value="0">0</option>
+                                <option value="1">1</option>
+                                <option value="2">2</option>
+                                <option value="3">3</option>
+                            </select>
                         </div>
-                        <div class="mod-row">
-                            <label>Objective</label>
-                            <input type="number" id="mod-obj" value="100" oninput="calculate(); saveData()">
-                        </div>
-                        <div class="mod-row">
-                            <label>Waves</label>
-                            <input type="number" id="mod-waves" value="0" oninput="calculate(); saveData()">
+                        <div class="mission-params">
+                            <label>Waves Reached (Siege)</label>
+                            <input type="number" id="global-waves" value="0" min="0" inputmode="numeric" onchange="calculate(); saveData();" />
                         </div>
                     </div>
                 </div>
+
+                <div class="modifiers-panel">
+                    <div class="section" style="height: 100%;">
+                        <div style="font-weight: bold; font-size: 1.2rem; margin-bottom: 15px; text-align: center; color: var(--pip-green);">
+                            MODIFIERS
+                        </div>
+                        <div class="mod-grid-clean">
+                            <div class="mod-row">
+                                <label>Kills</label>
+                                <input type="number" id="mod-kills" value="1" onchange="calculate(); saveData();">
+                            </div>
+                            <div class="mod-row">
+                                <label>Special Kills</label>
+                                <input type="number" id="mod-elite" value="20" onchange="calculate(); saveData();">
+                            </div>
+                            <div class="mod-row">
+                                <label>Incapacitations</label>
+                                <input type="number" id="mod-death" value="-100" onchange="calculate(); saveData();">
+                            </div>
+
+                            <div class="mod-row">
+                                <label>Damage Taken</label>
+                                <input type="number" id="mod-damage" value="-0.1" step="0.1" onchange="calculate(); saveData();">
+                            </div>
+                            <div class="mod-row">
+                                <label>Gene-Seed</label>
+                                <input type="number" id="mod-gene" value="100" onchange="calculate(); saveData();">
+                            </div>
+                            <div class="mod-row">
+                                <label>Armoury Data</label>
+                                <input type="number" id="mod-armoury" value="25" onchange="calculate(); saveData();">
+                            </div>
+
+                            <div class="mod-row">
+                                <label>Objective</label>
+                                <input type="number" id="mod-obj" value="100" onchange="calculate(); saveData();">
+                            </div>
+                            <div class="mod-row">
+                                <label>Waves</label>
+                                <input type="number" id="mod-waves" value="10" onchange="calculate(); saveData();">
+                            </div>
+                            <div></div> 
+                        </div>
+                    </div>
+                </div>
+
+            </div>         
+            <div class="section" style="margin-bottom: 0">
+                <div class="section-header">SQUAD PERFORMANCE MATRIX</div>
+                <div class="score-table-container">
+                    <table class="score-table">
+                        <thead>
+                            <tr>
+                                <th class="empty-header"></th>
+                                <th>
+                                    <input
+                                        type="text"
+                                        value=""
+                                        placeholder="Name"
+                                        class="player-name-input"
+                                        id="p1-name"
+                                        onchange="saveData(); updateAdditionalStatsHeaders();"
+                                        oninput="updateAdditionalStatsHeaders();"
+                                    />
+                                </th>
+                                <th>
+                                    <input
+                                        type="text"
+                                        value=""
+                                        placeholder="Name"
+                                        class="player-name-input"
+                                        id="p2-name"
+                                        onchange="saveData(); updateAdditionalStatsHeaders();"
+                                        oninput="updateAdditionalStatsHeaders();"
+                                    />
+                                </th>
+                                <th>
+                                    <input
+                                        type="text"
+                                        value=""
+                                        placeholder="Name"
+                                        class="player-name-input"
+                                        id="p3-name"
+                                        onchange="saveData(); updateAdditionalStatsHeaders();"
+                                        oninput="updateAdditionalStatsHeaders();"
+                                    />
+                                </th>
+                                <th>TOTAL</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td class="row-label">Class</td>
+                                <td class="input-cell">
+                                    <select
+                                        id="p1-class"
+                                        onchange="saveData();"
+                                    >
+                                        <option value="">-</option>
+                                        <option value="Tactical">
+                                            Tactical
+                                        </option>
+                                        <option value="Assault">Assault</option>
+                                        <option value="Vanguard">
+                                            Vanguard
+                                        </option>
+                                        <option value="Bulwark">Bulwark</option>
+                                        <option value="Sniper">Sniper</option>
+                                        <option value="Heavy">Heavy</option>
+                                        <option value="Techmarine">
+                                            Techmarine
+                                        </option>
+                                    </select>
+                                </td>
+                                <td class="input-cell">
+                                    <select
+                                        id="p2-class"
+                                        onchange="saveData();"
+                                    >
+                                        <option value="">-</option>
+                                        <option value="Tactical">
+                                            Tactical
+                                        </option>
+                                        <option value="Assault">Assault</option>
+                                        <option value="Vanguard">
+                                            Vanguard
+                                        </option>
+                                        <option value="Bulwark">Bulwark</option>
+                                        <option value="Sniper">Sniper</option>
+                                        <option value="Heavy">Heavy</option>
+                                        <option value="Techmarine">
+                                            Techmarine
+                                        </option>
+                                    </select>
+                                </td>
+                                <td class="input-cell">
+                                    <select
+                                        id="p3-class"
+                                        onchange="saveData();"
+                                    >
+                                        <option value="">-</option>
+                                        <option value="Tactical">
+                                            Tactical
+                                        </option>
+                                        <option value="Assault">Assault</option>
+                                        <option value="Vanguard">
+                                            Vanguard
+                                        </option>
+                                        <option value="Bulwark">Bulwark</option>
+                                        <option value="Sniper">Sniper</option>
+                                        <option value="Heavy">Heavy</option>
+                                        <option value="Techmarine">
+                                            Techmarine
+                                        </option>
+                                    </select>
+                                </td>
+                                <td class="total-cell"></td>
+                            </tr>
+                            <tr>
+                                <td class="row-label">Kills</td>
+                                <td class="input-cell">
+                                    <input
+                                        type="number"
+                                        class="p1-input"
+                                        id="p1-kills"
+                                        value="0"
+                                        min="0"
+                                        inputmode="numeric"
+                                        onchange="calculate(); saveData();"
+                                    />
+                                </td>
+                                <td class="input-cell">
+                                    <input
+                                        type="number"
+                                        class="p2-input"
+                                        id="p2-kills"
+                                        value="0"
+                                        min="0"
+                                        inputmode="numeric"
+                                        onchange="calculate(); saveData();"
+                                    />
+                                </td>
+                                <td class="input-cell">
+                                    <input
+                                        type="number"
+                                        class="p3-input"
+                                        id="p3-kills"
+                                        value="0"
+                                        min="0"
+                                        inputmode="numeric"
+                                        onchange="calculate(); saveData();"
+                                    />
+                                </td>
+                                <td class="total-cell" id="total-kills">0</td>
+                            </tr>
+                            <tr>
+                                <td class="row-label">Special Kills</td>
+                                <td class="input-cell">
+                                    <input
+                                        type="number"
+                                        class="p1-input"
+                                        id="p1-elite"
+                                        value="0"
+                                        min="0"
+                                        inputmode="numeric"
+                                        onchange="calculate(); saveData();"
+                                    />
+                                </td>
+                                <td class="input-cell">
+                                    <input
+                                        type="number"
+                                        class="p2-input"
+                                        id="p2-elite"
+                                        value="0"
+                                        min="0"
+                                        inputmode="numeric"
+                                        onchange="calculate(); saveData();"
+                                    />
+                                </td>
+                                <td class="input-cell">
+                                    <input
+                                        type="number"
+                                        class="p3-input"
+                                        id="p3-elite"
+                                        value="0"
+                                        min="0"
+                                        inputmode="numeric"
+                                        onchange="calculate(); saveData();"
+                                    />
+                                </td>
+                                <td class="total-cell" id="total-elite">0</td>
+                            </tr>
+                            <tr class="base-score-row">
+                                <td class="row-label">Base Score</td>
+                                <td id="p1-base">0</td>
+                                <td id="p2-base">0</td>
+                                <td id="p3-base">0</td>
+                                <td id="total-base">0</td>
+                            </tr>
+                            <tr>
+                                <td class="row-label">Incapacitations</td>
+                                <td class="input-cell">
+                                    <input
+                                        type="number"
+                                        class="p1-input"
+                                        id="p1-death"
+                                        value="0"
+                                        min="0"
+                                        inputmode="numeric"
+                                        onchange="calculate(); saveData();"
+                                    />
+                                </td>
+                                <td class="input-cell">
+                                    <input
+                                        type="number"
+                                        class="p2-input"
+                                        id="p2-death"
+                                        value="0"
+                                        min="0"
+                                        inputmode="numeric"
+                                        onchange="calculate(); saveData();"
+                                    />
+                                </td>
+                                <td class="input-cell">
+                                    <input
+                                        type="number"
+                                        class="p3-input"
+                                        id="p3-death"
+                                        value="0"
+                                        min="0"
+                                        inputmode="numeric"
+                                        onchange="calculate(); saveData();"
+                                    />
+                                </td>
+                                <td class="total-cell" id="total-death">0</td>
+                            </tr>
+                            <tr>
+                                <td class="row-label">Damage Taken</td>
+                                <td class="input-cell">
+                                    <input
+                                        type="number"
+                                        class="p1-input"
+                                        id="p1-damage"
+                                        value="0"
+                                        min="0"
+                                        step="0.1"
+                                        inputmode="decimal"
+                                        onchange="calculate(); saveData();"
+                                    />
+                                </td>
+                                <td class="input-cell">
+                                    <input
+                                        type="number"
+                                        class="p2-input"
+                                        id="p2-damage"
+                                        value="0"
+                                        min="0"
+                                        step="0.1"
+                                        inputmode="decimal"
+                                        onchange="calculate(); saveData();"
+                                    />
+                                </td>
+                                <td class="input-cell">
+                                    <input
+                                        type="number"
+                                        class="p3-input"
+                                        id="p3-damage"
+                                        value="0"
+                                        min="0"
+                                        step="0.1"
+                                        inputmode="decimal"
+                                        onchange="calculate(); saveData();"
+                                    />
+                                </td>
+                                <td class="total-cell" id="total-damage">0</td>
+                            </tr>
+
+                            <tr class="mod-score-row">
+                                <td class="row-label">Modifier Score</td>
+                                <td id="p1-mod">0</td>
+                                <td id="p2-mod">0</td>
+                                <td id="p3-mod">0</td>
+                                <td id="total-mod">0</td>
+                            </tr>
+                            <tr style="height: 10px"></tr>
+                            <tr class="final-score-row">
+                                <td class="row-label" style="color: #afffa6">
+                                    TOTAL SCORE
+                                </td>
+                                <td id="p1-final">0</td>
+                                <td id="p2-final">0</td>
+                                <td id="p3-final">0</td>
+                                <td id="total-final">0</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                </div>
+            <div class="section" style="margin-top: 15px">
+                <div class="section-header">ADDITIONAL STATISTICS</div>
+                <div class="score-table-container">
+                    <table class="score-table">
+                        <thead>
+                            <tr>
+                                <th class="empty-header"></th>
+                                <th id="addstats-p1-header">
+                                    Battle Brother 1
+                                </th>
+                                <th id="addstats-p2-header">
+                                    Battle Brother 2
+                                </th>
+                                <th id="addstats-p3-header">
+                                    Battle Brother 3
+                                </th>
+                                <th>TOTAL</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td class="row-label">Melee Damage</td>
+                                <td class="input-cell">
+                                    <input
+                                        type="number"
+                                        class="p1-input"
+                                        id="p1-melee"
+                                        value="0"
+                                        min="0"
+                                        inputmode="numeric"
+                                        onchange="calculate(); saveData();"
+                                    />
+                                </td>
+                                <td class="input-cell">
+                                    <input
+                                        type="number"
+                                        class="p2-input"
+                                        id="p2-melee"
+                                        value="0"
+                                        min="0"
+                                        inputmode="numeric"
+                                        onchange="calculate(); saveData();"
+                                    />
+                                </td>
+                                <td class="input-cell">
+                                    <input
+                                        type="number"
+                                        class="p3-input"
+                                        id="p3-melee"
+                                        value="0"
+                                        min="0"
+                                        inputmode="numeric"
+                                        onchange="calculate(); saveData();"
+                                    />
+                                </td>
+                                <td class="total-cell" id="total-melee">0</td>
+                            </tr>
+                            <tr>
+                                <td class="row-label">Ranged Damage</td>
+                                <td class="input-cell">
+                                    <input
+                                        type="number"
+                                        class="p1-input"
+                                        id="p1-ranged"
+                                        value="0"
+                                        min="0"
+                                        inputmode="numeric"
+                                        onchange="calculate(); saveData();"
+                                    />
+                                </td>
+                                <td class="input-cell">
+                                    <input
+                                        type="number"
+                                        class="p2-input"
+                                        id="p2-ranged"
+                                        value="0"
+                                        min="0"
+                                        inputmode="numeric"
+                                        onchange="calculate(); saveData();"
+                                    />
+                                </td>
+                                <td class="input-cell">
+                                    <input
+                                        type="number"
+                                        class="p3-input"
+                                        id="p3-ranged"
+                                        value="0"
+                                        min="0"
+                                        inputmode="numeric"
+                                        onchange="calculate(); saveData();"
+                                    />
+                                </td>
+                                <td class="total-cell" id="total-ranged">0</td>
+                            </tr>
+                            <tr>
+                                <td class="row-label">Items Found</td>
+                                <td class="input-cell">
+                                    <input
+                                        type="number"
+                                        class="p1-input"
+                                        id="p1-items"
+                                        value="0"
+                                        min="0"
+                                        inputmode="numeric"
+                                        onchange="calculate(); saveData();"
+                                    />
+                                </td>
+                                <td class="input-cell">
+                                    <input
+                                        type="number"
+                                        class="p2-input"
+                                        id="p2-items"
+                                        value="0"
+                                        min="0"
+                                        inputmode="numeric"
+                                        onchange="calculate(); saveData();"
+                                    />
+                                </td>
+                                <td class="input-cell">
+                                    <input
+                                        type="number"
+                                        class="p3-input"
+                                        id="p3-items"
+                                        value="0"
+                                        min="0"
+                                        inputmode="numeric"
+                                        onchange="calculate(); saveData();"
+                                    />
+                                </td>
+                                <td class="total-cell" id="total-items">0</td>
+                            </tr>
+                            <tr>
+                                <td class="row-label">Teammates Revived</td>
+                                <td class="input-cell">
+                                    <div
+                                        style="
+                                            display: flex;
+                                            align-items: center;
+                                            gap: 5px;
+                                        "
+                                    >
+                                        <input
+                                            type="number"
+                                            class="p1-input"
+                                            id="p1-revived"
+                                            value="0"
+                                            min="0"
+                                            inputmode="numeric"
+                                            onchange="calculate(); saveData();"
+                                            style="flex: 1"
+                                        />
+                                        <span
+                                            id="p1-diff"
+                                            style="
+                                                color: #afffa6;
+                                                font-size: 0.9em;
+                                            "
+                                            >(0)</span
+                                        >
+                                    </div>
+                                </td>
+                                <td class="input-cell">
+                                    <div
+                                        style="
+                                            display: flex;
+                                            align-items: center;
+                                            gap: 5px;
+                                        "
+                                    >
+                                        <input
+                                            type="number"
+                                            class="p2-input"
+                                            id="p2-revived"
+                                            value="0"
+                                            min="0"
+                                            inputmode="numeric"
+                                            onchange="calculate(); saveData();"
+                                            style="flex: 1"
+                                        />
+                                        <span
+                                            id="p2-diff"
+                                            style="
+                                                color: #afffa6;
+                                                font-size: 0.9em;
+                                            "
+                                            >(0)</span
+                                        >
+                                    </div>
+                                </td>
+                                <td class="input-cell">
+                                    <div
+                                        style="
+                                            display: flex;
+                                            align-items: center;
+                                            gap: 5px;
+                                        "
+                                    >
+                                        <input
+                                            type="number"
+                                            class="p3-input"
+                                            id="p3-revived"
+                                            value="0"
+                                            min="0"
+                                            inputmode="numeric"
+                                            onchange="calculate(); saveData();"
+                                            style="flex: 1"
+                                        />
+                                        <span
+                                            id="p3-diff"
+                                            style="
+                                                color: #afffa6;
+                                                font-size: 0.9em;
+                                            "
+                                            >(0)</span
+                                        >
+                                    </div>
+                                </td>
+                                <td class="total-cell">
+                                    <span id="total-revived">0</span>
+                                    <span
+                                        id="total-diff"
+                                        style="font-size: 0.9em"
+                                        >(0)</span
+                                    >
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
             </div>
-        </div>
+            <div class="export-buttons-container">
+                <button onclick="exportToCSV()">
+                    Export to Data Slate (CSV)
+                </button>
+                <button class="danger-btn" onclick="clearData()">
+                    Purge Mission Data
+                </button>
+            </div><div class="divider-line"></div>
 
-        <div class="section" style="margin-top: 0px;">
-            <div class="section-header">SQUAD PERFORMANCE MATRIX</div>
-            <div class="score-table-container">
-                <table class="score-table">
-                    <thead>
-                        <tr>
-                            <th class="empty-header"></th>
-                            <th style="min-width: 120px;">
-                                <input type="text" id="p1-name" placeholder="Player 1" oninput="updateAdditionalStatsHeaders(); saveData()" style="background:transparent; border:none; color:var(--pip-green); font-weight:bold; width:100%; text-transform:uppercase;">
-                                <select id="p1-class" onchange="saveData()" style="font-size:0.8rem; margin-top:2px;">
-                                    <option value="Tactical">Tactical</option>
-                                    <option value="Assault">Assault</option>
-                                    <option value="Vanguard">Vanguard</option>
-                                    <option value="Bulwark">Bulwark</option>
-                                    <option value="Sniper">Sniper</option>
-                                    <option value="Heavy">Heavy</option>
-                                    <option value="Techmarine">Techmarine</option>
-                                </select>
-                            </th>
-                            <th style="min-width: 120px;">
-                                <input type="text" id="p2-name" placeholder="Player 2" oninput="updateAdditionalStatsHeaders(); saveData()" style="background:transparent; border:none; color:var(--pip-green); font-weight:bold; width:100%; text-transform:uppercase;">
-                                <select id="p2-class" onchange="saveData()" style="font-size:0.8rem; margin-top:2px;">
-                                    <option value="Tactical">Tactical</option>
-                                    <option value="Assault">Assault</option>
-                                    <option value="Vanguard">Vanguard</option>
-                                    <option value="Bulwark">Bulwark</option>
-                                    <option value="Sniper">Sniper</option>
-                                    <option value="Heavy">Heavy</option>
-                                    <option value="Techmarine">Techmarine</option>
-                                </select>
-                            </th>
-                            <th style="min-width: 120px;">
-                                <input type="text" id="p3-name" placeholder="Player 3" oninput="updateAdditionalStatsHeaders(); saveData()" style="background:transparent; border:none; color:var(--pip-green); font-weight:bold; width:100%; text-transform:uppercase;">
-                                <select id="p3-class" onchange="saveData()" style="font-size:0.8rem; margin-top:2px;">
-                                    <option value="Tactical">Tactical</option>
-                                    <option value="Assault">Assault</option>
-                                    <option value="Vanguard">Vanguard</option>
-                                    <option value="Bulwark">Bulwark</option>
-                                    <option value="Sniper">Sniper</option>
-                                    <option value="Heavy">Heavy</option>
-                                    <option value="Techmarine">Techmarine</option>
-                                </select>
-                            </th>
-                            <th>TOTAL</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            <td class="row-label">Kills</td>
-                            <td><input type="number" id="p1-kills" value="0" oninput="calculate(); saveData()"></td>
-                            <td><input type="number" id="p2-kills" value="0" oninput="calculate(); saveData()"></td>
-                            <td><input type="number" id="p3-kills" value="0" oninput="calculate(); saveData()"></td>
-                            <td class="total-cell" id="total-kills">0</td>
-                        </tr>
-                        <tr>
-                            <td class="row-label">Special Kills</td>
-                            <td><input type="number" id="p1-elite" value="0" oninput="calculate(); saveData()"></td>
-                            <td><input type="number" id="p2-elite" value="0" oninput="calculate(); saveData()"></td>
-                            <td><input type="number" id="p3-elite" value="0" oninput="calculate(); saveData()"></td>
-                            <td class="total-cell" id="total-elite">0</td>
-                        </tr>
-                        <tr>
-                            <td class="row-label">Incapacitations</td>
-                            <td><input type="number" id="p1-death" value="0" oninput="calculate(); saveData()"></td>
-                            <td><input type="number" id="p2-death" value="0" oninput="calculate(); saveData()"></td>
-                            <td><input type="number" id="p3-death" value="0" oninput="calculate(); saveData()"></td>
-                            <td class="total-cell" id="total-death">0</td>
-                        </tr>
-                        <tr>
-                            <td class="row-label">Damage Taken</td>
-                            <td><input type="number" id="p1-damage" value="0" oninput="calculate(); saveData()"></td>
-                            <td><input type="number" id="p2-damage" value="0" oninput="calculate(); saveData()"></td>
-                            <td><input type="number" id="p3-damage" value="0" oninput="calculate(); saveData()"></td>
-                            <td class="total-cell" id="total-damage">0</td>
-                        </tr>
-                        <tr class="base-score-row">
-                            <td class="row-label">Base Score</td>
-                            <td id="p1-base">0</td>
-                            <td id="p2-base">0</td>
-                            <td id="p3-base">0</td>
-                            <td class="total-cell" id="total-base">0</td>
-                        </tr>
-                        <tr class="mod-score-row">
-                            <td class="row-label">Modifier Score</td>
-                            <td id="p1-mod">0</td>
-                            <td id="p2-mod">0</td>
-                            <td id="p3-mod">0</td>
-                            <td class="total-cell" id="total-mod">0</td>
-                        </tr>
-                        <tr class="final-score-row">
-                            <td class="row-label">TOTAL SCORE</td>
-                            <td id="p1-final">0</td>
-                            <td id="p2-final">0</td>
-                            <td id="p3-final">0</td>
-                            <td class="total-cell" id="total-final">0</td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-        </div>
+            <h2 style="
+                margin-top: 30px; 
+                margin-bottom: 15px; 
+                font-size: 1.8rem;
+                color: var(--pip-green);
+                text-align: center;
+                text-shadow: 0 0 5px var(--pip-green);
+            ">AGGREGATE DATA IMPORT</h2>
 
-        <div class="section">
-            <div class="section-header">ADDITIONAL STATISTICS</div>
-            <div class="score-table-container">
-                <table class="score-table">
-                    <thead>
-                        <tr>
-                            <th class="empty-header"></th>
-                            <th id="addstats-p1-header">Player 1</th>
-                            <th id="addstats-p2-header">Player 2</th>
-                            <th id="addstats-p3-header">Player 3</th>
-                            <th>TOTAL</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            <td class="row-label">Melee Damage</td>
-                            <td><input type="number" id="p1-melee" value="0" oninput="calculate(); saveData()"></td>
-                            <td><input type="number" id="p2-melee" value="0" oninput="calculate(); saveData()"></td>
-                            <td><input type="number" id="p3-melee" value="0" oninput="calculate(); saveData()"></td>
-                            <td class="total-cell" id="total-melee">0</td>
-                        </tr>
-                        <tr>
-                            <td class="row-label">Ranged Damage</td>
-                            <td><input type="number" id="p1-ranged" value="0" oninput="calculate(); saveData()"></td>
-                            <td><input type="number" id="p2-ranged" value="0" oninput="calculate(); saveData()"></td>
-                            <td><input type="number" id="p3-ranged" value="0" oninput="calculate(); saveData()"></td>
-                            <td class="total-cell" id="total-ranged">0</td>
-                        </tr>
-                        <tr>
-                            <td class="row-label">Items Found</td>
-                            <td><input type="number" id="p1-items" value="0" oninput="calculate(); saveData()"></td>
-                            <td><input type="number" id="p2-items" value="0" oninput="calculate(); saveData()"></td>
-                            <td><input type="number" id="p3-items" value="0" oninput="calculate(); saveData()"></td>
-                            <td class="total-cell" id="total-items">0</td>
-                        </tr>
-                        <tr>
-                            <td class="row-label">Teammates Revived</td>
-                            <td>
-                                <input type="number" id="p1-revived" value="0" oninput="calculate(); saveData()" style="width: 60px; display:inline-block;">
-                                <span id="p1-diff" style="font-size: 0.9rem;">(0)</span>
-                            </td>
-                            <td>
-                                <input type="number" id="p2-revived" value="0" oninput="calculate(); saveData()" style="width: 60px; display:inline-block;">
-                                <span id="p2-diff" style="font-size: 0.9rem;">(0)</span>
-                            </td>
-                            <td>
-                                <input type="number" id="p3-revived" value="0" oninput="calculate(); saveData()" style="width: 60px; display:inline-block;">
-                                <span id="p3-diff" style="font-size: 0.9rem;">(0)</span>
-                            </td>
-                            <td class="total-cell" id="total-revived">
-                                0 <span id="total-diff" style="font-size: 0.9rem;">(0)</span>
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-        </div>
-
-        <div class="export-buttons-container">
-            <button onclick="saveAsPNG()">Download Image</button>
-            <button onclick="exportToCSV()">Export to CSV</button>
-            <button onclick="clearData()" class="danger-btn">Clear Data</button>
-        </div>
-
-        <div class="divider-line"></div>
-
-        <div class="section">
-            <div class="section-header">AGGREGATE DATA IMPORT</div>
-            <div style="text-align: center; padding: 15px; margin-bottom: 20px; background-color: rgba(51, 255, 0, 0.1); border: 1px dashed var(--pip-green);">
-                <label for="csv-upload" style="cursor: pointer; display: block; width: 100%;">
-                    <div style="font-weight: bold; font-size: 1.2rem; margin-bottom: 5px;">[+] UPLOAD CSV FILES</div>
-                    <div style="font-size: 0.85em; opacity: 0.8;">Max 3 files</div>
-                </label>
-                <input type="file" id="csv-upload" accept=".csv" multiple style="display: none;" />
-                <div id="import-status" style="margin: 10px 0; font-weight: bold;"></div>
+            <div style="
+                margin-bottom: 15px;
+                padding: 10px;
+                background-color: rgba(51, 255, 0, 0.1);
+                border: 1px solid var(--pip-green);
+            ">
+                <div style="font-weight: bold; margin-bottom: 5px; text-align: center;">IMPORT DATA SLATES (CSV)</div>
+                <p style="font-size: 0.85em; color: #7a7; margin: 0 0 10px 0; text-align: center;">
+                    Upload up to 3 <strong>.csv</strong> files exported from previous missions. 
+                    Totals will be aggregated automatically below.
+                </p>
+                <input type="file" id="csv-upload" accept=".csv" multiple style="
+                    width: 100%; 
+                    max-width: 500px; 
+                    display: block; 
+                    margin: 0 auto; 
+                    color: var(--pip-green);
+                    padding: 8px;                 
+                    background-color: var(--panel-bg);
+                    cursor: pointer;
+                " />
+                <div id="import-status" style="margin-top:10px; font-weight:bold; text-align: center;"></div>
             </div>
 
-            <div id="results-container" class="results-container">
+            <div class="results-container" id="results-container">
+                
                 <div class="panels-wrapper">
                     <div class="stat-panel">
                         <h3>Mission Parameters</h3>
@@ -347,77 +762,88 @@
                     </div>
                 </div>
 
-                <h3>Squad Performance Matrix</h3>
-                <div class="score-table-container">
-                    <table class="score-table" id="matrix-table"></table>
+                <div class="section" style="margin-bottom: 20px;">
+                    <div class="section-header">AGGREGATED SQUAD MATRIX</div>
+                    <div class="score-table-container">
+                        <table class="score-table" id="matrix-table"></table>
+                    </div>
                 </div>
 
-                <h3>Additional Statistics</h3>
-                <div class="score-table-container">
-                    <table class="score-table" id="stats-table"></table>
+                <div class="section" style="margin-bottom: 20px;">
+                    <div class="section-header">AGGREGATED STATISTICS</div>
+                    <div class="score-table-container">
+                        <table class="score-table" id="stats-table"></table>
+                    </div>
                 </div>
 
-                <div style="margin-top: 20px; text-align: center; display: flex; gap: 10px; justify-content: center;">
-                    <button onclick="openCopyModal()" style="padding: 10px 20px; background: #000; border: 1px solid var(--pip-green); color: var(--pip-green); cursor: pointer;">COPY SUMMARY</button>
-                    <button onclick="resetImport()" style="padding: 10px 20px; background: #000; border: 1px solid #ff5555; color: #ff5555; cursor: pointer;">RESET IMPORT</button>
+                <div class="export-buttons-container">
+                    <button onclick="openCopyModal()">Create Astropathic Message</button>
+                    <button onclick="saveAsPNG()">Record Cogitator Display (PNG)</button>
+                    <button class="danger-btn" onclick="resetImport()">Reset Import</button>
                 </div>
             </div>
-        </div>
+            </div> <div class="credits-full">
+                <div class="title">Credits</div>
+                <div class="credit-row">
+                    <span class="role">Development & Implementation:</span>
+                    <span class="name">burni2001 (Börni)</span>
+                </div>
+                <div class="credit-row">
+                    <span class="role">Development Tools:</span>
+                    <span class="name">Replit AI, Gemini, Claude</span>
+                </div>
+                <div class="credit-row">
+                    <span class="role">Scoring System & Event Concept:</span>
+                    <span class="name">gilzvit (Gideon)</span>
+                </div>
+                <div class="copyright">
+                    Join us on Discord: <a href="https://Discord.gg/KtJDBvpBRR">Lightning Fist</a> • For the Emperor!
+                </div>
+            </div>
 
         <div id="ocr-modal-overlay" class="ocr-modal-overlay">
             <div class="ocr-modal">
-                <div class="ocr-modal-header" style="border-bottom: 1px solid var(--pip-green); margin-bottom: 15px; padding-bottom: 10px;">
-                    <h2 style="margin: 0; text-align: center;">CONFIRM OCR DATA</h2>
+                <h2>OCR Results Review</h2>
+
+                <div class="ocr-modal-section">
+                    <h3>Detected Values</h3>
+                    <div id="ocr-detected-grid" class="ocr-detected-grid"></div>
                 </div>
-                <div id="ocr-detected-grid" class="ocr-detected-grid"></div>
+
+                <div class="ocr-modal-section">
+                    <h3>Raw OCR Text (for manual review)</h3>
+                    <div id="ocr-raw-text" class="ocr-raw-text"></div>
+                </div>
+
                 <div class="ocr-modal-buttons">
-                    <button onclick="applyOCRResults()" style="background: var(--pip-green); color: black; border: none; padding: 10px 20px; font-weight: bold; cursor: pointer;">APPLY DATA</button>
-                    <button onclick="closeOCRModal()" style="background: transparent; color: var(--pip-green); border: 1px solid var(--pip-green); padding: 10px 20px; cursor: pointer;">CANCEL</button>
-                    <button onclick="exportOCRDebug()" style="background: transparent; color: orange; border: 1px solid orange; padding: 10px 20px; cursor: pointer; font-size: 0.8rem;">DEBUG EXPORT</button>
-                </div>
-                <div style="margin-top: 20px; border-top: 1px solid #333; padding-top: 10px;">
-                    <details>
-                        <summary style="cursor: pointer; color: #666;">Raw Text Debug</summary>
-                        <pre id="ocr-raw-text" style="white-space: pre-wrap; font-size: 0.7rem; color: #666; margin-top: 10px; max-height: 200px; overflow-y: auto;"></pre>
-                    </details>
+                    <button onclick="applyOCRResults()">Apply Values</button>
+                    <button
+                        onclick="exportOCRDebug()"
+                        style="background: #335533"
+                    >
+                        Export Debug Data
+                    </button>
+                    <button class="cancel-btn" onclick="closeOCRModal()">
+                        Cancel
+                    </button>
                 </div>
             </div>
         </div>
 
         <div id="copy-modal" class="modal-overlay">
-            <div class="modal-content" style="text-align: center;">
-                <h3>Summary Text</h3>
-                <textarea id="copy-text" style="width: 100%; height: 200px; background: #000; color: var(--pip-green); border: 1px solid var(--pip-green); padding: 10px; font-family: inherit; margin-bottom: 15px;"></textarea>
-                <div style="display: flex; gap: 10px; justify-content: center;">
-                    <button onclick="copySummaryText()" style="padding: 10px 20px; cursor: pointer; background: var(--pip-green); color: #000; border: none; font-weight: bold;">COPY TO CLIPBOARD</button>
-                    <button onclick="document.getElementById('copy-modal').classList.remove('active')" style="padding: 10px 20px; cursor: pointer; background: transparent; border: 1px solid var(--pip-green); color: var(--pip-green);">CLOSE</button>
+            <div class="modal-content">
+                <h3 style="text-align:center; color:#fff; border-bottom:1px solid var(--pip-green); padding-bottom:10px;">TRANSMISSION LOG</h3>
+                <textarea id="copy-text" readonly></textarea>
+                <div class="export-buttons-container" style="margin-top:10px; border:none; padding-top:0;">
+                    <button onclick="copySummaryText()">Copy</button>
+                    <button class="danger-btn" onclick="document.getElementById('copy-modal').classList.remove('active')">Close</button>
                 </div>
             </div>
         </div>
 
-        <div class="credits-full">
-            <div class="title">Credits</div>
-            <div class="credit-row">
-                <span class="role">Development & Implementation:</span>
-                <span class="name">burni2001 (Börni)</span>
-            </div>
-            <div class="credit-row">
-                <span class="role">Development Tools:</span>
-                <span class="name">Replit AI, Gemini, Claude</span>
-            </div>
-            <div class="credit-row">
-                <span class="role">Scoring System & Event Concept:</span>
-                <span class="name">gilzvit (Gideon)</span>
-            </div>
-            <div class="copyright">
-                Join us on Discord: <a href="https://Discord.gg/KtJDBvpBRR" target="_blank">Lightning Fist</a> • For the Emperor!
-            </div>
-        </div>
-    </div>
-
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
-    
-    <script src="script.js"></script>
-</body>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+        
+        <script src="script.js"></script>
+    </body>
 </html>
