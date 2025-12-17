@@ -143,77 +143,55 @@
                 padding: 15px;
                 margin-bottom: 20px;
             }
-
-            /* Modifier Grid - Responsive Update */
-            .modifier-grid {
-                display: grid;
-                /* Automatically fit as many columns as possible, min width 100px per item */
-                grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
-                gap: 15px; /* Nice spacing between items */
-                align-items: end;
-                text-align: center;
-                font-size: 1.1rem;
-            }
-
-            /* Make the "MODIFIERS" title span the full width of the grid */
-            .modifier-grid > div:first-child {
-                grid-column: 1 / -1; /* Spans all available columns */
-                text-align: center !important;
-                font-weight: bold;
-                border-bottom: 1px solid var(--pip-dim);
-                padding-bottom: 8px;
-                margin-bottom: 10px;
-                width: 100%;
-                letter-spacing: 2px;
-            }
-
-            .modifier-grid label {
-                font-size: 0.9rem;
-                opacity: 0.8;
-                display: block;
-                margin-bottom: 4px;
-                white-space: nowrap; /* Prevents labels from breaking awkwardly */
-            }
-            
-            .modifier-grid input {
-                width: 100%; /* Ensures input fills its grid cell */
-            }
             
             /* Global Toggles (Dropdowns) styling inside .section */
             /* To make labels and selects align */
+            /* FIXED: Flexible Label, STRICT Fixed Input Width */
             .mission-params {
                 display: grid;
-                /* Fixed width for label column for alignment.
-               minmax ensures input has at least 140px, then takes 1fr. */
-                grid-template-columns: 160px minmax(140px, 1fr);
-                gap: 10px;
-                margin-bottom: 10px;
-                align-items: center; /* Vertically align label and select */
-                font-size: 1.1rem;
+                /* Column 1 (Label): 1fr (Takes all available space) 
+                   Column 2 (Input): 140px (Fixed width, so all inputs are identical) */
+                grid-template-columns: 1fr 140px; 
+                gap: 15px;
+                align-items: center; 
+                width: 100%;
+                flex: 1; 
+                margin: 0;
             }
-            /* Ensure labels wrap if they are longer than the fixed column width */
+
             .mission-params label {
-                word-wrap: break-word; /* For older browsers */
-                overflow-wrap: break-word; /* Standard property for breaking words */
-            }
-
-            /* NEW: Container for Dropdowns and Description (side-by-side) */
-            .mission-info-area {
-                display: grid;
-                grid-template-columns: 1fr 2fr; /* Dropdowns (smaller) and Description (larger) */
-                gap: 20px; /* Space between the two columns */
-                margin-bottom: 20px;
-            }
-
-            /* NEW: Styling for the description text area */
-            .app-description {
-                background-color: rgba(20, 40, 20, 0.3);
-                border: 1px solid var(--border-color);
-                padding: 15px;
-                line-height: 1.5; /* Readability */
+                text-align: right; /* Aligns text against the input */
+                margin: 0;
                 font-size: 1.1rem;
-                text-align: left;
-                overflow-y: auto; /* In case text is too long */
+                opacity: 0.9;
+                line-height: 1.2;
+                white-space: nowrap; /* Keeps labels on one line */
+                overflow: visible;
+            }
+
+            .mission-params input, 
+            .mission-params select {
+                width: 100%;       /* Fills the 140px grid cell exactly */
+                box-sizing: border-box;
+                height: 32px; 
+                font-size: 1.1rem;
+                text-align: center;
+            }
+
+            /* Mobile: Stack vertically */
+            @media (max-width: 900px) {
+                .mission-params {
+                    display: flex;
+                    flex-direction: column;
+                    align-items: stretch;
+                    height: auto;
+                    margin-bottom: 15px;
+                }
+                .mission-params label {
+                    text-align: left;
+                    margin-bottom: 4px;
+                    white-space: normal;
+                }
             }
 
             /* Main Score Table */
@@ -221,6 +199,7 @@
                 width: 100%;
                 border-collapse: separate;
                 border-spacing: 5px;
+                table-layout: fixed; /* PREVENTS OVERFLOW */
             }
 
             .score-table th {
@@ -642,7 +621,9 @@
 
                 /* Score Table - Make scrollable on small screens */
                 .score-table-container {
+                    width: 100%;
                     overflow-x: auto;
+                    display: block;
                 }
 
                 /* Export buttons */
@@ -658,12 +639,8 @@
             }
             /* Further adjustments for very small screens (e.g., typical smartphone portrait) */
             @media (max-width: 480px) {
-                /*.modifier-grid {
-                    grid-template-columns: 1fr; /* Stack all modifiers vertically */
-                }
-               /* .modifier-grid div:first-child {
-                    /* The 'MODIFIERS' label */
-               /*     grid-column: auto; /* Reset grid-column to normal flow */
+                .modifier-grid {
+                    grid-template-columns: 1fr; /* Stack vertically on phones */
                 }
             }
             /* Full Credit Block (Most Detailed) */
@@ -809,6 +786,120 @@
             @media (max-width: 768px) {
                 .panels-wrapper { grid-template-columns: 1fr; }
             }
+            
+            /* --- V2.22 FINAL FIX: STRICT GRID ALIGNMENT --- */
+
+            /* Main Wrapper: Panels expand to fill width */
+            .dashboard-wrapper {
+                display: flex;
+                flex-wrap: wrap;
+                gap: 20px;
+                align-items: flex-start; /* Stop stretching height, let content define it */
+                width: 100%;
+            }
+
+            /* Panels: Equal width, growing to fill space */
+            .mission-panel, .modifiers-panel {
+                flex: 1;
+                min-width: 360px;
+                display: flex;
+                flex-direction: column;
+            }
+
+            /* --- LEFT SIDE: MISSION PARAMETERS --- */
+            .mission-params {
+                display: grid;
+                /* Column 1: Flex (Text), Column 2: Fixed 150px (Input) */
+                grid-template-columns: 1fr 150px; 
+                gap: 15px;
+                align-items: center;
+                /* STRICT ROW HEIGHT & SPACING */
+                height: 32px; 
+                margin-bottom: 8px; 
+            }
+
+            .mission-params label {
+                text-align: right;
+                margin: 0;
+                font-size: 1.1rem;
+                opacity: 0.9;
+                white-space: nowrap; /* No wrapping */
+            }
+
+            .mission-params input, 
+            .mission-params select {
+                width: 100%;
+                height: 100%; /* Fills the 32px row */
+                box-sizing: border-box;
+                font-size: 1.1rem;
+                text-align: center;
+            }
+
+            /* --- RIGHT SIDE: MODIFIERS --- */
+            /* We use a Grid that mathematically matches the Left Side structure */
+            .mod-grid-clean {
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                /* 6 Rows. Each is 32px high (matches Left Side) */
+                grid-template-rows: repeat(6, 32px);
+                /* Row gap is 8px (matches Left Side margin-bottom) */
+                row-gap: 8px; 
+                column-gap: 30px;
+            }
+
+            .mod-row {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                height: 100%; /* Fills the 32px grid cell */
+                padding: 0;
+            }
+
+            .mod-row label {
+                text-align: left;
+                font-size: 1rem;
+                color: var(--pip-green);
+                opacity: 0.9;
+                flex: 1;
+                white-space: nowrap;
+            }
+
+            .mod-row input {
+                width: 70px; /* Compact width for modifiers */
+                height: 30px; /* Fits inside the 32px row */
+                text-align: center;
+                background-color: #000;
+                border: 1px solid var(--pip-dim);
+                color: var(--pip-green);
+                box-sizing: border-box;
+            }
+
+            /* MOBILE: Stack everything cleanly */
+            @media (max-width: 900px) {
+                .dashboard-wrapper {
+                    flex-direction: column;
+                    align-items: stretch;
+                }
+                .mission-panel, .modifiers-panel {
+                    min-width: 0;
+                    width: 100%;
+                }
+                .mission-params {
+                    display: flex;
+                    flex-direction: column;
+                    height: auto;
+                    margin-bottom: 15px;
+                }
+                .mission-params label {
+                    text-align: left;
+                    margin-bottom: 4px;
+                }
+                .mod-grid-clean {
+                    display: flex;
+                    flex-direction: column;
+                    gap: 10px;
+                }
+            }
     </style>
 </head>
     <body>
@@ -817,7 +908,7 @@
                 <div>
                     <div>REF: SM-2/CRUSADE</div>
                     <div style="font-size: 0.8em; opacity: 0.7">
-                        V 2.09 - ADEPTUS ADMINISTRATUM
+                        V 2.11 - ADEPTUS ADMINISTRATUM
                     </div>
                 </div>
                 <h1>Adeptus Astartes - Mission&nbsp;Debrief</h1>
@@ -844,249 +935,138 @@
                 The Modifier section allows customization of score values if necessary.
                 <br /><br />
                 <span style="font-weight:bold; letter-spacing:1px; text-shadow: 0 0 5px var(--pip-green);">* Glory to the Imperium! *</span>
+            </div> <div style="
+                margin-top: 20px;      /* Added space from Welcome Message */
+                margin-bottom: 25px;
+                padding: 0px;          /* Reduced padding to shrink height */
+                background-color: rgba(51, 255, 0, 0.1);
+                border: 1px solid var(--pip-green);
+                text-align: center;
+            ">
+                <div style="font-weight: bold; margin-top: 5px; margin-bottom: 2px;">UPLOAD SCREENSHOTS</div>
+                <p style="font-size: 0.85em; color: #7a7; margin: 0 0 5px 0;">
+                    Upload post-mission screenshots to auto-fill data.
+                </p>
+                <input type="file" id="screenshot-upload" accept="image/png,image/jpeg,image/jpg" multiple style="
+                    display: block;
+                    margin: 0 auto;
+                    padding: 8px;
+                    background-color: var(--panel-bg);
+                    cursor: pointer;
+                    color: var(--pip-green);
+                    border: 1px solid var(--pip-green);
+                    width: 100%;
+                    max-width: 500px;
+                " />
+                <div id="upload-status" style="margin-top: 5px; font-weight: bold; min-height: 20px;"></div>
+                <div id="upload-progress" style="font-size: 0.85rem; color: var(--pip-dim);"></div>
             </div>
-            <!-- NEW: Mission Info Area: Dropdowns (left) and Description (right) -->
-            <div class="mission-info-area">
-                <!-- Global Toggles Section (your dropdowns) -->
-                <div class="section" style="margin-bottom: 0">
-                    <!-- Remove bottom margin as parent handles spacing -->
-                    <!-- Screenshot Upload Section -->
-                    <div
-                        style="
-                            margin-bottom: 15px;
-                            padding: 10px;
-                            background-color: rgba(51, 255, 0, 0.1);
-                            border: 1px solid var(--pip-green);
-                        "
-                    >
-                        <label
-                            for="screenshot-upload"
-                            style="
-                                display: block;
-                                margin-bottom: 8px;
-                                font-weight: bold;
-                                text-align: center;
-                            "
-                        >
-                            UPLOAD SCREENSHOTS
-                        </label>
-                        <p
-                            style="
-                                font-size: 0.85em;
-                                color: #7a7;
-                                margin: 5px 0 10px 0;
-                                text-align: center;
-                            "
-                        >
-                            Upload your post-mission screenshots. Select
-                            multiple player stat screens for best results.
-                            Review and edit detected values before applying.
-                        </p>
-                        <input
-                            type="file"
-                            id="screenshot-upload"
-                            accept="image/png,image/jpeg,image/jpg"
-                            multiple
-                            style="
-                                display: block;
-                                margin: 0 auto;
-                                padding: 8px;
-                                background-color: var(--panel-bg);
-                                cursor: pointer;
-                            "
-                        />
-                        <div
-                            id="upload-status"
-                            style="
-                                margin-top: 10px;
-                                text-align: center;
-                                font-size: 0.9rem;
-                                min-height: 20px;
-                            "
-                        ></div>
-                        <div
-                            id="upload-progress"
-                            style="
-                                margin-top: 5px;
-                                text-align: center;
-                                font-size: 0.85rem;
-                                color: var(--pip-dim);
-                            "
-                        ></div>
-                    </div>
-                    <!-- NEW: Mission Played input field -->
-                    <div class="mission-params">
-                        <label for="mission-name">Mission Played</label>
-                        <input
-                            type="text"
-                            id="mission-name"
-                            value=""
-                            placeholder="e.g., Inferno"
-                            onchange="saveData();"
-                        />
-                    </div>
-                    <div class="mission-params">
-                        <label for="mission-difficulty">Difficulty</label>
-                        <select
-                            id="mission-difficulty"
-                            onchange="calculate(); saveData();"
-                        >
-                            <option value="" disabled selected hidden>
-                                Select Difficulty
-                            </option>
-                            <option value="Minimal">Minimal</option>
-                            <option value="Average">Average</option>
-                            <option value="Substantial">Substantial</option>
-                            <option value="Ruthless">Ruthless</option>
-                            <option value="Lethal">Lethal</option>
-                            <option value="Absolute">Absolute</option>
-                            <option value="Normal">Normal</option>
-                            <option value="Hard">Hard</option>
-                        </select>
-                    </div>
-                    <div class="mission-params">
-                        <label>Objective Completion</label>
-                        <select
-                            id="global-objective"
-                            onchange="calculate(); saveData();"
-                        >
-                            <option value="" disabled selected hidden>
-                                Select
-                            </option>
-                            <option value="0">No</option>
-                            <option value="1">Yes</option>
-                        </select>
-                    </div>
-                    <div class="mission-params">
-                        <label>Gene-Seed Retrieved</label>
-                        <select
-                            id="global-geneseed"
-                            onchange="calculate(); saveData();"
-                        >
-                            <option value="" disabled selected hidden>
-                                Select
-                            </option>
-                            <option value="0">No</option>
-                            <option value="1">Yes</option>
-                        </select>
-                    </div>
-                    <div class="mission-params">
-                        <label>Armoury Data Retrieved</label>
-                        <select
-                            id="global-armoury"
-                            onchange="calculate(); saveData();"
-                        >
-                            <option value="" disabled selected hidden>
-                                Select
-                            </option>
-                            <option value="0">0</option>
-                            <option value="1">1</option>
-                            <option value="2">2</option>
-                            <option value="3">3</option>
-                        </select>
-                    </div>
-                    <div class="mission-params">
-                        <label>Waves Reached (Siege Mode)</label>
-                        <input
-                            type="number"
-                            id="global-waves"
-                            value="0"
-                            min="0"
-                            inputmode="numeric"
-                            onchange="calculate(); saveData();"
-                        />
-                    </div>
-                </div>
-            <!-- Modifiers Section -->
-            <div class="section" style="margin-bottom: 0; height: 100%;">
-                <div class="modifier-grid">
-                    <div style="text-align: left; font-weight: bold">
-                        MODIFIERS
-                    </div>
 
-                    <div>
-                        <label>Kills</label>
-                        <input
-                            type="number"
-                            id="mod-kills"
-                            value="1"
-                            inputmode="numeric"
-                            onchange="calculate(); saveData();"
-                        />
-                    </div>
-                    <div>
-                        <label>Special Kills</label>
-                        <input
-                            type="number"
-                            id="mod-elite"
-                            value="20"
-                            inputmode="numeric"
-                            onchange="calculate(); saveData();"
-                        />
-                    </div>
-                    <div>
-                        <label>Incapacitations</label>
-                        <input
-                            type="number"
-                            id="mod-death"
-                            value="-100"
-                            inputmode="numeric"
-                            onchange="calculate(); saveData();"
-                        />
-                    </div>
-                    <div>
-                        <label>Damage Taken</label>
-                        <input
-                            type="number"
-                            id="mod-damage"
-                            value="-0.1"
-                            step="0.1"
-                            inputmode="decimal"
-                            onchange="calculate(); saveData();"
-                        />
-                    </div>
-                    <div>
-                        <label>Gene-Seed</label>
-                        <input
-                            type="number"
-                            id="mod-gene"
-                            value="100"
-                            inputmode="numeric"
-                            onchange="calculate(); saveData();"
-                        />
-                    </div>
-                    <div>
-                        <label>Armoury Data</label>
-                        <input
-                            type="number"
-                            id="mod-armoury"
-                            value="25"
-                            inputmode="numeric"
-                            onchange="calculate(); saveData();"
-                        />
-                    </div>
-                    <div>
-                        <label>Objective</label>
-                        <input
-                            type="number"
-                            id="mod-obj"
-                            value="100"
-                            inputmode="numeric"
-                            onchange="calculate(); saveData();"
-                        />
-                    </div>
-                    <div>
-                        <label>Waves</label>
-                        <input
-                            type="number"
-                            id="mod-waves"
-                            value="10"
-                            inputmode="numeric"
-                            onchange="calculate(); saveData();"
-                        />
+            <div class="dashboard-wrapper">
+                
+                <div class="mission-panel">
+                    <div class="section">
+                        <div style="font-weight: bold; font-size: 1.2rem; margin-bottom: 15px; text-align: center; color: var(--pip-green);">
+                            MISSION PARAMETERS
+                        </div>
+                        
+                        <div class="mission-params">
+                            <label for="mission-name">Mission Played</label>
+                            <input type="text" id="mission-name" placeholder="e.g., Inferno" onchange="saveData();" />
+                        </div>
+                        <div class="mission-params">
+                            <label for="mission-difficulty">Difficulty</label>
+                            <select id="mission-difficulty" onchange="calculate(); saveData();">
+                                <option value="" disabled selected hidden>Select Difficulty</option>
+                                <option value="Minimal">Minimal</option>
+                                <option value="Average">Average</option>
+                                <option value="Substantial">Substantial</option>
+                                <option value="Ruthless">Ruthless</option>
+                                <option value="Lethal">Lethal</option>
+                                <option value="Absolute">Absolute</option>
+                                <option value="Normal">Normal</option>
+                                <option value="Hard">Hard</option>
+                            </select>
+                        </div>
+                        <div class="mission-params">
+                            <label>Objective Completion</label>
+                            <select id="global-objective" onchange="calculate(); saveData();">
+                                <option value="" disabled selected hidden>Select</option>
+                                <option value="0">No</option>
+                                <option value="1">Yes</option>
+                            </select>
+                        </div>
+                        <div class="mission-params">
+                            <label>Gene-Seed Retrieved</label>
+                            <select id="global-geneseed" onchange="calculate(); saveData();">
+                                <option value="" disabled selected hidden>Select</option>
+                                <option value="0">No</option>
+                                <option value="1">Yes</option>
+                            </select>
+                        </div>
+                        <div class="mission-params">
+                            <label>Armoury Data Retrieved</label>
+                            <select id="global-armoury" onchange="calculate(); saveData();">
+                                <option value="" disabled selected hidden>Select</option>
+                                <option value="0">0</option>
+                                <option value="1">1</option>
+                                <option value="2">2</option>
+                                <option value="3">3</option>
+                            </select>
+                        </div>
+                        <div class="mission-params">
+                            <label>Waves Reached (Siege)</label>
+                            <input type="number" id="global-waves" value="0" min="0" inputmode="numeric" onchange="calculate(); saveData();" />
+                        </div>
                     </div>
                 </div>
-            </div>    
+
+                <div class="modifiers-panel">
+                    <div class="section" style="height: 100%;">
+                        <div style="font-weight: bold; font-size: 1.2rem; margin-bottom: 15px; text-align: center; color: var(--pip-green);">
+                            MODIFIERS
+                        </div>
+                        <div class="mod-grid-clean">
+                            <div class="mod-row">
+                                <label>Kills</label>
+                                <input type="number" id="mod-kills" value="1" onchange="calculate(); saveData();">
+                            </div>
+                            <div class="mod-row">
+                                <label>Special Kills</label>
+                                <input type="number" id="mod-elite" value="20" onchange="calculate(); saveData();">
+                            </div>
+                            <div class="mod-row">
+                                <label>Incapacitations</label>
+                                <input type="number" id="mod-death" value="-100" onchange="calculate(); saveData();">
+                            </div>
+
+                            <div class="mod-row">
+                                <label>Damage Taken</label>
+                                <input type="number" id="mod-damage" value="-0.1" step="0.1" onchange="calculate(); saveData();">
+                            </div>
+                            <div class="mod-row">
+                                <label>Gene-Seed</label>
+                                <input type="number" id="mod-gene" value="100" onchange="calculate(); saveData();">
+                            </div>
+                            <div class="mod-row">
+                                <label>Armoury Data</label>
+                                <input type="number" id="mod-armoury" value="25" onchange="calculate(); saveData();">
+                            </div>
+
+                            <div class="mod-row">
+                                <label>Objective</label>
+                                <input type="number" id="mod-obj" value="100" onchange="calculate(); saveData();">
+                            </div>
+                            <div class="mod-row">
+                                <label>Waves</label>
+                                <input type="number" id="mod-waves" value="10" onchange="calculate(); saveData();">
+                            </div>
+                            <div></div> 
+                        </div>
+                    </div>
+                </div>
+
+            </div>         
             <!-- Main Data Table (Squad Performance Matrix) -->
             <div class="section" style="margin-bottom: 0">
                 <!-- Last section, no bottom margin -->
@@ -1715,7 +1695,6 @@
                     <button class="danger-btn" onclick="resetImport()">Reset Import</button>
                 </div>
             </div>
-            
             <!-- Full Credit Block -->
             </div> <div class="credits-full">
                 <div class="title">Credits</div>
