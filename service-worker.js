@@ -1,12 +1,12 @@
-const CACHE_NAME = "mission-debrief-v250"; // Increment this version number when you make changes to cached assets
+const CACHE_NAME = "mission-debrief-v3.00"; // Increment this version number when you make changes to cached assets
 const urlsToCache = [
     "./", // Caches the root, i.e., index.html
-    "index.html",
+    "./index.html",
     "./style.css",
     "./script.js",
-    "manifest.json",
-    "attached_assets/FFFvLV2Ld6_crt_1765204552094.png",
-    "service-worker.js", // It's good practice to cache the service worker itself
+    "./manifest.json",
+    "./attached_assets/FFFvLV2Ld6_crt_1765204552094.png",
+    "./service-worker.js", // It's good practice to cache the service worker itself
     "https://fonts.googleapis.com/css2?family=VT323&display=swap", // Cache the Google Font CSS
     // --- Add your PWA icons here ---
     "icons/icon-192x192.png",
