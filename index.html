@@ -33,13 +33,15 @@
             <span style="font-weight:bold; letter-spacing:1px; text-shadow: 0 0 5px var(--pip-green);">* Glory to the Imperium! *</span>
         </div>
 
-        <div style="margin-top: 20px; margin-bottom: 25px; padding: 0px; background-color: rgba(51, 255, 0, 0.1); border: 1px solid var(--pip-green); text-align: center;">
-            <div style="font-weight: bold; margin-top: 5px; margin-bottom: 2px;">UPLOAD SCREENSHOTS</div>
-            <p style="font-size: 0.85em; color: #7a7; margin: 0 0 5px 0;">
-                Upload post-mission screenshots to auto-fill data.
-            </p>
-            <input type="file" id="screenshot-upload" accept="image/*" multiple style="display: block; margin: 0 auto; padding: 8px; background-color: var(--panel-bg); cursor: pointer; color: var(--pip-green); border: 1px solid var(--pip-green); width: 100%; max-width: 500px;" />
-            <div id="upload-status" style="margin-top: 5px; font-weight: bold; min-height: 20px;"></div>
+        <div style="margin-top: 20px; margin-bottom: 25px; padding: 15px; background-color: rgba(51, 255, 0, 0.1); border: 1px dashed var(--pip-green); text-align: center;">
+            <label for="screenshot-upload" style="cursor: pointer; display: block; width: 100%;">
+                <div style="font-weight: bold; font-size: 1.2rem; margin-bottom: 5px;">[+] UPLOAD SCREENSHOTS</div>
+                <div style="font-size: 0.85em; opacity: 0.8;">
+                    Upload post-mission screenshots to auto-fill data (OCR)
+                </div>
+            </label>
+            <input type="file" id="screenshot-upload" accept="image/*" multiple style="display: none;" />
+            <div id="upload-status" style="margin-top: 10px; font-weight: bold; min-height: 20px;"></div>
             <div id="upload-progress" style="font-size: 0.85rem; color: var(--pip-dim);"></div>
         </div>
 
@@ -311,9 +313,10 @@
 
         <div class="section">
             <div class="section-header">AGGREGATE DATA IMPORT</div>
-            <div style="text-align: center;">
-                <label for="csv-upload" style="cursor: pointer; display: block; margin-bottom: 10px;">
-                    [ UPLOAD CSV FILES (Max 3) ]
+            <div style="text-align: center; padding: 15px; margin-bottom: 20px; background-color: rgba(51, 255, 0, 0.1); border: 1px dashed var(--pip-green);">
+                <label for="csv-upload" style="cursor: pointer; display: block; width: 100%;">
+                    <div style="font-weight: bold; font-size: 1.2rem; margin-bottom: 5px;">[+] UPLOAD CSV FILES</div>
+                    <div style="font-size: 0.85em; opacity: 0.8;">Max 3 files</div>
                 </label>
                 <input type="file" id="csv-upload" accept=".csv" multiple style="display: none;" />
                 <div id="import-status" style="margin: 10px 0; font-weight: bold;"></div>
@@ -407,7 +410,7 @@
                 <span class="name">gilzvit (Gideon)</span>
             </div>
             <div class="copyright">
-                Join us on Discord: <a href="https://Discord.gg/KtJDBvpBRR">Lightning Fist</a> • For the Emperor!
+                Join us on Discord: <a href="https://Discord.gg/KtJDBvpBRR" target="_blank">Lightning Fist</a> • For the Emperor!
             </div>
         </div>
     </div>
