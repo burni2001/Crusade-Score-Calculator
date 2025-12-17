@@ -794,7 +794,7 @@
                 display: flex;
                 flex-wrap: wrap;
                 gap: 20px;
-                align-items: flex-start; /* Stop stretching height, let content define it */
+                align-items: stretch;
                 width: 100%;
             }
 
@@ -875,7 +875,7 @@
             }
 
             /* Mobile: Keep side-by-side layout but resize */
-            @media (max-width: 900px) {
+            @media (max-width: 768px) {
                 .dashboard-wrapper {
                     flex-direction: column;
                     align-items: stretch;
@@ -916,7 +916,7 @@
                 <div>
                     <div>REF: SM-2/CRUSADE</div>
                     <div style="font-size: 0.8em; opacity: 0.7">
-                        V 2.14 - ADEPTUS ADMINISTRATUM
+                        V 2.15 - ADEPTUS ADMINISTRATUM
                     </div>
                 </div>
                 <h1>Adeptus Astartes - Mission&nbsp;Debrief</h1>
