@@ -798,7 +798,7 @@
                 <div>
                     <div>REF: SM-2/CRUSADE</div>
                     <div style="font-size: 0.8em; opacity: 0.7">
-                        V 2.07 - ADEPTUS ADMINISTRATUM
+                        V 2.08 - ADEPTUS ADMINISTRATUM
                     </div>
                 </div>
                 <h1>Adeptus Astartes - Mission&nbsp;Debrief</h1>
@@ -811,95 +811,20 @@
                     />
                 </div>
             </div>
-            <!-- Modifiers Section -->
-            <div class="section">
-                <div class="modifier-grid">
-                    <div style="text-align: left; font-weight: bold">
-                        MODIFIERS
-                    </div>
-
-                    <div>
-                        <label>Kills</label>
-                        <input
-                            type="number"
-                            id="mod-kills"
-                            value="1"
-                            inputmode="numeric"
-                            onchange="calculate(); saveData();"
-                        />
-                    </div>
-                    <div>
-                        <label>Special Kills</label>
-                        <input
-                            type="number"
-                            id="mod-elite"
-                            value="20"
-                            inputmode="numeric"
-                            onchange="calculate(); saveData();"
-                        />
-                    </div>
-                    <div>
-                        <label>Incapacitations</label>
-                        <input
-                            type="number"
-                            id="mod-death"
-                            value="-100"
-                            inputmode="numeric"
-                            onchange="calculate(); saveData();"
-                        />
-                    </div>
-                    <div>
-                        <label>Damage Taken</label>
-                        <input
-                            type="number"
-                            id="mod-damage"
-                            value="-0.1"
-                            step="0.1"
-                            inputmode="decimal"
-                            onchange="calculate(); saveData();"
-                        />
-                    </div>
-                    <div>
-                        <label>Gene-Seed</label>
-                        <input
-                            type="number"
-                            id="mod-gene"
-                            value="100"
-                            inputmode="numeric"
-                            onchange="calculate(); saveData();"
-                        />
-                    </div>
-                    <div>
-                        <label>Armoury Data</label>
-                        <input
-                            type="number"
-                            id="mod-armoury"
-                            value="25"
-                            inputmode="numeric"
-                            onchange="calculate(); saveData();"
-                        />
-                    </div>
-                    <div>
-                        <label>Objective</label>
-                        <input
-                            type="number"
-                            id="mod-obj"
-                            value="100"
-                            inputmode="numeric"
-                            onchange="calculate(); saveData();"
-                        />
-                    </div>
-                    <div>
-                        <label>Waves</label>
-                        <input
-                            type="number"
-                            id="mod-waves"
-                            value="10"
-                            inputmode="numeric"
-                            onchange="calculate(); saveData();"
-                        />
-                    </div>
-                </div>
+            <!-- NEW: Plain Welcome Message under the header -->
+            <div style="
+                text-align: center; 
+                margin: 10px auto 25px auto; 
+                max-width: 900px; 
+                line-height: 1.4; 
+                color: #afffa6; 
+                font-size: 1.1rem;
+            ">
+                Welcome, Brothers and Sisters! Use this debriefing tool to calculate your mission scores. 
+                Select the Mission parameters. Enter your mission statistics below. 
+                The Modifier section allows customization of score values if necessary.
+                <br /><br />
+                <span style="font-weight:bold; letter-spacing:1px; text-shadow: 0 0 5px var(--pip-green);">* Glory to the Imperium! *</span>
             </div>
             <!-- NEW: Mission Info Area: Dropdowns (left) and Description (right) -->
             <div class="mission-info-area">
@@ -1053,18 +978,96 @@
                         />
                     </div>
                 </div>
-                <!-- THIS IS WHERE YOU WRITE YOUR DESCRIPTION TEXT! -->
-                <div class="app-description">
-                    Welcome, Brothers and Sisters! Use this debriefing tool to
-                    calculate your mission scores. Select the Mission
-                    parameters. Enter your mission statistics (Kills,
-                    Incapacitations, etc.) below. The Modifier section allows
-                    customization of score values if necessary. Ensure all
-                    fields are filled for an accurate debrief.
-                    <br /><br />
-                    *Glory to the Imperium!*
+            <!-- Modifiers Section -->
+            <div class="section" style="margin-bottom: 0; height: 100%;">
+                <div class="modifier-grid">
+                    <div style="text-align: left; font-weight: bold">
+                        MODIFIERS
+                    </div>
+
+                    <div>
+                        <label>Kills</label>
+                        <input
+                            type="number"
+                            id="mod-kills"
+                            value="1"
+                            inputmode="numeric"
+                            onchange="calculate(); saveData();"
+                        />
+                    </div>
+                    <div>
+                        <label>Special Kills</label>
+                        <input
+                            type="number"
+                            id="mod-elite"
+                            value="20"
+                            inputmode="numeric"
+                            onchange="calculate(); saveData();"
+                        />
+                    </div>
+                    <div>
+                        <label>Incapacitations</label>
+                        <input
+                            type="number"
+                            id="mod-death"
+                            value="-100"
+                            inputmode="numeric"
+                            onchange="calculate(); saveData();"
+                        />
+                    </div>
+                    <div>
+                        <label>Damage Taken</label>
+                        <input
+                            type="number"
+                            id="mod-damage"
+                            value="-0.1"
+                            step="0.1"
+                            inputmode="decimal"
+                            onchange="calculate(); saveData();"
+                        />
+                    </div>
+                    <div>
+                        <label>Gene-Seed</label>
+                        <input
+                            type="number"
+                            id="mod-gene"
+                            value="100"
+                            inputmode="numeric"
+                            onchange="calculate(); saveData();"
+                        />
+                    </div>
+                    <div>
+                        <label>Armoury Data</label>
+                        <input
+                            type="number"
+                            id="mod-armoury"
+                            value="25"
+                            inputmode="numeric"
+                            onchange="calculate(); saveData();"
+                        />
+                    </div>
+                    <div>
+                        <label>Objective</label>
+                        <input
+                            type="number"
+                            id="mod-obj"
+                            value="100"
+                            inputmode="numeric"
+                            onchange="calculate(); saveData();"
+                        />
+                    </div>
+                    <div>
+                        <label>Waves</label>
+                        <input
+                            type="number"
+                            id="mod-waves"
+                            value="10"
+                            inputmode="numeric"
+                            onchange="calculate(); saveData();"
+                        />
+                    </div>
                 </div>
-            </div>
+            </div>    
             <!-- Main Data Table (Squad Performance Matrix) -->
             <div class="section" style="margin-bottom: 0">
                 <!-- Last section, no bottom margin -->
