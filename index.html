@@ -809,15 +809,14 @@
             /* --- LEFT SIDE: MISSION PARAMETERS --- */
             .mission-params {
                 display: grid;
-                /* Column 1: Flex (Text), Column 2: Fixed 150px (Input) */
-                grid-template-columns: 1fr 150px; 
+                /* CHANGED: 1fr 1fr makes label and input share space equally (50%/50%) */
+                /* This fills the dead space and lets fields resize smoothly */
+                grid-template-columns: 1fr 1fr; 
                 gap: 15px;
                 align-items: center;
-                /* STRICT ROW HEIGHT & SPACING */
                 height: 32px; 
                 margin-bottom: 8px; 
             }
-
             .mission-params label {
                 text-align: right;
                 margin: 0;
@@ -865,8 +864,10 @@
             }
 
             .mod-row input {
-                width: 70px; /* Compact width for modifiers */
-                height: 30px; /* Fits inside the 32px row */
+                width: 40%;          /* CHANGED: Grows with the container */
+                min-width: 60px;     /* Prevents getting too small */
+                max-width: 100px;    /* Prevents getting comfortably huge */
+                height: 30px;
                 text-align: center;
                 background-color: #000;
                 border: 1px solid var(--pip-dim);
@@ -916,7 +917,7 @@
                 <div>
                     <div>REF: SM-2/CRUSADE</div>
                     <div style="font-size: 0.8em; opacity: 0.7">
-                        V 2.15 - ADEPTUS ADMINISTRATUM
+                        V 2.16 - ADEPTUS ADMINISTRATUM
                     </div>
                 </div>
                 <h1>Adeptus Astartes - Mission&nbsp;Debrief</h1>
