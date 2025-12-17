@@ -147,16 +147,14 @@
             /* Global Toggles (Dropdowns) styling inside .section */
             /* To make labels and selects align */
             /* FIXED: Flexible Label, STRICT Fixed Input Width */
+            /* FIXED: 55% Text, 45% Input - fluid resizing */
             .mission-params {
                 display: grid;
-                /* Column 1 (Label): 1fr (Takes all available space) 
-                   Column 2 (Input): 140px (Fixed width, so all inputs are identical) */
-                grid-template-columns: 1fr 140px; 
-                gap: 15px;
-                align-items: center; 
-                width: 100%;
-                flex: 1; 
-                margin: 0;
+                grid-template-columns: 55% 45%; /* Percentage based width */
+                gap: 5px;
+                align-items: center;
+                height: 32px; 
+                margin-bottom: 8px; 
             }
 
             .mission-params label {
@@ -792,8 +790,8 @@
             /* Main Wrapper: Panels expand to fill width */
             .dashboard-wrapper {
                 display: flex;
-                flex-wrap: wrap;
-                gap: 20px;
+                flex-wrap: nowrap;
+                gap: 10px;
                 align-items: stretch;
                 width: 100%;
             }
@@ -801,7 +799,7 @@
             /* Panels: Equal width, growing to fill space */
             .mission-panel, .modifiers-panel {
                 flex: 1;
-                min-width: 260px;
+                min-width: 0;
                 display: flex;
                 flex-direction: column;
             }
@@ -862,12 +860,11 @@
                 white-space: nowrap;
             }
 
+            /* FIXED: Fluid width, small minimum */
             .mod-row input {
-                /* NEW: Flexible width */
-                width: 100%;          /* Fills its container */
-                min-width: 40px;      /* Can shrink very small */
-                max-width: 80px;      /* Prevents looking too huge */
-                
+                width: 100%;
+                min-width: 0;        /* Allow shrinking to nothing if needed */
+                flex: 1;
                 height: 30px;
                 text-align: center;
                 background-color: #000;
@@ -876,12 +873,27 @@
                 box-sizing: border-box;
             }
 
-            /* MOBILE: Switch to stack only on very small screens */
+            /* MOBILE: Keep side-by-side, just shrink text/spacing */
             @media (max-width: 600px) {
+                body { padding: 5px; } /* Save screen edge space */
+                
                 .dashboard-wrapper {
-                    flex-direction: column;
-                    align-items: stretch;
+                    gap: 5px; /* Tighter gap between panels */
                 }
+
+                /* Shrink text to fit 2 panels on one phone screen */
+                .mission-params label, 
+                .mod-row label,
+                .mission-params input, 
+                .mission-params select,
+                .mod-row input {
+                    font-size: 0.85rem; 
+                }
+
+                .section-header {
+                    font-size: 0.9rem;
+                }
+            }
                 .mission-panel, .modifiers-panel {
                     min-width: 0;
                     width: 100%;
@@ -918,7 +930,7 @@
                 <div>
                     <div>REF: SM-2/CRUSADE</div>
                     <div style="font-size: 0.8em; opacity: 0.7">
-                        V 2.19 - ADEPTUS ADMINISTRATUM
+                        V 2.20 - ADEPTUS ADMINISTRATUM
                     </div>
                 </div>
                 <h1>Adeptus Astartes - Mission&nbsp;Debrief</h1>
