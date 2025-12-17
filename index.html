@@ -144,22 +144,41 @@
                 margin-bottom: 20px;
             }
 
-            /* Modifier Grid */
+            /* Modifier Grid - Responsive Update */
             .modifier-grid {
                 display: grid;
-                grid-template-columns: 100px repeat(8, 1fr);
-                gap: 5px 10px;
+                /* Automatically fit as many columns as possible, min width 100px per item */
+                grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+                gap: 15px; /* Nice spacing between items */
                 align-items: end;
                 text-align: center;
                 font-size: 1.1rem;
+            }
+
+            /* Make the "MODIFIERS" title span the full width of the grid */
+            .modifier-grid > div:first-child {
+                grid-column: 1 / -1; /* Spans all available columns */
+                text-align: center !important;
+                font-weight: bold;
+                border-bottom: 1px solid var(--pip-dim);
+                padding-bottom: 8px;
+                margin-bottom: 10px;
+                width: 100%;
+                letter-spacing: 2px;
             }
 
             .modifier-grid label {
                 font-size: 0.9rem;
                 opacity: 0.8;
                 display: block;
-                margin-bottom: 2px;
+                margin-bottom: 4px;
+                white-space: nowrap; /* Prevents labels from breaking awkwardly */
             }
+            
+            .modifier-grid input {
+                width: 100%; /* Ensures input fills its grid cell */
+            }
+            
             /* Global Toggles (Dropdowns) styling inside .section */
             /* To make labels and selects align */
             .mission-params {
@@ -639,12 +658,12 @@
             }
             /* Further adjustments for very small screens (e.g., typical smartphone portrait) */
             @media (max-width: 480px) {
-                .modifier-grid {
+                /*.modifier-grid {
                     grid-template-columns: 1fr; /* Stack all modifiers vertically */
                 }
-                .modifier-grid div:first-child {
+               /* .modifier-grid div:first-child {
                     /* The 'MODIFIERS' label */
-                    grid-column: auto; /* Reset grid-column to normal flow */
+               /*     grid-column: auto; /* Reset grid-column to normal flow */
                 }
             }
             /* Full Credit Block (Most Detailed) */
@@ -798,7 +817,7 @@
                 <div>
                     <div>REF: SM-2/CRUSADE</div>
                     <div style="font-size: 0.8em; opacity: 0.7">
-                        V 2.08 - ADEPTUS ADMINISTRATUM
+                        V 2.09 - ADEPTUS ADMINISTRATUM
                     </div>
                 </div>
                 <h1>Adeptus Astartes - Mission&nbsp;Debrief</h1>
