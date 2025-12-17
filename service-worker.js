@@ -2,6 +2,8 @@ const CACHE_NAME = "mission-debrief-v250"; // Increment this version number when
 const urlsToCache = [
     "./", // Caches the root, i.e., index.html
     "index.html",
+    "./style.css",
+    "./script.js",
     "manifest.json",
     "attached_assets/FFFvLV2Ld6_crt_1765204552094.png",
     "service-worker.js", // It's good practice to cache the service worker itself
