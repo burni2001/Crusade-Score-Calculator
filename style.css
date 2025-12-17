@@ -318,10 +318,60 @@ select option { background-color: #000; color: #0f0; }
 .ocr-stats-row .ocr-input { width: 100%; }
 .ocr-modal-buttons { display: flex; gap: 15px; justify-content: center; margin-top: 20px; padding-top: 15px; border-top: 1px solid var(--border-color); }
 
-.credits-full { padding: 20px; margin-top: 30px; text-align: center; width: 100%; max-width: 1100px; }
-.credits-full .title { font-size: 1.1rem; font-weight: bold; color: #afffa6; margin-bottom: 15px; }
-.credits-full .credit-row { margin: 8px 0; font-size: 0.95rem; }
-.credits-full a { color: #afffa6; text-decoration: none; }
+/* Update the main container to ensure padding doesn't break layout */
+.credits-full {
+    padding: 20px;
+    margin-top: 30px;
+    text-align: center;
+    width: 100%;
+    max-width: 1100px;
+    box-sizing: border-box; /* Added this from v2.08 */
+}
+
+/* Update title to be uppercase with spacing */
+.credits-full .title {
+    font-size: 1.1rem;
+    font-weight: bold;
+    color: #afffa6;
+    margin-bottom: 15px;
+    text-transform: uppercase; /* Added */
+    letter-spacing: 2px;       /* Added */
+}
+
+/* Row styling remains similar */
+.credits-full .credit-row {
+    margin: 8px 0;
+    font-size: 0.95rem;
+}
+
+/* NEW: Add specific color for the Role (Development, etc.) */
+.credits-full .role {
+    color: #1a8000;
+}
+
+/* NEW: Add specific color for the Name */
+.credits-full .name {
+    color: #33ff00;
+}
+
+/* NEW: Add styling for the bottom copyright section with the line separator */
+.credits-full .copyright {
+    margin-top: 15px;
+    padding-top: 15px;
+    border-top: 1px solid #1f3a1f;
+    font-size: 0.85rem;
+    opacity: 0.7;
+}
+
+/* Update link styling to include hover glow */
+.credits-full a {
+    color: #afffa6;
+    text-decoration: none;
+}
+.credits-full a:hover {
+    color: #33ff00;
+    text-shadow: 0 0 5px #33ff00;
+}
 
 /* ========================================= */
 /* === SINGLE UNIFIED MOBILE MEDIA QUERY === */
