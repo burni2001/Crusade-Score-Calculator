@@ -874,7 +874,7 @@
                 box-sizing: border-box;
             }
 
-            /* MOBILE: Stack everything cleanly */
+            /* Mobile: Keep side-by-side layout but resize */
             @media (max-width: 900px) {
                 .dashboard-wrapper {
                     flex-direction: column;
@@ -884,16 +884,24 @@
                     min-width: 0;
                     width: 100%;
                 }
+
+                /* UPDATED: Keep Mission Params in a single line (Grid) */
                 .mission-params {
-                    display: flex;
-                    flex-direction: column;
-                    height: auto;
-                    margin-bottom: 15px;
+                    display: grid;
+                    /* Label gets remaining space | Input gets fixed 130px (slightly smaller than desktop) */
+                    grid-template-columns: 1fr 130px; 
+                    gap: 10px;
+                    align-items: center;
+                    height: 32px;
+                    margin-bottom: 8px;
                 }
                 .mission-params label {
-                    text-align: left;
-                    margin-bottom: 4px;
+                    text-align: right;    /* Keep label aligned to the input */
+                    margin-bottom: 0;
+                    white-space: nowrap;  /* Force single line */
+                    font-size: 1rem;      /* Ensure readability */
                 }
+
                 .mod-grid-clean {
                     display: flex;
                     flex-direction: column;
@@ -908,7 +916,7 @@
                 <div>
                     <div>REF: SM-2/CRUSADE</div>
                     <div style="font-size: 0.8em; opacity: 0.7">
-                        V 2.13 - ADEPTUS ADMINISTRATUM
+                        V 2.14 - ADEPTUS ADMINISTRATUM
                     </div>
                 </div>
                 <h1>Adeptus Astartes - Mission&nbsp;Debrief</h1>
