@@ -435,7 +435,8 @@ select option { background-color: #000; color: #0f0; }
     .row-label {
         font-size: 0.75rem;       /* Smaller font for labels like "Incapacitations" */
         padding-right: 5px !important; /* Reduce padding to give text more room */
-        white-space: nowrap;      /* Prevent wrapping if preferred, or remove to allow wrap */
+        white-space: normal;
+        line-height: 1.1;
     }
     
     /* Ensure dropdown arrow doesn't take too much space */
