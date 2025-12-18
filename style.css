@@ -322,7 +322,11 @@ select option { background-color: #000; color: #0f0; }
     padding: 20px;
     box-sizing: border-box;
 }
-.ocr-detected-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.ocr-detected-grid { 
+    display: grid; 
+    grid-template-columns: 1fr 1fr; 
+    gap: 20px; /* Increased from 10px to create distinct gaps */
+}
 .ocr-detected-item { display: flex; justify-content: space-between; align-items: center; background: rgba(51,255,0,0.1); padding: 8px; border: 1px solid var(--border-color); }
 .ocr-input {
     background: #0a1f0a;
@@ -333,7 +337,12 @@ select option { background-color: #000; color: #0f0; }
     max-width: 140px;   /* Cap at desktop size */
     min-width: 60px;    /* Allow shrinking down to this size */
 }
-.ocr-stats-row { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; margin-top: 8px; }
+.ocr-stats-row { 
+    display: grid; 
+    grid-template-columns: repeat(2, 1fr); 
+    gap: 15px;        /* More space between Stat boxes */
+    margin-top: 25px; /* Creates a clear visual break before the stats start */
+}
 .ocr-stats-row .ocr-input { width: 100%; }
 .ocr-modal-buttons {
     display: flex;
