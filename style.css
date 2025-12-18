@@ -400,93 +400,99 @@ select option { background-color: #000; color: #0f0; }
 /* === SINGLE UNIFIED MOBILE MEDIA QUERY === */
 /* ========================================= */
 @media (max-width: 768px) {
+    /* 1. Global Frame & Body Adjustments */
     body { padding: 5px; }
-    .cogitator-frame { padding: 10px;
-                       border-width: 2px; /* thinner border for mobile */
+    .cogitator-frame { 
+        padding: 10px; 
+        border-width: 2px;
     }
     
-    /* HEADER: Stack the header elements */
+    /* 2. Header & Typography */
     .header-decor { flex-direction: column; align-items: center; text-align: center; }
     h1 { font-size: 1.4rem; }
+    .section-header { font-size: 0.9rem; }
 
-    /* DASHBOARD: Keep side-by-side but shrink TEXT */
+    /* 3. Main Dashboard Layout */
     .dashboard-wrapper { gap: 4px; }
     .mission-params { gap: 2px; }
     
-    /* Aggressively shrink font sizes to fit 2 panels side-by-side */
     .mission-params label, 
     .mod-row label, 
     .mission-params input, 
     .mission-params select, 
-    .mod-row input,
-    .section-header {
+    .mod-row input {
         font-size: 0.8rem; 
     }
+    select { text-indent: 0px; padding-left: 0px; }
 
-    /* MODIFIERS: Switch to 1 column and tighten vertical space */
+    /* 4. Modifiers Section (Stacking) */
     .mod-grid-clean {
-        grid-template-columns: 1fr; /* Stack in 1 column */
-        grid-template-rows: auto;   /* Let rows fit content */
-        row-gap: 2px;               /* Very tight spacing */
+        grid-template-columns: 1fr;
+        grid-template-rows: auto;
+        row-gap: 2px;
         column-gap: 0;
     }
+    .mod-row { height: 22px; }
+    .mod-row label { font-size: 0.85rem; margin: 0; }
+    .mod-row input { height: 20px; font-size: 0.9rem; padding: 0; }
 
-    /* Reduce height of each row */
-    .mod-row {
-        height: 22px; /* reduced from 32px */
-    }
-
-    /* Shrink labels and inputs to fit the tighter rows */
-    .mod-row label {
-        font-size: 0.85rem;
-        margin: 0;
-    }
-
-    .mod-row input {
-        height: 20px; /* Smaller input box */
-        font-size: 0.9rem;
-        padding: 0;
-    }
-
-    /* Shrink table labels to prevent overlapping */
+    /* 5. Squad Matrix Table */
     .row-label {
-        font-size: 0.75rem;       /* Smaller font for labels like "Incapacitations" */
-        padding-right: 5px !important; /* Reduce padding to give text more room */
+        font-size: 0.75rem;
+        padding-right: 5px !important;
         white-space: normal;
         line-height: 1.1;
     }
-    
-    /* Ensure dropdown arrow doesn't take too much space */
-    select { text-indent: 0px; padding-left: 0px; }
 
-    /* IMPORT SECTION: Allow stacking for import tables */
+    /* 6. Import Section & Buttons */
     .panels-wrapper { grid-template-columns: 1fr; }
+    .export-buttons-container { flex-direction: column; gap: 10px; }
+    .export-buttons-container button { width: 100%; }
     
-    /* OCR: Stack OCR columns */
-    .ocr-detected-grid { grid-template-columns: 1fr !important;
-    }
-    
-    .ocr-modal-overlay { padding: 5px;
-    }
-    
-    .ocr-detected-item {
-        flex-direction: column; 
-        align-items: stretch;
-        gap: 2px;
-        padding: 8px 5px !important;
+    /* Fix for the main file upload button */
+    #screenshot-upload {
+        width: 100% !important;
+        box-sizing: border-box;
     }
 
+    /* ========================================= */
+    /* === CRITICAL OCR FIXES START HERE === */
+    /* ========================================= */
+    
+    /* Give the modal wrapper breathing room */
+    .ocr-modal-overlay { 
+        padding: 5px; 
+    }
+    
+    /* Ensure the modal itself doesn't overflow */
+    .ocr-modal {
+        max-width: 95vw; /* Never wider than 95% of viewport */
+        padding: 10px;   /* Reduce internal padding */
+    }
+
+    /* Force the Main Grid to 1 Column */
+    .ocr-detected-grid { 
+        grid-template-columns: 1fr !important; 
+    }
+
+    /* Fix the Stats Rows (Kills, Deaths, etc.) */
     .ocr-stats-row {
+        /* minmax(0, 1fr) is CRITICAL. It allows columns to shrink below content size. */
         grid-template-columns: repeat(2, minmax(0, 1fr)); 
         gap: 5px;
     }
 
+    /* Fix the Individual Items (Label + Input boxes) */
     .ocr-detected-item {
         flex-direction: column; 
-        align-items: stretch; /* Stretch input to fill width */
+        align-items: stretch;
         gap: 2px;
+        /* OVERRIDE: Reduce the 12px desktop padding to 4px. This saves ~16px width per box. */
+        padding: 6px 4px !important; 
     }
 
+    /* FORCE ALL INPUTS TO SHRINK */
+    /* We use !important to crush the desktop "140px" width rule */
     .ocr-input, 
     .ocr-input[type="number"],
     .ocr-select {
@@ -494,11 +500,10 @@ select option { background-color: #000; color: #0f0; }
         min-width: 0 !important;
         max-width: 100% !important;
         box-sizing: border-box;
-    }
-    
-    .ocr-select { width: 100%;
+        font-size: 0.9rem; /* Slightly smaller text prevents expansion */
     }
 
+    /* Stack the Action Buttons */
     .ocr-modal-buttons {
         flex-direction: column;
         gap: 10px;
@@ -507,8 +512,4 @@ select option { background-color: #000; color: #0f0; }
         width: 100%;
         margin: 0;
     }
-    
-    /* EXPORT BUTTONS: Stack them */
-    .export-buttons-container { flex-direction: column; gap: 10px; }
-    .export-buttons-container button { width: 100%; }
 }
