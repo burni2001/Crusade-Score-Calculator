@@ -465,11 +465,30 @@ select option { background-color: #000; color: #0f0; }
     
     /* OCR: Stack OCR columns */
     .ocr-detected-grid { grid-template-columns: 1fr; }
-
+    .ocr-modal-overlay { padding: 10px; }
     .ocr-detected-item {
         flex-wrap: wrap; 
         gap: 5px;
     }
+
+    .ocr-stats-row {
+        grid-template-columns: 1fr 1fr; /* 2 columns instead of 4 */
+        gap: 5px;
+    }
+
+    .ocr-detected-item {
+        flex-direction: column; 
+        align-items: stretch; /* Stretch input to fill width */
+        gap: 2px;
+    }
+
+    .ocr-input {
+        width: 100%;       /* Fill the container */
+        max-width: 100%;   /* Never exceed container */
+        box-sizing: border-box;
+    }
+    
+    .ocr-select { width: 100%; }
     
     /* EXPORT BUTTONS: Stack them */
     .export-buttons-container { flex-direction: column; gap: 10px; }
