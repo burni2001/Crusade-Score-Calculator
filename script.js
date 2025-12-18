@@ -2511,44 +2511,52 @@ function copySummaryText() {
 document.getElementById('export-summary-btn').addEventListener('click', async () => {
     const btn = document.getElementById('export-summary-btn');
     const originalText = btn.innerText;
-    btn.innerText = "CAPTURING..."; // Visual feedback
+    btn.innerText = "CAPTURING..."; 
 
-    // 1. Select the elements we need to manipulate
+    // 1. Select the main elements
     const frame = document.querySelector('.cogitator-frame');
-    const importSection = document.querySelector('.panels-wrapper'); // The "Aggregate Data" section
+    const importSection = document.querySelector('.panels-wrapper'); 
     const buttonsContainer = document.querySelector('.export-buttons-container');
+
+    // 2. Find the "Aggregate Data Import" Header dynamically
+    // We look for any .section-header or h3 that contains the word "Import"
+    const allHeaders = Array.from(document.querySelectorAll('.section-header, h3'));
+    const importHeader = allHeaders.find(el => el.innerText.toUpperCase().includes('IMPORT'));
     
-    // 2. Save original styles so we can restore them perfectly later
-    const originalImportDisplay = importSection.style.display;
+    // 3. Save original styles
+    const originalImportDisplay = importSection ? importSection.style.display : '';
     const originalButtonsDisplay = buttonsContainer.style.display;
+    const originalHeaderDisplay = importHeader ? importHeader.style.display : '';
+    
     const originalFrameWidth = frame.style.width;
     const originalFrameMaxWidth = frame.style.maxWidth;
     const originalBodyWidth = document.body.style.width;
+    const originalFrameHeight = frame.style.height;
 
     try {
-        // 3. Hide the unwanted sections
-        importSection.style.display = 'none';
+        // 4. Hide EVERYTHING at the bottom
+        if (importSection) importSection.style.display = 'none';
+        if (importHeader) importHeader.style.display = 'none'; // Hides the title text
         buttonsContainer.style.display = 'none';
 
-        // 4. FORCE DESKTOP LAYOUT
-        // We force the body and frame to be 1120px wide to trigger the "Desktop" CSS
+        // 5. Force Desktop Layout & Auto Height
         document.body.style.width = '1120px';
         frame.style.width = '1100px';
-        frame.style.maxWidth = 'none'; // Disable max-width constraint
+        frame.style.maxWidth = 'none';
+        frame.style.height = 'auto'; // Shrinks frame to fit only what is visible
         
-        // Slight delay to ensure browser renders the layout change
+        // Slight delay for layout repainting
         await new Promise(resolve => setTimeout(resolve, 100));
 
-        // 5. Capture the screenshot using html2canvas
-        // Note: windowWidth: 1280 tricks the renderer into thinking it's on a desktop screen
+        // 6. Capture
         const canvas = await html2canvas(frame, {
-            scale: 2, // High quality
-            backgroundColor: '#000000', // Ensure background is black
+            scale: 2, 
+            backgroundColor: '#000000', 
             windowWidth: 1280, 
             useCORS: true
         });
 
-        // 6. Create the download link
+        // 7. Download
         const link = document.createElement('a');
         const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);
         link.download = `Mission_Summary_${timestamp}.png`;
@@ -2559,12 +2567,14 @@ document.getElementById('export-summary-btn').addEventListener('click', async ()
         console.error("Cogitator Error:", err);
         alert("Error generating pict-record.");
     } finally {
-        // 7. RESTORE EVERYTHING (Critical Step)
-        importSection.style.display = originalImportDisplay;
+        // 8. Restore Everything
+        if (importSection) importSection.style.display = originalImportDisplay;
+        if (importHeader) importHeader.style.display = originalHeaderDisplay;
         buttonsContainer.style.display = originalButtonsDisplay;
         
         frame.style.width = originalFrameWidth;
         frame.style.maxWidth = originalFrameMaxWidth;
+        frame.style.height = originalFrameHeight;
         document.body.style.width = originalBodyWidth;
         
         btn.innerText = originalText;
