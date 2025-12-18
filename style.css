@@ -153,7 +153,7 @@ select option { background-color: #000; color: #0f0; }
     margin-bottom: 8px; 
 }
 .mission-params label {
-    text-align: right;
+    text-align: left;
     margin: 0;
     font-size: 1.1rem;
     opacity: 0.9;
