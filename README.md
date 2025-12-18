@@ -9,6 +9,7 @@ A Progressive Web App (PWA) for calculating mission debriefing scores.
 - Screenshot OCR to automatically extract stats from game screenshots
 - Geneseed and Armoury data tracking
 - Export to CSV and PNG formats
+- Import support for up to 3 CSV files
 - Retro CRT-style interface
 - Works offline (PWA)
 
@@ -23,6 +24,7 @@ The app uses OCR (Optical Character Recognition) by https://ocr.space to automat
 3. Click "Apply Values" to fill in the form
 4. Adjust modifiers and other settings as needed
 5. Export your results as CSV or PNG
+6. Import up to 3 CSV files in to accumulate results
 
 ## Technology
 
