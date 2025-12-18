@@ -17,7 +17,7 @@
                 <div>
                     <div>REF: SM-2/CRUSADE</div>
                     <div style="font-size: 0.8em; opacity: 0.7">
-                        V 3.37 - ADEPTUS ADMINISTRATUM
+                        V 3.38 - ADEPTUS ADMINISTRATUM
                     </div>
                 </div>
                 <h1>Adeptus Astartes - Mission&nbsp;Debrief</h1>
@@ -697,18 +697,15 @@
                 </div>
             </div>
             <div class="export-buttons-container">
-                <button onclick="exportToCSV()">
-                    Export to Data Slate (CSV)
-                </button>
-                <button id="export-summary-btn">
-                    Record Cogitator Display (PNG)
-                </button>
-                <button class="danger-btn" onclick="clearData()">
-                    Purge Mission Data
-                </button>
-         </div>
-        <div id="import-wrapper">            
-            </div><div class="divider-line"></div>
+                <button onclick="openCopyModal()">Create Astropathic Message</button>
+                <button onclick="saveAsPNG()">Record Cogitator Display (PNG)</button>
+                <button id="export-summary-btn">Export Mission (PNG)</button>
+                <button class="danger-btn" onclick="clearData()">Purge Mission Data</button>
+                <button class="danger-btn" onclick="resetImport()">Reset Import</button>
+            </div>
+            
+        </div> <div id="import-wrapper">           
+            <div class="divider-line"></div>
 
             <h2 style="
                 margin-top: 30px; 
@@ -782,14 +779,9 @@
                         <table class="score-table" id="stats-table"></table>
                     </div>
                 </div>
-        </div>
-
-                <div class="export-buttons-container">
-                    <button onclick="openCopyModal()">Create Astropathic Message</button>
-                    <button onclick="saveAsPNG()">Record Cogitator Display (PNG)</button>
-                    <button class="danger-btn" onclick="resetImport()">Reset Import</button>
-                </div>
             </div>
+            
+        </div> </div> ```
             </div> <div class="credits-full">
                 <div class="title">Credits</div>
                 <div class="credit-row">
