@@ -2513,42 +2513,38 @@ document.getElementById('export-summary-btn').addEventListener('click', async ()
     const originalText = btn.innerText;
     btn.innerText = "CAPTURING..."; 
 
-    // 1. Select the main elements
+    // 1. Select the elements
     const frame = document.querySelector('.cogitator-frame');
-    const importSection = document.querySelector('.panels-wrapper'); 
     const buttonsContainer = document.querySelector('.export-buttons-container');
+    
+    // TARGET THE NEW WRAPPER WE JUST MADE
+    const importWrapper = document.getElementById('import-wrapper');
 
-    // 2. Find the "Aggregate Data Import" Header dynamically
-    // We look for any .section-header or h3 that contains the word "Import"
-    const allHeaders = Array.from(document.querySelectorAll('.section-header, h3'));
-    const importHeader = allHeaders.find(el => el.innerText.toUpperCase().includes('IMPORT'));
-    
-    // 3. Save original styles
-    const originalImportDisplay = importSection ? importSection.style.display : '';
+    // 2. Save original styles
+    const originalImportDisplay = importWrapper ? importWrapper.style.display : '';
     const originalButtonsDisplay = buttonsContainer.style.display;
-    const originalHeaderDisplay = importHeader ? importHeader.style.display : '';
-    
     const originalFrameWidth = frame.style.width;
     const originalFrameMaxWidth = frame.style.maxWidth;
     const originalBodyWidth = document.body.style.width;
     const originalFrameHeight = frame.style.height;
 
     try {
-        // 4. Hide EVERYTHING at the bottom
-        if (importSection) importSection.style.display = 'none';
-        if (importHeader) importHeader.style.display = 'none'; // Hides the title text
+        // 3. Hide the unwanted sections
+        if (importWrapper) importWrapper.style.display = 'none';
         buttonsContainer.style.display = 'none';
 
-        // 5. Force Desktop Layout & Auto Height
+        // 4. Force Desktop Layout & Tight Height
         document.body.style.width = '1120px';
         frame.style.width = '1100px';
         frame.style.maxWidth = 'none';
-        frame.style.height = 'auto'; // Shrinks frame to fit only what is visible
         
-        // Slight delay for layout repainting
+        // "max-content" shrinks the frame height to fit exactly what is left visible
+        frame.style.height = 'max-content'; 
+        
+        // Slight delay to ensure browser renders the layout change
         await new Promise(resolve => setTimeout(resolve, 100));
 
-        // 6. Capture
+        // 5. Capture
         const canvas = await html2canvas(frame, {
             scale: 2, 
             backgroundColor: '#000000', 
@@ -2556,7 +2552,7 @@ document.getElementById('export-summary-btn').addEventListener('click', async ()
             useCORS: true
         });
 
-        // 7. Download
+        // 6. Download
         const link = document.createElement('a');
         const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);
         link.download = `Mission_Summary_${timestamp}.png`;
@@ -2567,9 +2563,8 @@ document.getElementById('export-summary-btn').addEventListener('click', async ()
         console.error("Cogitator Error:", err);
         alert("Error generating pict-record.");
     } finally {
-        // 8. Restore Everything
-        if (importSection) importSection.style.display = originalImportDisplay;
-        if (importHeader) importHeader.style.display = originalHeaderDisplay;
+        // 7. Restore Everything
+        if (importWrapper) importWrapper.style.display = originalImportDisplay;
         buttonsContainer.style.display = originalButtonsDisplay;
         
         frame.style.width = originalFrameWidth;
