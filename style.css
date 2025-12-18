@@ -188,7 +188,7 @@ select option { background-color: #000; color: #0f0; }
     white-space: nowrap;
 }
 .mod-row input {
-    width: 60%;
+    width: 60px;
     flex: 0 0 auto;
     min-width: 0;
     height: 30px;
