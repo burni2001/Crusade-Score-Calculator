@@ -92,6 +92,11 @@ input, select {
     padding: 2px;
     width: 100%;
     box-sizing: border-box;
+    border-radius: 0;
+    -webkit-border-radius: 0; /* Critical for Safari/iOS */
+    -webkit-appearance: none; /* Removes default iOS glossy gradient/styling */
+    appearance: none;         /* Standard property */
+}
 }
 input:focus, select:focus {
     outline: none;
