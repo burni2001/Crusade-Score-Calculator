@@ -316,7 +316,7 @@ select option { background-color: #000; color: #0f0; }
     border: 2px solid var(--pip-green);
     box-shadow: 0 0 30px rgba(51, 255, 0, 0.3);
     width: 100%;
-    max-width: 800px;
+    max-width: 95vw;
     max-height: 90vh;
     overflow-y: auto;
     padding: 20px;
@@ -324,10 +324,26 @@ select option { background-color: #000; color: #0f0; }
 }
 .ocr-detected-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
 .ocr-detected-item { display: flex; justify-content: space-between; align-items: center; background: rgba(51,255,0,0.1); padding: 8px; border: 1px solid var(--border-color); }
-.ocr-input { background: #0a1f0a; border: 1px solid var(--border-color); color: #afffa6; font-family: inherit; width: 140px; }
+.ocr-input {
+    background: #0a1f0a;
+    border: 1px solid var(--border-color);
+    color: #afffa6;
+    font-family: inherit;
+    width: 100%;        /* Fill available space */
+    max-width: 140px;   /* Cap at desktop size */
+    min-width: 60px;    /* Allow shrinking down to this size */
+}
 .ocr-stats-row { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; margin-top: 8px; }
 .ocr-stats-row .ocr-input { width: 100%; }
-.ocr-modal-buttons { display: flex; gap: 15px; justify-content: center; margin-top: 20px; padding-top: 15px; border-top: 1px solid var(--border-color); }
+.ocr-modal-buttons {
+    display: flex;
+    gap: 15px;
+    justify-content: center;
+    margin-top: 20px;
+    padding-top: 15px;
+    border-top: 1px solid var(--border-color);
+    flex-wrap: wrap;
+}
 
 .ocr-raw-text {
     background-color: #000;
