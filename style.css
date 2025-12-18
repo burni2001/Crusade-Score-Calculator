@@ -330,6 +330,18 @@ select option { background-color: #000; color: #0f0; }
 .ocr-stats-row .ocr-input { width: 100%; }
 .ocr-modal-buttons { display: flex; gap: 15px; justify-content: center; margin-top: 20px; padding-top: 15px; border-top: 1px solid var(--border-color); }
 
+.ocr-raw-text {
+    background-color: #000;
+    border: 1px solid var(--border-color);
+    padding: 10px;
+    max-height: 150px;
+    overflow-y: auto;
+    font-size: 0.9rem;
+    white-space: pre-wrap;  /* Wraps text to next line */
+    word-break: break-word; /* Forces long unbroken words to break */
+    margin-top: 10px;
+}
+
 /* Update the main container to ensure padding doesn't break layout */
 .credits-full {
     padding: 20px;
@@ -453,6 +465,11 @@ select option { background-color: #000; color: #0f0; }
     
     /* OCR: Stack OCR columns */
     .ocr-detected-grid { grid-template-columns: 1fr; }
+
+    .ocr-detected-item {
+        flex-wrap: wrap; 
+        gap: 5px;
+    }
     
     /* EXPORT BUTTONS: Stack them */
     .export-buttons-container { flex-direction: column; gap: 10px; }
