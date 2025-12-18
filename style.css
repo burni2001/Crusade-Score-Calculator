@@ -146,10 +146,10 @@ select option { background-color: #000; color: #0f0; }
 /* 3. Mission Params (Left): Fluid Grid */
 .mission-params {
     display: grid;
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
     gap: 25px;
     align-items: center;
-    height: 32px; 
+    min-height: 32px; 
     margin-bottom: 8px; 
 }
 .mission-params label {
@@ -157,7 +157,8 @@ select option { background-color: #000; color: #0f0; }
     margin: 0;
     font-size: 1.1rem;
     opacity: 0.9;
-    white-space: nowrap;
+    white-space: normal;
+    line-height: 1.1;
 }
 .mission-params input, .mission-params select {
     width: 100%;
