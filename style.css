@@ -97,7 +97,6 @@ input, select {
     -webkit-appearance: none; /* Removes default iOS glossy gradient/styling */
     appearance: none;         /* Standard property */
 }
-}
 input:focus, select:focus {
     outline: none;
     box-shadow: 0 0 8px var(--pip-green);
@@ -489,6 +488,17 @@ select option { background-color: #000; color: #0f0; }
     }
     
     .ocr-select { width: 100%; }
+
+    .ocr-modal-buttons {
+        flex-direction: column;
+        gap: 10px;
+    }
+    .ocr-modal-buttons button {
+        width: 100%;
+        margin: 0;
+    }
+
+    .ocr-detected-grid { grid-template-columns: 1fr !important; }
     
     /* EXPORT BUTTONS: Stack them */
     .export-buttons-container { flex-direction: column; gap: 10px; }
