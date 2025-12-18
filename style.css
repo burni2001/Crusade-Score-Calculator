@@ -463,15 +463,21 @@ select option { background-color: #000; color: #0f0; }
     .panels-wrapper { grid-template-columns: 1fr; }
     
     /* OCR: Stack OCR columns */
-    .ocr-detected-grid { grid-template-columns: 1fr; }
-    .ocr-modal-overlay { padding: 10px; }
+    .ocr-detected-grid { grid-template-columns: 1fr !important;
+    }
+    
+    .ocr-modal-overlay { padding: 5px;
+    }
+    
     .ocr-detected-item {
-        flex-wrap: wrap; 
-        gap: 5px;
+        flex-direction: column; 
+        align-items: stretch;
+        gap: 2px;
+        padding: 8px 5px !important;
     }
 
     .ocr-stats-row {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
+        grid-template-columns: repeat(2, minmax(0, 1fr)); 
         gap: 5px;
     }
 
@@ -481,13 +487,17 @@ select option { background-color: #000; color: #0f0; }
         gap: 2px;
     }
 
-    .ocr-input[type="number"] {
+    .ocr-input, 
+    .ocr-input[type="number"],
+    .ocr-select {
         width: 100% !important;
-        min-width: 0;
+        min-width: 0 !important;
+        max-width: 100% !important;
         box-sizing: border-box;
     }
     
-    .ocr-select { width: 100%; }
+    .ocr-select { width: 100%;
+    }
 
     .ocr-modal-buttons {
         flex-direction: column;
@@ -497,8 +507,6 @@ select option { background-color: #000; color: #0f0; }
         width: 100%;
         margin: 0;
     }
-
-    .ocr-detected-grid { grid-template-columns: 1fr !important; }
     
     /* EXPORT BUTTONS: Stack them */
     .export-buttons-container { flex-direction: column; gap: 10px; }
