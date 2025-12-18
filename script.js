@@ -2061,116 +2061,75 @@ function exportToCSV() {
     document.body.removeChild(downloadLink);
 }
 
-// Function to save the entire cogitator-frame as PNG (always renders in wide desktop view)
-function saveAsPNG() {
-    const element = document.querySelector(".cogitator-frame");
-    const body = document.body;
-    const html = document.documentElement;
+// Function to export ONLY the Aggregate Data Import section (Bottom)
+async function saveAsPNG() {
+    // 1. Identify the button (for visual feedback)
+    // We try to find the button calling this function, or fallback to a likely ID
+    const btn = document.querySelector('button[onclick="saveAsPNG()"]') || 
+                document.getElementById('export-png-btn'); 
+    
+    const originalText = btn ? btn.innerText : "";
+    if (btn) btn.innerText = "CAPTURING...";
 
-    // Store original styles
-    const originalElementWidth = element.style.width;
-    const originalElementMaxWidth = element.style.maxWidth;
-    const originalElementMinWidth = element.style.minWidth;
-    const originalBodyOverflow = body.style.overflow;
-    const originalBodyWidth = body.style.width;
-    const originalBodyMinWidth = body.style.minWidth;
-    const originalHtmlWidth = html.style.width;
-    const originalHtmlMinWidth = html.style.minWidth;
-    const originalViewport = document.querySelector(
-        'meta[name="viewport"]',
-    );
-    const originalViewportContent = originalViewport
-        ? originalViewport.getAttribute("content")
-        : null;
+    // 2. Select Elements
+    const frame = document.querySelector(".cogitator-frame");
+    const buttonsContainer = document.querySelector(".export-buttons-container");
+    const topWrapper = document.getElementById("top-wrapper");
+    const importWrapper = document.getElementById("import-wrapper");
 
-    // Temporarily change viewport to allow wider rendering on mobile
-    if (originalViewport) {
-        originalViewport.setAttribute(
-            "content",
-            "width=1200, initial-scale=1.0",
-        );
-    }
+    // 3. Save Original Styles
+    const originalTopDisplay = topWrapper ? topWrapper.style.display : "";
+    const originalButtonsDisplay = buttonsContainer.style.display;
+    const originalFrameWidth = frame.style.width;
+    const originalFrameMaxWidth = frame.style.maxWidth;
+    const originalBodyWidth = document.body.style.width;
+    const originalFrameHeight = frame.style.height;
 
-    // Force wide desktop layout for screenshot - set on all containers
-    element.style.width = "1100px";
-    element.style.maxWidth = "1100px";
-    element.style.minWidth = "1100px";
-    body.style.width = "1200px";
-    body.style.minWidth = "1200px";
-    body.style.overflow = "visible";
-    html.style.width = "1200px";
-    html.style.minWidth = "1200px";
+    try {
+        // 4. Hide Top, Show Bottom
+        if (topWrapper) topWrapper.style.display = "none";
+        if (importWrapper) importWrapper.style.display = "block";
+        buttonsContainer.style.display = "none";
 
-    // Wait for layout to settle, then capture
-    setTimeout(() => {
-        html2canvas(element, {
+        // 5. Force Desktop Layout & Tight Height
+        document.body.style.width = "1120px";
+        frame.style.width = "1100px";
+        frame.style.maxWidth = "none";
+        frame.style.height = "max-content"; // Shrink frame to fit content
+
+        // Wait for layout to settle
+        await new Promise(resolve => setTimeout(resolve, 100));
+
+        // 6. Capture
+        const canvas = await html2canvas(frame, {
             scale: 2,
             backgroundColor: "#000",
-            useCORS: true,
-            windowWidth: 1200,
-            windowHeight: 1400,
-            scrollX: 0,
-            scrollY: 0,
-            logging: true,
-            allowTaint: false,
-            foreignObjectRendering: false,
-        })
-            .then((canvas) => {
-                // Restore original styles by removing inline styles completely
-                element.style.removeProperty("width");
-                element.style.removeProperty("max-width");
-                element.style.removeProperty("min-width");
-                body.style.removeProperty("overflow");
-                body.style.removeProperty("width");
-                body.style.removeProperty("min-width");
-                html.style.removeProperty("width");
-                html.style.removeProperty("min-width");
+            windowWidth: 1280,
+            useCORS: true
+        });
 
-                // Restore viewport
-                if (originalViewport && originalViewportContent) {
-                    originalViewport.setAttribute(
-                        "content",
-                        originalViewportContent,
-                    );
-                }
+        // 7. Download
+        const link = document.createElement("a");
+        const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);
+        link.download = `Import_Data_${timestamp}.png`;
+        link.href = canvas.toDataURL("image/png");
+        link.click();
 
-                console.log(
-                    "Canvas dimensions:",
-                    canvas.width,
-                    "x",
-                    canvas.height,
-                );
-
-                const link = document.createElement("a");
-                link.download = "Mission_Debrief_Display.png";
-                link.href = canvas.toDataURL("image/png");
-                link.click();
-            })
-            .catch((err) => {
-                // Restore styles on error too by removing inline styles completely
-                element.style.removeProperty("width");
-                element.style.removeProperty("max-width");
-                element.style.removeProperty("min-width");
-                body.style.removeProperty("overflow");
-                body.style.removeProperty("width");
-                body.style.removeProperty("min-width");
-                html.style.removeProperty("width");
-                html.style.removeProperty("min-width");
-
-                // Restore viewport
-                if (originalViewport && originalViewportContent) {
-                    originalViewport.setAttribute(
-                        "content",
-                        originalViewportContent,
-                    );
-                }
-
-                console.error("PNG export failed:", err);
-                alert(
-                    "Failed to capture screenshot. Please try again.",
-                );
-            });
-    }, 300); // Give more time for viewport change to take effect
+    } catch (err) {
+        console.error("PNG export failed:", err);
+        alert("Failed to capture screenshot.");
+    } finally {
+        // 8. Restore Everything
+        if (topWrapper) topWrapper.style.display = originalTopDisplay;
+        buttonsContainer.style.display = originalButtonsDisplay;
+        
+        frame.style.width = originalFrameWidth;
+        frame.style.maxWidth = originalFrameMaxWidth;
+        frame.style.height = originalFrameHeight;
+        document.body.style.width = originalBodyWidth;
+        
+        if (btn) btn.innerText = originalText;
+    }
 }
 
 // Initialize: load saved data and calculate when DOM is ready
