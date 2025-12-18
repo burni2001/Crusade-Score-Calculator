@@ -2506,3 +2506,67 @@ function copySummaryText() {
         alert("Copied to clipboard!");
     });
 }
+
+/* --- NEW: Export Summary (PNG) Button Logic --- */
+document.getElementById('export-summary-btn').addEventListener('click', async () => {
+    const btn = document.getElementById('export-summary-btn');
+    const originalText = btn.innerText;
+    btn.innerText = "CAPTURING..."; // Visual feedback
+
+    // 1. Select the elements we need to manipulate
+    const frame = document.querySelector('.cogitator-frame');
+    const importSection = document.querySelector('.panels-wrapper'); // The "Aggregate Data" section
+    const buttonsContainer = document.querySelector('.export-buttons-container');
+    
+    // 2. Save original styles so we can restore them perfectly later
+    const originalImportDisplay = importSection.style.display;
+    const originalButtonsDisplay = buttonsContainer.style.display;
+    const originalFrameWidth = frame.style.width;
+    const originalFrameMaxWidth = frame.style.maxWidth;
+    const originalBodyWidth = document.body.style.width;
+
+    try {
+        // 3. Hide the unwanted sections
+        importSection.style.display = 'none';
+        buttonsContainer.style.display = 'none';
+
+        // 4. FORCE DESKTOP LAYOUT
+        // We force the body and frame to be 1120px wide to trigger the "Desktop" CSS
+        document.body.style.width = '1120px';
+        frame.style.width = '1100px';
+        frame.style.maxWidth = 'none'; // Disable max-width constraint
+        
+        // Slight delay to ensure browser renders the layout change
+        await new Promise(resolve => setTimeout(resolve, 100));
+
+        // 5. Capture the screenshot using html2canvas
+        // Note: windowWidth: 1280 tricks the renderer into thinking it's on a desktop screen
+        const canvas = await html2canvas(frame, {
+            scale: 2, // High quality
+            backgroundColor: '#000000', // Ensure background is black
+            windowWidth: 1280, 
+            useCORS: true
+        });
+
+        // 6. Create the download link
+        const link = document.createElement('a');
+        const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);
+        link.download = `Mission_Summary_${timestamp}.png`;
+        link.href = canvas.toDataURL('image/png');
+        link.click();
+
+    } catch (err) {
+        console.error("Cogitator Error:", err);
+        alert("Error generating pict-record.");
+    } finally {
+        // 7. RESTORE EVERYTHING (Critical Step)
+        importSection.style.display = originalImportDisplay;
+        buttonsContainer.style.display = originalButtonsDisplay;
+        
+        frame.style.width = originalFrameWidth;
+        frame.style.maxWidth = originalFrameMaxWidth;
+        document.body.style.width = originalBodyWidth;
+        
+        btn.innerText = originalText;
+    }
+});
