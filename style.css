@@ -471,7 +471,7 @@ select option { background-color: #000; color: #0f0; }
     }
 
     .ocr-stats-row {
-        grid-template-columns: 1fr 1fr; /* 2 columns instead of 4 */
+        grid-template-columns: repeat(2, minmax(0, 1fr));
         gap: 5px;
     }
 
@@ -481,9 +481,9 @@ select option { background-color: #000; color: #0f0; }
         gap: 2px;
     }
 
-    .ocr-input {
-        width: 100%;       /* Fill the container */
-        max-width: 100%;   /* Never exceed container */
+    .ocr-input[type="number"] {
+        width: 100% !important;
+        min-width: 0;
         box-sizing: border-box;
     }
     
