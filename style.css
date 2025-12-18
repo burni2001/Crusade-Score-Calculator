@@ -325,7 +325,7 @@ select option { background-color: #000; color: #0f0; }
 .ocr-detected-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
 .ocr-detected-item { display: flex; justify-content: space-between; align-items: center; background: rgba(51,255,0,0.1); padding: 8px; border: 1px solid var(--border-color); }
 .ocr-input { background: #0a1f0a; border: 1px solid var(--border-color); color: #afffa6; font-family: inherit; width: 140px; }
-.ocr-stats-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-top: 8px; }
+.ocr-stats-row { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; margin-top: 8px; }
 .ocr-stats-row .ocr-input { width: 100%; }
 .ocr-modal-buttons { display: flex; gap: 15px; justify-content: center; margin-top: 20px; padding-top: 15px; border-top: 1px solid var(--border-color); }
 
