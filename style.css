@@ -146,8 +146,8 @@ select option { background-color: #000; color: #0f0; }
 /* 3. Mission Params (Left): Fluid Grid */
 .mission-params {
     display: grid;
-    grid-template-columns: 55% 45%; /* Fluid percentage width */
-    gap: 5px;
+    grid-template-columns: 1fr 1fr;
+    gap: 25px;
     align-items: center;
     height: 32px; 
     margin-bottom: 8px; 
