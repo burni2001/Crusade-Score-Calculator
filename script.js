@@ -2647,7 +2647,7 @@ async function exportTopSectionPNG() {
         
         if (btn) btn.innerText = originalText;
     }
-});
+}
 
 /* ========================================================= */
 /* ===  GLOBAL UTILS: ESC KEY LISTENER                   === */
