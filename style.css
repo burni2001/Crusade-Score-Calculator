@@ -600,7 +600,7 @@ select option { background-color: #000; color: #0f0; }
     }
 
     /* ========================================= */
-    /* === CRITICAL OCR FIXES START HERE === */
+    /* === CRITICAL OCR FIXES === */
     /* ========================================= */
     
     /* Give the modal wrapper breathing room */
@@ -655,5 +655,29 @@ select option { background-color: #000; color: #0f0; }
     .ocr-modal-buttons button {
         width: 100%;
         margin: 0;
+    }
+
+    /* ========================================= */
+    /* === TRANSMISSION LOG MOBILE FIXES === */
+    /* ========================================= */
+
+    /* 1. Force the Overlay to be a Flex Container (Centers content) */
+    #copy-modal.active,
+    .modal-overlay.active {
+        display: flex !important;
+        justify-content: center !important;
+        align-items: center !important;
+        padding: 15px !important; /* Safety padding from screen edges */
+        box-sizing: border-box !important;
+    }
+
+    /* 2. Force the Window to Center and Size Correctly */
+    #copy-modal .modal-content {
+        margin: 0 !important;       /* Kill any auto margins drifting right */
+        width: 100% !important;     /* Fill the available padded space */
+        max-width: 100% !important; 
+        left: auto !important;      /* Kill absolute positioning */
+        right: auto !important;
+        transform: none !important; /* Kill centering transforms */
     }
 }
