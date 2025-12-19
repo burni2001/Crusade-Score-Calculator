@@ -1945,36 +1945,27 @@ function calculate() {
     setTxt("total-final", totalSquadFinalScore);
 }
 
-// Function to export table data to CSV
-function exportToCSV() {
+/* --- NEW DATA BANK SYSTEM --- */
+
+// 1. Generate CSV Content (Returns String)
+function generateCSVString() {
     const missionName = getStr("mission-name");
-    const missionDifficulty =
-        document.getElementById("mission-difficulty").value;
-
-    let filename = "Mission_Debrief_Data";
-    if (missionName) {
-        filename = `${missionName.replace(/[^a-zA-Z0-9]/g, "_")}_Debrief_Data`;
-    }
-    filename += ".csv";
-
-    const csv = [];
-
+    const missionDifficulty = document.getElementById("mission-difficulty").value;
+    
     // Get player names
     const p1Name = getStr("p1-name") || "Battle Brother 1";
     const p2Name = getStr("p2-name") || "Battle Brother 2";
     const p3Name = getStr("p3-name") || "Battle Brother 3";
+
+    const csv = [];
 
     // MISSION PARAMETERS
     csv.push("MISSION PARAMETERS");
     csv.push(`Mission Played:,${getStr("mission-name")}`);
     csv.push(`Difficulty:,${missionDifficulty}`);
     csv.push(`Waves Reached:,${getVal("global-waves")}`);
-    csv.push(
-        `Objective Completion:,${document.getElementById("global-objective").value === "1" ? "Yes" : "No"}`,
-    );
-    csv.push(
-        `Geneseed Retrieved:,${document.getElementById("global-geneseed").value === "1" ? "Yes" : "No"}`,
-    );
+    csv.push(`Objective Completion:,${document.getElementById("global-objective").value === "1" ? "Yes" : "No"}`);
+    csv.push(`Geneseed Retrieved:,${document.getElementById("global-geneseed").value === "1" ? "Yes" : "No"}`);
     csv.push(`Armoury Data Retrieved:,${getVal("global-armoury")}`);
     csv.push("");
 
@@ -1993,46 +1984,24 @@ function exportToCSV() {
     // SQUAD PERFORMANCE MATRIX
     csv.push("SQUAD PERFORMANCE MATRIX");
     csv.push(`,${p1Name},${p2Name},${p3Name},TOTAL`);
-    csv.push(
-        `Class,${document.getElementById("p1-class").value},${document.getElementById("p2-class").value},${document.getElementById("p3-class").value},`,
-    );
-    csv.push(
-        `Kills,${getVal("p1-kills")},${getVal("p2-kills")},${getVal("p3-kills")},${document.getElementById("total-kills").textContent}`,
-    );
-    csv.push(
-        `Special Kills,${getVal("p1-elite")},${getVal("p2-elite")},${getVal("p3-elite")},${document.getElementById("total-elite").textContent}`,
-    );
-    csv.push(
-        `Incapacitations,${getVal("p1-death")},${getVal("p2-death")},${getVal("p3-death")},${document.getElementById("total-death").textContent}`,
-    );
-    csv.push(
-        `Damage Taken,${getVal("p1-damage")},${getVal("p2-damage")},${getVal("p3-damage")},${document.getElementById("total-damage").textContent}`,
-    );
-    csv.push(
-        `Base Score,${document.getElementById("p1-base").textContent},${document.getElementById("p2-base").textContent},${document.getElementById("p3-base").textContent},${document.getElementById("total-base").textContent}`,
-    );
-    csv.push(
-        `Modifier Score,${document.getElementById("p1-mod").textContent},${document.getElementById("p2-mod").textContent},${document.getElementById("p3-mod").textContent},${document.getElementById("total-mod").textContent}`,
-    );
-    csv.push(
-        `TOTAL SCORE,${document.getElementById("p1-final").textContent},${document.getElementById("p2-final").textContent},${document.getElementById("p3-final").textContent},${document.getElementById("total-final").textContent}`,
-    );
+    csv.push(`Class,${document.getElementById("p1-class").value},${document.getElementById("p2-class").value},${document.getElementById("p3-class").value},`);
+    csv.push(`Kills,${getVal("p1-kills")},${getVal("p2-kills")},${getVal("p3-kills")},${document.getElementById("total-kills").textContent}`);
+    csv.push(`Special Kills,${getVal("p1-elite")},${getVal("p2-elite")},${getVal("p3-elite")},${document.getElementById("total-elite").textContent}`);
+    csv.push(`Incapacitations,${getVal("p1-death")},${getVal("p2-death")},${getVal("p3-death")},${document.getElementById("total-death").textContent}`);
+    csv.push(`Damage Taken,${getVal("p1-damage")},${getVal("p2-damage")},${getVal("p3-damage")},${document.getElementById("total-damage").textContent}`);
+    csv.push(`Base Score,${document.getElementById("p1-base").textContent},${document.getElementById("p2-base").textContent},${document.getElementById("p3-base").textContent},${document.getElementById("total-base").textContent}`);
+    csv.push(`Modifier Score,${document.getElementById("p1-mod").textContent},${document.getElementById("p2-mod").textContent},${document.getElementById("p3-mod").textContent},${document.getElementById("total-mod").textContent}`);
+    csv.push(`TOTAL SCORE,${document.getElementById("p1-final").textContent},${document.getElementById("p2-final").textContent},${document.getElementById("p3-final").textContent},${document.getElementById("total-final").textContent}`);
     csv.push("");
 
     // ADDITIONAL STATISTICS
     csv.push("ADDITIONAL STATISTICS");
     csv.push(`,${p1Name},${p2Name},${p3Name},TOTAL`);
-    csv.push(
-        `Melee Damage,${getVal("p1-melee")},${getVal("p2-melee")},${getVal("p3-melee")},${document.getElementById("total-melee").textContent}`,
-    );
-    csv.push(
-        `Ranged Damage,${getVal("p1-ranged")},${getVal("p2-ranged")},${getVal("p3-ranged")},${document.getElementById("total-ranged").textContent}`,
-    );
-    csv.push(
-        `Items Found,${getVal("p1-items")},${getVal("p2-items")},${getVal("p3-items")},${document.getElementById("total-items").textContent}`,
-    );
+    csv.push(`Melee Damage,${getVal("p1-melee")},${getVal("p2-melee")},${getVal("p3-melee")},${document.getElementById("total-melee").textContent}`);
+    csv.push(`Ranged Damage,${getVal("p1-ranged")},${getVal("p2-ranged")},${getVal("p3-ranged")},${document.getElementById("total-ranged").textContent}`);
+    csv.push(`Items Found,${getVal("p1-items")},${getVal("p2-items")},${getVal("p3-items")},${document.getElementById("total-items").textContent}`);
 
-    // Teammates Revived with differential
+    // Teammates Revived logic
     const p1Revived = getVal("p1-revived");
     const p2Revived = getVal("p2-revived");
     const p3Revived = getVal("p3-revived");
@@ -2045,20 +2014,118 @@ function exportToCSV() {
     const totalRevived = p1Revived + p2Revived + p3Revived;
     const totalDeaths = p1Deaths + p2Deaths + p3Deaths;
     const totalDiff = totalRevived - totalDeaths;
-    csv.push(
-        `Teammates Revived,${p1Revived} (${p1Diff >= 0 ? "+" : ""}${p1Diff}),${p2Revived} (${p2Diff >= 0 ? "+" : ""}${p2Diff}),${p3Revived} (${p3Diff >= 0 ? "+" : ""}${p3Diff}),${totalRevived} (${totalDiff >= 0 ? "+" : ""}${totalDiff})`,
-    );
+    csv.push(`Teammates Revived,${p1Revived} (${p1Diff >= 0 ? "+" : ""}${p1Diff}),${p2Revived} (${p2Diff >= 0 ? "+" : ""}${p2Diff}),${p3Revived} (${p3Diff >= 0 ? "+" : ""}${p3Diff}),${totalRevived} (${totalDiff >= 0 ? "+" : ""}${totalDiff})`);
 
-    const csvFile = new Blob([csv.join("\n")], {
-        type: "text/csv;charset=utf-8;",
-    });
-    const downloadLink = document.createElement("a");
-    downloadLink.download = filename;
-    downloadLink.href = window.URL.createObjectURL(csvFile);
-    downloadLink.style.display = "none";
-    document.body.appendChild(downloadLink);
-    downloadLink.click();
-    document.body.removeChild(downloadLink);
+    return csv.join("\n");
+}
+
+// 2. Save Mission to Internal Storage
+function saveMissionInternal() {
+    // Get existing data
+    let savedSlots = JSON.parse(localStorage.getItem("cogitator_saved_missions") || "[]");
+
+    if (savedSlots.length >= 3) {
+        alert("Memory Banks Full! Delete a Data Slate to make room.");
+        return;
+    }
+
+    const csvContent = generateCSVString();
+    const missionName = getStr("mission-name") || "Unknown Mission";
+    const difficulty = document.getElementById("mission-difficulty").value || "Unknown";
+    
+    // Create slot object
+    const newSlot = {
+        id: Date.now(),
+        name: missionName,
+        difficulty: difficulty,
+        csv: csvContent,
+        timestamp: new Date().toLocaleTimeString()
+    };
+
+    savedSlots.push(newSlot);
+    localStorage.setItem("cogitator_saved_missions", JSON.stringify(savedSlots));
+    
+    renderDataBankUI();
+    alert("Mission Data Saved to Internal Memory.");
+}
+
+// 3. Render the UI slots (Top Section)
+function renderDataBankUI() {
+    const container = document.getElementById("data-bank-ui");
+    const savedSlots = JSON.parse(localStorage.getItem("cogitator_saved_missions") || "[]");
+    
+    // Update the counter in the bottom section too
+    const counterEl = document.getElementById("slots-count-display");
+    if(counterEl) counterEl.textContent = `${savedSlots.length}/3`;
+
+    container.innerHTML = "";
+
+    // Create 3 slots (occupied or empty)
+    for (let i = 0; i < 3; i++) {
+        const slotData = savedSlots[i];
+        const slotEl = document.createElement("div");
+        slotEl.className = `data-slot ${slotData ? 'occupied' : ''}`;
+
+        if (slotData) {
+            slotEl.innerHTML = `
+                <span class="slot-name">${i+1}. ${slotData.name}</span>
+                <button class="delete-slot-btn" onclick="deleteSlot(${i})">X</button>
+            `;
+        } else {
+            slotEl.innerHTML = `<span class="slot-name" style="opacity:0.5;">[ EMPTY SLOT ]</span>`;
+        }
+        container.appendChild(slotEl);
+    }
+}
+
+// 4. Delete a Slot
+function deleteSlot(index) {
+    if(!confirm("Purge this Data Slate from memory?")) return;
+    
+    let savedSlots = JSON.parse(localStorage.getItem("cogitator_saved_missions") || "[]");
+    savedSlots.splice(index, 1); // Remove at index
+    localStorage.setItem("cogitator_saved_missions", JSON.stringify(savedSlots));
+    renderDataBankUI();
+}
+
+// 5. Aggregate Data (Import Logic Replacement)
+function aggregateInternalData() {
+    const savedSlots = JSON.parse(localStorage.getItem("cogitator_saved_missions") || "[]");
+    const statusEl = document.getElementById('import-status');
+
+    if (savedSlots.length === 0) {
+        statusEl.textContent = "NO DATA SLATES FOUND IN MEMORY";
+        statusEl.style.color = "#ff5555";
+        return;
+    }
+
+    // Reset State
+    importAppState = {
+        mission: { name:'-', diff:'-', waves:'-', obj:'-', gene:'-', arm:'-' },
+        modifiers: { kills:'-', specials:'-', incaps:'-', dmg:'-', gene:'-', arm:'-', obj:'-', waves:'-' },
+        players: {},      
+        playerOrder: [],  
+        matrixTotals: {}  
+    };
+
+    try {
+        // Loop through stored strings instead of files
+        savedSlots.forEach(slot => {
+            processCSV(slot.csv);
+        });
+
+        renderImportUI();
+        statusEl.textContent = `AGGREGATED ${savedSlots.length} DATA SLATES SUCCESSFULLY`;
+        statusEl.style.color = "var(--pip-green)";
+        
+        // Scroll to results
+        document.getElementById('results-container').scrollIntoView({ behavior: 'smooth' });
+
+    } catch(err) {
+        console.error(err);
+        statusEl.textContent = "COGITATOR ERROR: DATA CORRUPTION";
+        statusEl.style.color = "#ff5555";
+    }
 }
 
 // Function to export ONLY the Aggregate Data Import section (Bottom)
@@ -2136,6 +2203,7 @@ async function saveAsPNG() {
 document.addEventListener("DOMContentLoaded", function () {
     loadData();
     calculate();
+    renderDataBankUI();
 });
 
 // Service Worker Registration
