@@ -17,7 +17,7 @@
                 <div>
                     <div>REF: SM-2/CRUSADE</div>
                     <div style="font-size: 0.8em; opacity: 0.7">
-                        V 3.40 - ADEPTUS ADMINISTRATUM
+                        V 3.41 - ADEPTUS ADMINISTRATUM
                     </div>
                 </div>
                 <h1>Adeptus Astartes - Mission&nbsp;Debrief</h1>
@@ -501,15 +501,29 @@
         </div>
 
         <div id="copy-modal" class="modal-overlay">
-            <div class="modal-content">
-                <h3 style="text-align:center; color:#fff; border-bottom:1px solid var(--pip-green); padding-bottom:10px;">TRANSMISSION LOG</h3>
-                <textarea id="copy-text" readonly></textarea>
-                <div class="export-buttons-container" style="margin-top:10px; border:none; padding-top:0;">
-                    <button onclick="copySummaryText()">Copy</button>
-                    <button class="danger-btn" onclick="document.getElementById('copy-modal').classList.remove('active')">Close</button>
-                </div>
-            </div>
+    <div class="modal-content">
+        <h3 style="
+            text-align:center; 
+            color: var(--pip-green); 
+            border-bottom: 1px solid var(--pip-dim); 
+            padding-bottom: 10px; 
+            margin-top: 0;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            text-shadow: 0 0 5px var(--pip-green);
+        ">TRANSMISSION LOG</h3>
+        
+        <textarea id="copy-text" readonly></textarea>
+        
+        <div class="export-buttons-container" style="margin-top:15px; border:none; padding-top:0;">
+            <button onclick="copySummaryText()">Copy to Clipboard</button>
+            
+            <button onclick="downloadTransmissionLog()">Save to Data Slate (.txt)</button>
+            
+            <button class="danger-btn" onclick="document.getElementById('copy-modal').classList.remove('active')">Close</button>
         </div>
+    </div>
+</div>
 
         <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
         <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
