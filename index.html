@@ -39,8 +39,10 @@
                 font-size: 1.1rem;
             ">
                 Welcome, Brothers and Sisters! Use this debriefing tool to calculate your mission scores. 
-                Select the Mission parameters. Enter your mission statistics below. 
+                Select the mission parameters and enter your mission statistics. Or upload your post-mission screenshots. 
                 The Modifier section allows customization of score values if necessary.
+                <br />
+                To get your final result save data from up to 3 missions and aggregate the stored data.
                 <br /><br />
                 <span style="font-weight:bold; letter-spacing:1px; text-shadow: 0 0 5px var(--pip-green);">* Glory to the Imperium! *</span>
             </div> <div style="
@@ -365,7 +367,7 @@
             <div class="export-buttons-container">
                 <button onclick="saveMissionInternal()" class="btn-primary">Save Mission Data</button>
                 
-                <button onclick="exportTopSectionPNG()">Record Mission Data (PNG)</button>
+                <button onclick="exportTopSectionPNG()">Record Mission Data Screen (PNG)</button>
                 
                 <button class="danger-btn" onclick="clearData()">Purge Mission Data</button>
             </div>
@@ -452,7 +454,7 @@
                 <div class="export-buttons-container" style="margin-top: 20px; border-top: 1px solid var(--border-color); padding-top: 20px;">
                     <button onclick="exportTopSectionPNG()" class="btn-primary">Create Astropathic Message</button>
                     <button onclick="saveAsPNG()">Record Aggregated Data Screen (PNG)</button>
-                    <button class="danger-btn" onclick="resetImport()">Purge CSV Data</button>
+                    <button class="danger-btn" onclick="resetImport()">Purge Aggregated Data</button>
                 </div>
 
             </div> </div> </div>
