@@ -2088,7 +2088,7 @@ function deleteSlot(index) {
     renderDataBankUI();
 }
 
-// 5. Aggregate Data (Import Logic Replacement) - SAFE MODE
+// 5. Aggregate Data (Import Logic Replacement)
 function aggregateInternalData() {
     const savedSlots = JSON.parse(localStorage.getItem("cogitator_saved_missions") || "[]");
     const statusEl = document.getElementById('import-status');
@@ -2109,14 +2109,8 @@ function aggregateInternalData() {
     };
 
     try {
-        // Loop through stored strings
-        savedSlots.forEach((slot, index) => {
-            // Safety Check: Is the CSV data valid?
-            if (!slot.csv || typeof slot.csv !== 'string') {
-                throw new Error(`Slot ${index + 1} (${slot.name}) contains empty or invalid data.`);
-            }
-            
-            // Process
+        // Loop through stored strings instead of files
+        savedSlots.forEach(slot => {
             processCSV(slot.csv);
         });
 
@@ -2125,90 +2119,76 @@ function aggregateInternalData() {
         statusEl.style.color = "var(--pip-green)";
         
         // Scroll to results
-        const resultsContainer = document.getElementById('results-container');
-        if(resultsContainer) {
-            resultsContainer.scrollIntoView({ behavior: 'smooth' });
-        }
+        document.getElementById('results-container').scrollIntoView({ behavior: 'smooth' });
 
     } catch(err) {
-        console.error("Aggregation Error:", err);
-        statusEl.textContent = `ERROR: ${err.message}`;
+        console.error(err);
+        statusEl.textContent = "COGITATOR ERROR: DATA CORRUPTION";
         statusEl.style.color = "#ff5555";
-        alert(`COGITATOR ERROR:\n${err.message}\n\nDelete the corrupted slot and try again.`);
     }
 }
 
-/* ========================================================= */
-/* ===  EXPORT LOGIC (PNG SCREENSHOTS)                   === */
-/* ========================================================= */
-
-/* --- 1. BOTTOM BUTTON: Export Aggregate Data (Hides Top Section) --- */
-// This function is triggered by onclick="saveAsPNG()" in the HTML
+// Function to export ONLY the Aggregate Data Import section (Bottom)
 async function saveAsPNG() {
-    // Attempt to find the button that was clicked for feedback
-    const btn = document.querySelector('#results-container button[onclick="saveAsPNG()"]') || 
-                document.querySelector('button[onclick="saveAsPNG()"]');
+    // 1. Identify the button (for visual feedback)
+    // We try to find the button calling this function, or fallback to a likely ID
+    const btn = document.querySelector('button[onclick="saveAsPNG()"]') || 
+                document.getElementById('export-png-btn'); 
     
-    const originalText = btn ? btn.innerText : "Record Cogitator Display (PNG)";
+    const originalText = btn ? btn.innerText : "";
     if (btn) btn.innerText = "CAPTURING...";
 
-    const frame = document.querySelector('.cogitator-frame');
-    const topWrapper = document.getElementById('top-wrapper');
-    const importWrapper = document.getElementById('import-wrapper');
-    const dataBank = document.getElementById('data-bank-ui');
-    
-    // Select ALL button containers to ensure they are hidden
-    const allBtnContainers = document.querySelectorAll('.export-buttons-container');
+    // 2. Select Elements
+    const frame = document.querySelector(".cogitator-frame");
+    const buttonsContainer = document.querySelector(".export-buttons-container");
+    const topWrapper = document.getElementById("top-wrapper");
+    const importWrapper = document.getElementById("import-wrapper");
 
-    // Save states
-    const originalTopDisplay = topWrapper ? topWrapper.style.display : '';
+    // 3. Save Original Styles
+    const originalTopDisplay = topWrapper ? topWrapper.style.display : "";
+    const originalButtonsDisplay = buttonsContainer.style.display;
     const originalFrameWidth = frame.style.width;
     const originalFrameMaxWidth = frame.style.maxWidth;
     const originalBodyWidth = document.body.style.width;
     const originalFrameHeight = frame.style.height;
 
     try {
-        // HIDE THE TOP (Mission) & Data Bank
-        if (topWrapper) topWrapper.style.display = 'none';
-        if (dataBank) dataBank.style.display = 'none';
-        
-        // Ensure Bottom is Visible
-        if (importWrapper) importWrapper.style.display = 'block';
+        // 4. Hide Top, Show Bottom
+        if (topWrapper) topWrapper.style.display = "none";
+        if (importWrapper) importWrapper.style.display = "block";
+        buttonsContainer.style.display = "none";
 
-        // Hide ALL button containers (Top and Bottom)
-        allBtnContainers.forEach(el => el.style.display = 'none');
+        // 5. Force Desktop Layout & Tight Height
+        document.body.style.width = "1120px";
+        frame.style.width = "1100px";
+        frame.style.maxWidth = "none";
+        frame.style.height = "max-content"; // Shrink frame to fit content
 
-        // Resize Frame
-        document.body.style.width = '1120px';
-        frame.style.width = '1100px';
-        frame.style.maxWidth = 'none';
-        frame.style.height = 'max-content'; 
-        
+        // Wait for layout to settle
         await new Promise(resolve => setTimeout(resolve, 100));
 
+        // 6. Capture
         const canvas = await html2canvas(frame, {
-            scale: 2, 
-            backgroundColor: '#000000', 
-            windowWidth: 1280, 
+            scale: 2,
+            backgroundColor: "#000",
+            windowWidth: 1280,
             useCORS: true
         });
 
-        const link = document.createElement('a');
+        // 7. Download
+        const link = document.createElement("a");
         const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);
-        link.download = `Aggregate_Data_${timestamp}.png`;
-        link.href = canvas.toDataURL('image/png');
+        link.download = `Import_Data_${timestamp}.png`;
+        link.href = canvas.toDataURL("image/png");
         link.click();
 
     } catch (err) {
-        console.error("Cogitator Error:", err);
-        alert("Error generating pict-record.");
+        console.error("PNG export failed:", err);
+        alert("Failed to capture screenshot.");
     } finally {
-        // RESTORE
+        // 8. Restore Everything
         if (topWrapper) topWrapper.style.display = originalTopDisplay;
-        if (dataBank) dataBank.style.display = 'flex'; // Restore data bank
-        
-        // Restore all buttons
-        allBtnContainers.forEach(el => el.style.display = 'flex'); // Flex is the default for these
+        buttonsContainer.style.display = originalButtonsDisplay;
         
         frame.style.width = originalFrameWidth;
         frame.style.maxWidth = originalFrameMaxWidth;
@@ -2218,93 +2198,6 @@ async function saveAsPNG() {
         if (btn) btn.innerText = originalText;
     }
 }
-
-/* --- 2. TOP BUTTON: Export Mission (Hides Import Section) --- */
-const missionExportBtn = document.getElementById('export-summary-btn');
-if (missionExportBtn) {
-    missionExportBtn.addEventListener('click', async () => {
-        const btn = missionExportBtn;
-        const originalText = btn.innerText;
-        btn.innerText = "CAPTURING..."; 
-
-        const frame = document.querySelector('.cogitator-frame');
-        const importWrapper = document.getElementById('import-wrapper');
-        const dataBank = document.getElementById('data-bank-ui');
-        
-        // Select ALL button containers
-        const allBtnContainers = document.querySelectorAll('.export-buttons-container');
-
-        // Save states
-        const originalImportDisplay = importWrapper ? importWrapper.style.display : '';
-        const originalFrameWidth = frame.style.width;
-        const originalFrameMaxWidth = frame.style.maxWidth;
-        const originalBodyWidth = document.body.style.width;
-        const originalFrameHeight = frame.style.height;
-
-        try {
-            // HIDE THE BOTTOM (Import) & Data Bank
-            if (importWrapper) importWrapper.style.display = 'none';
-            if (dataBank) dataBank.style.display = 'none';
-
-            // Hide ALL button containers
-            allBtnContainers.forEach(el => el.style.display = 'none');
-
-            // Resize Frame
-            document.body.style.width = '1120px';
-            frame.style.width = '1100px';
-            frame.style.maxWidth = 'none';
-            frame.style.height = 'max-content'; 
-            
-            await new Promise(resolve => setTimeout(resolve, 100));
-
-            const canvas = await html2canvas(frame, {
-                scale: 2, 
-                backgroundColor: '#000000', 
-                windowWidth: 1280, 
-                useCORS: true
-            });
-
-            const link = document.createElement('a');
-            const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);
-            link.download = `Mission_Summary_${timestamp}.png`;
-            link.href = canvas.toDataURL('image/png');
-            link.click();
-
-        } catch (err) {
-            console.error("Cogitator Error:", err);
-            alert("Error generating pict-record.");
-        } finally {
-            // RESTORE
-            if (importWrapper) importWrapper.style.display = originalImportDisplay;
-            if (dataBank) dataBank.style.display = 'flex';
-            
-            // Restore all buttons
-            allBtnContainers.forEach(el => el.style.display = 'flex');
-
-            frame.style.width = originalFrameWidth;
-            frame.style.maxWidth = originalFrameMaxWidth;
-            frame.style.height = originalFrameHeight;
-            document.body.style.width = originalBodyWidth;
-            
-            btn.innerText = originalText;
-        }
-    });
-}
-
-/* ========================================================= */
-/* ===  GLOBAL UTILS & INIT                              === */
-/* ========================================================= */
-
-// Close Modals with ESC Key
-document.addEventListener('keydown', function(event) {
-    if (event.key === "Escape") {
-        const ocrModal = document.getElementById('ocr-modal-overlay');
-        if (ocrModal && ocrModal.classList.contains('active')) closeOCRModal();
-
-        const copyModal = document.getElementById('copy-modal');
-        if (copyModal && copyModal.classList.contains('active')) copyModal.classList.remove('active');
-    }
-});
 
 // Initialize: load saved data and calculate when DOM is ready
 document.addEventListener("DOMContentLoaded", function () {
@@ -2319,10 +2212,437 @@ if ("serviceWorker" in navigator) {
         navigator.serviceWorker
             .register("/service-worker.js")
             .then((registration) => {
-                console.log("Service Worker registered! Scope:", registration.scope);
+                console.log(
+                    "Service Worker registered! Scope:",
+                    registration.scope,
+                );
             })
             .catch((err) => {
-                console.log("Service Worker registration failed:", err);
+                console.log(
+                    "Service Worker registration failed:",
+                    err,
+                );
             });
     });
 }
+
+// --- LOGIC FOR DATA IMPORT SECTION (FROM Result Calculator V1.8) ---
+
+let importAppState = {
+    mission: { name:'-', diff:'-', waves:'-', obj:'-', gene:'-', arm:'-' },
+    modifiers: { kills:'-', specials:'-', incaps:'-', dmg:'-', gene:'-', arm:'-', obj:'-', waves:'-' },
+    players: {},      
+    playerOrder: [],  
+    matrixTotals: {}  
+};
+
+const MATRIX_KEYS = [
+    "Kills", "Special Kills", "Incapacitations", 
+    "Damage Taken", "Base Score", "Modifier Score", "TOTAL SCORE"
+];
+
+const ADD_STATS_KEYS = [
+    "Melee Damage", "Ranged Damage", "Items Found", "Teammates Revived"
+];
+
+document.getElementById('csv-upload').addEventListener('change', async (e) => {
+    const files = Array.from(e.target.files).slice(0, 3);
+    if(!files.length) return;
+
+    // Reset State
+    importAppState = {
+        mission: { name:'-', diff:'-', waves:'-', obj:'-', gene:'-', arm:'-' },
+        modifiers: { kills:'-', specials:'-', incaps:'-', dmg:'-', gene:'-', arm:'-', obj:'-', waves:'-' },
+        players: {},
+        playerOrder: [],
+        matrixTotals: {}
+    };
+
+    try {
+        for(const file of files) {
+            const text = await file.text();
+            processCSV(text);
+        }
+        renderImportUI();
+        const statusEl = document.getElementById('import-status');
+        statusEl.textContent = `PROCESSED ${files.length} FILES SUCCESSFULLY`;
+        statusEl.style.color = "var(--pip-green)";
+    } catch(err) {
+        console.error(err);
+        const statusEl = document.getElementById('import-status');
+        statusEl.textContent = "ERROR READING FILES";
+        statusEl.style.color = "#ff5555";
+    }
+});
+
+function resetImport() {
+    document.getElementById('csv-upload').value = "";
+    document.getElementById('results-container').classList.remove('visible');
+    document.getElementById('import-status').textContent = "";
+}
+
+function parseCSVRow(rowStr) {
+    const res = [];
+    let cur = '';
+    let inQ = false;
+    for(let c of rowStr){
+        if(c === '"'){ inQ = !inQ; continue; }
+        if(c === ',' && !inQ){ res.push(cur.trim()); cur = ''; } else cur += c;
+    }
+    res.push(cur.trim());
+    return res;
+}
+
+function processCSV(text) {
+    const lines = text.split(/\r?\n/);
+    
+    for(let i=0; i < Math.min(lines.length, 60); i++) {
+        const line = lines[i].trim();
+        if(!line) continue;
+
+        const matchVal = (regex) => {
+            const m = line.match(regex);
+            return m ? m[1].replace(/,/g, '').trim() : null;
+        };
+
+        if(importAppState.mission.name === '-') importAppState.mission.name = matchVal(/^[, \t]*Mission Played[:,\s]+(.+)/i) || '-';
+        if(importAppState.mission.diff === '-') importAppState.mission.diff = matchVal(/^[, \t]*Difficulty[:,\s]+(.+)/i) || '-';
+        if(importAppState.mission.waves === '-') importAppState.mission.waves = matchVal(/^[, \t]*Waves Reached[:,\s]+(.+)/i) || '-';
+        if(importAppState.mission.obj === '-') importAppState.mission.obj = matchVal(/^[, \t]*Objective Completion[:,\s]+(.+)/i) || '-';
+        if(importAppState.mission.gene === '-') importAppState.mission.gene = matchVal(/^[, \t]*Geneseed Retrieved[:,\s]+(.+)/i) || '-';
+        if(importAppState.mission.arm === '-') importAppState.mission.arm = matchVal(/^[, \t]*Armoury Data Retrieved[:,\s]+(.+)/i) || '-';
+
+        if(line.includes(':,')) {
+            const parts = line.split(':,');
+            if(parts.length >= 2) {
+                const key = parts[0].trim();
+                const val = parts[1].split(',')[0].trim(); 
+
+                if(key === 'Kills') importAppState.modifiers.kills = val;
+                if(key === 'Special Kills') importAppState.modifiers.specials = val;
+                if(key === 'Incapacitations') importAppState.modifiers.incaps = val;
+                if(key === 'Damage Taken') importAppState.modifiers.dmg = val;
+                if(key === 'Geneseed') importAppState.modifiers.gene = val;
+                if(key === 'Armoury') importAppState.modifiers.arm = val;
+                if(key === 'Objective') importAppState.modifiers.obj = val;
+                if(key === 'Waves') importAppState.modifiers.waves = val;
+            }
+        }
+    }
+
+    const parseSection = (sectionName, keysToExtract) => {
+        const idx = lines.findIndex(l => l.toUpperCase().includes(sectionName));
+        if(idx === -1) return;
+
+        const header = parseCSVRow(lines[idx + 1]);
+        const colMap = {};
+        let totalColIdx = -1;
+
+        header.forEach((h, col) => {
+            const hh = h.toUpperCase().trim();
+            if(hh === 'TOTAL') totalColIdx = col;
+            else if(hh.length > 0) {
+                colMap[col] = h.trim();
+                const pName = h.trim();
+                if(!importAppState.players[pName]) {
+                    importAppState.players[pName] = {}; 
+                    importAppState.playerOrder.push(pName);
+                }
+            }
+        });
+
+        let labelCol = 0;
+        for(let r = idx + 2; r < Math.min(idx + 15, lines.length); r++) {
+            const rowData = parseCSVRow(lines[r]);
+            if(rowData.some(cell => keysToExtract.includes(cell.trim()))) {
+                labelCol = rowData.findIndex(cell => keysToExtract.includes(cell.trim()));
+                break;
+            }
+        }
+
+        for(let r = idx + 2; r < lines.length; r++) {
+            const rowData = parseCSVRow(lines[r]);
+            if(rowData.length < 2) continue; 
+            
+            const label = rowData[labelCol] ? rowData[labelCol].trim() : "";
+            if(label === "" || label === "ADDITIONAL STATISTICS") continue;
+
+            if(keysToExtract.includes(label)) {
+                for(const [col, pName] of Object.entries(colMap)) {
+                    const rawVal = rowData[col];
+                    let val = 0;
+                    if (label === "Teammates Revived") {
+                        val = parseInt(rawVal) || 0;
+                        importAppState.players[pName][label] = (importAppState.players[pName][label] || 0) + val;
+                    } else {
+                        val = parseFloat(rawVal.replace(/[^\d\.\-]/g, '')) || 0;
+                        importAppState.players[pName][label] = (importAppState.players[pName][label] || 0) + val;
+                    }
+                }
+                
+                if(label !== "Teammates Revived") {
+                        if(totalColIdx !== -1) {
+                        const val = parseFloat(rowData[totalColIdx].replace(/[^\d\.\-]/g, '')) || 0;
+                        importAppState.matrixTotals[label] = (importAppState.matrixTotals[label] || 0) + val;
+                        }
+                }
+            }
+        }
+    };
+
+    parseSection("SQUAD PERFORMANCE MATRIX", MATRIX_KEYS);
+    parseSection("ADDITIONAL STATISTICS", ADD_STATS_KEYS);
+}
+
+function renderImportUI() {
+    document.getElementById('results-container').classList.add('visible');
+
+    const m = importAppState.mission;
+    document.getElementById('mp-mission').textContent = m.name;
+    document.getElementById('mp-diff').textContent = m.diff;
+    document.getElementById('mp-waves').textContent = m.waves;
+    document.getElementById('mp-obj').textContent = m.obj;
+    document.getElementById('mp-gene').textContent = m.gene;
+    document.getElementById('mp-arm').textContent = m.arm;
+
+    const mod = importAppState.modifiers;
+    // Updated to match new unique IDs
+    document.getElementById('import-mod-kills').textContent = mod.kills;
+    document.getElementById('import-mod-specials').textContent = mod.specials;
+    document.getElementById('import-mod-incaps').textContent = mod.incaps;
+    document.getElementById('import-mod-dmg').textContent = mod.dmg;
+    document.getElementById('import-mod-gene').textContent = mod.gene;
+    document.getElementById('import-mod-arm').textContent = mod.arm;
+    document.getElementById('import-mod-obj').textContent = mod.obj;
+    document.getElementById('import-mod-waves').textContent = mod.waves;
+    
+    buildImportTable('matrix-table', MATRIX_KEYS);
+    buildImportTable('stats-table', ADD_STATS_KEYS);
+}
+
+function buildImportTable(tableId, rowKeys) {
+    const table = document.getElementById(tableId);
+    table.innerHTML = '';
+    
+    const thead = document.createElement('thead');
+    const headRow = document.createElement('tr');
+    headRow.innerHTML = `<th>METRIC</th>`;
+    importAppState.playerOrder.forEach(p => {
+        headRow.innerHTML += `<th>${p}</th>`;
+    });
+    headRow.innerHTML += `<th>TOTAL</th>`;
+    thead.appendChild(headRow);
+    table.appendChild(thead);
+
+    const tbody = document.createElement('tbody');
+    rowKeys.forEach(key => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `<td class="row-label" style="text-align:right;">${key}</td>`;
+        
+        let rowSum = 0; 
+
+        importAppState.playerOrder.forEach(p => {
+            let val = importAppState.players[p] ? importAppState.players[p][key] : 0;
+            if(val === undefined) val = 0;
+
+            if(key === "Teammates Revived") {
+                const revs = val;
+                const incaps = importAppState.players[p] ? (importAppState.players[p]["Incapacitations"] || 0) : 0;
+                const diff = revs - incaps;
+                val = `${revs} <span style="font-size:0.8em; color:${diff >= 0 ? '#afffa6' : '#ff6600'}">(${diff >= 0 ? '+' : ''}${diff})</span>`;
+                rowSum += revs; 
+            } else if(typeof val === 'number') {
+                rowSum += val;
+                if(!Number.isInteger(val)) val = val.toFixed(1);
+            }
+            
+            tr.innerHTML += `<td>${val}</td>`;
+        });
+
+        let totVal = "";
+        if(key === "Teammates Revived") {
+            const totalRevs = rowSum;
+            const totalIncaps = importAppState.matrixTotals["Incapacitations"] || 0;
+            const totalDiff = totalRevs - totalIncaps;
+            totVal = `${totalRevs} <span style="font-size:0.8em; color:${totalDiff >= 0 ? '#afffa6' : '#ff6600'}">(${totalDiff >= 0 ? '+' : ''}${totalDiff})</span>`;
+        } else {
+            let t = importAppState.matrixTotals[key];
+            if(t === undefined || t === null) t = rowSum; 
+            
+            if(typeof t === 'number') {
+                totVal = Number.isInteger(t) ? t : t.toFixed(1);
+            } else {
+                totVal = t || 0;
+            }
+        }
+        
+        tr.innerHTML += `<td class="total-cell">${totVal}</td>`;
+        tbody.appendChild(tr);
+    });
+    table.appendChild(tbody);
+}
+
+function openCopyModal() {
+    if(!importAppState.playerOrder.length) return;
+    
+    let maxScore = -Infinity;
+    let maxRanged = -Infinity;
+    let maxMelee = -Infinity;
+    let maxDiff = -Infinity;
+
+    importAppState.playerOrder.forEach(name => {
+        const s = importAppState.players[name];
+        const diff = (s['Teammates Revived']||0) - (s['Incapacitations']||0);
+        if((s['TOTAL SCORE']||0) > maxScore) maxScore = s['TOTAL SCORE'];
+        if((s['Ranged Damage']||0) > maxRanged) maxRanged = s['Ranged Damage'];
+        if((s['Melee Damage']||0) > maxMelee) maxMelee = s['Melee Damage'];
+        if(diff > maxDiff) maxDiff = diff;
+    });
+
+    const squadScore = importAppState.matrixTotals['TOTAL SCORE'] || 0;
+    let txt = `Total squad score: **${squadScore}**\n`;
+    
+    importAppState.playerOrder.forEach(name => {
+        const stats = importAppState.players[name] || {};
+        const tot = stats['TOTAL SCORE'] || 0;
+        const ranged = stats['Ranged Damage'] || 0;
+        const melee = stats['Melee Damage'] || 0;
+        const incaps = stats['Incapacitations'] || 0;
+        const revs = stats['Teammates Revived'] || 0;
+        const diff = revs - incaps;
+
+        const scoreStr = (tot === maxScore) ? `**${tot}**` : tot;
+        const rangedStr = (ranged === maxRanged) ? `**${ranged}**` : ranged;
+        const meleeStr = (melee === maxMelee) ? `**${melee}**` : melee;
+        
+        let diffVal = `${incaps}/${revs} (${diff >= 0 ? '+' : ''}${diff})`;
+        if(diff === maxDiff) diffVal = `**${diffVal}**`;
+
+        txt += `@${name} score: ${scoreStr} ; Ranged damage: ${rangedStr} ; Melee damage: ${meleeStr} ; Incapacitations/revives: ${diffVal}\n`;
+    });
+
+    document.getElementById('copy-text').value = txt;
+    document.getElementById('copy-modal').classList.add('active');
+}
+
+function copySummaryText() {
+    const el = document.getElementById('copy-text');
+    el.select();
+    el.setSelectionRange(0, 99999);
+    navigator.clipboard.writeText(el.value).then(() => {
+        alert("Copied to clipboard!");
+    });
+}
+
+// Function to download the Transmission Log as a .txt file
+function downloadTransmissionLog() {
+    const text = document.getElementById('copy-text').value;
+    if (!text) {
+        alert("No transmission data to save.");
+        return;
+    }
+
+    // Generate filename with timestamp
+    const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);
+    const filename = `Transmission_Log_${timestamp}.txt`;
+
+    // Create blob and download link
+    const blob = new Blob([text], { type: 'text/plain' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = filename;
+    
+    // Trigger download
+    document.body.appendChild(link);
+    link.click();
+    
+    // Cleanup
+    document.body.removeChild(link);
+    URL.revokeObjectURL(link.href);
+}
+
+/* --- NEW: Export Summary (PNG) Button Logic --- */
+document.getElementById('export-summary-btn').addEventListener('click', async () => {
+    const btn = document.getElementById('export-summary-btn');
+    const originalText = btn.innerText;
+    btn.innerText = "CAPTURING..."; 
+
+    // 1. Select the elements
+    const frame = document.querySelector('.cogitator-frame');
+    const buttonsContainer = document.querySelector('.export-buttons-container');
+    
+    // TARGET THE NEW WRAPPER WE JUST MADE
+    const importWrapper = document.getElementById('import-wrapper');
+
+    // 2. Save original styles
+    const originalImportDisplay = importWrapper ? importWrapper.style.display : '';
+    const originalButtonsDisplay = buttonsContainer.style.display;
+    const originalFrameWidth = frame.style.width;
+    const originalFrameMaxWidth = frame.style.maxWidth;
+    const originalBodyWidth = document.body.style.width;
+    const originalFrameHeight = frame.style.height;
+
+    try {
+        // 3. Hide the unwanted sections
+        if (importWrapper) importWrapper.style.display = 'none';
+        buttonsContainer.style.display = 'none';
+
+        // 4. Force Desktop Layout & Tight Height
+        document.body.style.width = '1120px';
+        frame.style.width = '1100px';
+        frame.style.maxWidth = 'none';
+        
+        // "max-content" shrinks the frame height to fit exactly what is left visible
+        frame.style.height = 'max-content'; 
+        
+        // Slight delay to ensure browser renders the layout change
+        await new Promise(resolve => setTimeout(resolve, 100));
+
+        // 5. Capture
+        const canvas = await html2canvas(frame, {
+            scale: 2, 
+            backgroundColor: '#000000', 
+            windowWidth: 1280, 
+            useCORS: true
+        });
+
+        // 6. Download
+        const link = document.createElement('a');
+        const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);
+        link.download = `Mission_Summary_${timestamp}.png`;
+        link.href = canvas.toDataURL('image/png');
+        link.click();
+
+    } catch (err) {
+        console.error("Cogitator Error:", err);
+        alert("Error generating pict-record.");
+    } finally {
+        // 7. Restore Everything
+        if (importWrapper) importWrapper.style.display = originalImportDisplay;
+        buttonsContainer.style.display = originalButtonsDisplay;
+        
+        frame.style.width = originalFrameWidth;
+        frame.style.maxWidth = originalFrameMaxWidth;
+        frame.style.height = originalFrameHeight;
+        document.body.style.width = originalBodyWidth;
+        
+        btn.innerText = originalText;
+    }
+});
+
+/* --- GLOBAL UTILS: Close Modals with ESC Key --- */
+document.addEventListener('keydown', function(event) {
+    if (event.key === "Escape") {
+        // 1. Close OCR Modal if open
+        const ocrModal = document.getElementById('ocr-modal-overlay');
+        if (ocrModal && ocrModal.classList.contains('active')) {
+            closeOCRModal();
+        }
+
+        // 2. Close Transmission Log if open
+        const copyModal = document.getElementById('copy-modal');
+        if (copyModal && copyModal.classList.contains('active')) {
+            copyModal.classList.remove('active');
+        }
+    }
+});
