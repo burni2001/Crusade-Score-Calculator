@@ -81,6 +81,36 @@ h1, h2, h3 {
     99% { opacity: 1; }
 }
 
+/* --- CUSTOM COGITATOR LIST (Green Squares) --- */
+.cogitator-list {
+    list-style: none;        /* Remove default round bullets */
+    padding: 0;
+    margin: 10px auto;       /* Spacing */
+    text-align: left;        /* Keep text left-aligned for readability */
+    display: inline-block;   /* Keeps the list block centered on screen */
+    max-width: 90%;          /* Prevents it from hitting edges on mobile */
+}
+
+.cogitator-list li {
+    position: relative;      /* Needed to place the square */
+    padding-left: 20px;      /* Space for the square */
+    margin-bottom: 6px;      /* Space between lines */
+    color: var(--pip-dim);   /* Standard text color */
+    line-height: 1.4;
+}
+
+/* The Little Green Square */
+.cogitator-list li::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 7px;                /* Adjust this to move square up/down */
+    width: 6px;              /* Size of the square */
+    height: 6px;
+    background-color: var(--pip-green); /* Solid Green */
+    box-shadow: 0 0 4px var(--pip-green); /* Glowing effect */
+}
+
 /* --- INPUTS & UI ELEMENTS --- */
 input, select {
     background-color: #000;
