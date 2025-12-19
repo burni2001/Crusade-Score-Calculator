@@ -567,7 +567,13 @@ select option { background-color: #000; color: #0f0; }
     .mod-row input {
         font-size: 0.8rem; 
     }
-    select { text-indent: 0px; padding-left: 0px; }
+    /* Force text centering on iOS */
+    select { 
+        text-align: center;
+        text-align-last: center; /* <--- THIS IS THE MAGIC FIX FOR iPHONE */
+        text-indent: 0px; 
+        padding-left: 0px; 
+    }
 
     /* 4. Modifiers Section (Stacking) */
     .mod-grid-clean {
