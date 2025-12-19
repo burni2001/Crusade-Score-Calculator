@@ -303,6 +303,26 @@ select option { background-color: #000; color: #0f0; }
 .export-buttons-container button.danger-btn { border-color: #ff6600; color: #ff6600; }
 .export-buttons-container button.danger-btn:hover { background-color: #ff6600; color: var(--bg-color); box-shadow: 0 0 15px #ff6600; }
 
+/* --- PRIMARY ACTION BUTTONS (Solid Green) --- */
+button.btn-primary {
+    background-color: var(--pip-green, #33ff00) !important; /* Solid Green */
+    color: #000000 !important;       /* Black Text */
+    font-weight: 900;                /* Extra Bold */
+    border: 1px solid var(--pip-green, #33ff00);
+    box-shadow: 0 0 8px rgba(51, 255, 0, 0.4); /* Subtle steady glow */
+    transition: all 0.2s ease-in-out;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+/* HOVER EFFECT: Invert to Black + Intense Glow */
+button.btn-primary:hover {
+    background-color: #000000 !important;      /* Background turns Black */
+    color: var(--pip-green, #33ff00) !important; /* Text turns Green */
+    box-shadow: 0 0 20px var(--pip-green, #33ff00), inset 0 0 10px rgba(51,255,0,0.2); /* Radioactive Glow */
+    transform: translateY(-1px); /* Slight lift */
+}
+
 /* --- UTILS (Modals, Credits) --- */
 .ocr-modal-overlay, .modal-overlay {
     display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
