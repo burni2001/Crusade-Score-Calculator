@@ -362,9 +362,12 @@
                 </div>
             </div>
 
+            <div id="data-bank-ui" class="data-bank-display">
+                </div>
+
             <div class="export-buttons-container">
-                <button onclick="exportToCSV()">Export Mission Data Slate (CSV)</button>
-                <button id="export-summary-btn">Record Squad Performance Screen (PNG)</button>
+                <button onclick="saveMissionInternal()">Save Mission Data (Internal)</button>
+                <button id="export-summary-btn">Export Mission (PNG)</button>
                 <button class="danger-btn" onclick="clearData()">Purge Mission Data</button>
             </div>
             
@@ -382,28 +385,28 @@
 
             <div style="
                 margin-bottom: 15px;
-                padding: 10px;
-                background-color: rgba(51, 255, 0, 0.1);
+                padding: 15px;
+                background-color: rgba(51, 255, 0, 0.05);
                 border: 1px solid var(--pip-green);
+                text-align: center;
             ">
-                <div style="font-weight: bold; margin-bottom: 5px; text-align: center;">IMPORT DATA SLATES (CSV)</div>
-                <p style="font-size: 0.85em; color: #7a7; margin: 0 0 10px 0; text-align: center;">
-                    Upload up to 3 <strong>.csv</strong> files exported from previous missions. 
-                    Totals will be aggregated automatically below.
+                <div style="font-weight: bold; margin-bottom: 10px; font-size: 1.1rem;">INTERNAL DATA AGGREGATION</div>
+                
+                <p style="font-size: 0.9em; color: #afffa6; margin: 0 0 15px 0;">
+                    Cogitator Memory Status: <span id="slots-count-display">0/3</span> Data Slates
                 </p>
-                <input type="file" id="csv-upload" accept=".csv" multiple style="
-                    width: 100%; 
-                    max-width: 500px; 
-                    display: block; 
-                    margin: 0 auto; 
-                    color: var(--pip-green);
-                    padding: 8px;                 
-                    background-color: var(--panel-bg);
-                    cursor: pointer;
-                " />
-                <div id="import-status" style="margin-top:10px; font-weight:bold; text-align: center;"></div>
-            </div>
 
+                <button onclick="aggregateInternalData()" style="
+                    width: 100%; 
+                    max-width: 400px;
+                    padding: 12px;
+                    font-size: 1.1rem;
+                    border: 2px solid var(--pip-green);
+                ">AGGREGATE STORED DATA</button>
+
+                <div id="import-status" style="margin-top:10px; font-weight:bold;"></div>
+            </div>
+            
             <div class="results-container" id="results-container">
                 
                 <div class="panels-wrapper">
