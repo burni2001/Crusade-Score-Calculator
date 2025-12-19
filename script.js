@@ -2088,7 +2088,7 @@ function deleteSlot(index) {
     renderDataBankUI();
 }
 
-// 5. Aggregate Data (Import Logic Replacement)
+// 5. Aggregate Data (Import Logic Replacement) - SAFE MODE
 function aggregateInternalData() {
     const savedSlots = JSON.parse(localStorage.getItem("cogitator_saved_missions") || "[]");
     const statusEl = document.getElementById('import-status');
@@ -2109,8 +2109,14 @@ function aggregateInternalData() {
     };
 
     try {
-        // Loop through stored strings instead of files
-        savedSlots.forEach(slot => {
+        // Loop through stored strings
+        savedSlots.forEach((slot, index) => {
+            // Safety Check: Is the CSV data valid?
+            if (!slot.csv || typeof slot.csv !== 'string') {
+                throw new Error(`Slot ${index + 1} (${slot.name}) contains empty or invalid data.`);
+            }
+            
+            // Process
             processCSV(slot.csv);
         });
 
@@ -2119,12 +2125,16 @@ function aggregateInternalData() {
         statusEl.style.color = "var(--pip-green)";
         
         // Scroll to results
-        document.getElementById('results-container').scrollIntoView({ behavior: 'smooth' });
+        const resultsContainer = document.getElementById('results-container');
+        if(resultsContainer) {
+            resultsContainer.scrollIntoView({ behavior: 'smooth' });
+        }
 
     } catch(err) {
-        console.error(err);
-        statusEl.textContent = "COGITATOR ERROR: DATA CORRUPTION";
+        console.error("Aggregation Error:", err);
+        statusEl.textContent = `ERROR: ${err.message}`;
         statusEl.style.color = "#ff5555";
+        alert(`COGITATOR ERROR:\n${err.message}\n\nDelete the corrupted slot and try again.`);
     }
 }
 
@@ -2316,20 +2326,3 @@ if ("serviceWorker" in navigator) {
             });
     });
 }
-
-/* --- GLOBAL UTILS: Close Modals with ESC Key --- */
-document.addEventListener('keydown', function(event) {
-    if (event.key === "Escape") {
-        // 1. Close OCR Modal if open
-        const ocrModal = document.getElementById('ocr-modal-overlay');
-        if (ocrModal && ocrModal.classList.contains('active')) {
-            closeOCRModal();
-        }
-
-        // 2. Close Transmission Log if open
-        const copyModal = document.getElementById('copy-modal');
-        if (copyModal && copyModal.classList.contains('active')) {
-            copyModal.classList.remove('active');
-        }
-    }
-});
