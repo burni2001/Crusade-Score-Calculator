@@ -17,7 +17,7 @@
                 <div>
                     <div>REF: SM-2/CRUSADE</div>
                     <div style="font-size: 0.8em; opacity: 0.7">
-                        V 4.0e - ADEPTUS ADMINISTRATUM
+                        V 4.0 - ADEPTUS ADMINISTRATUM
                     </div>
                 </div>
                 <h1>Adeptus Astartes - Mission&nbsp;Debrief</h1>
@@ -363,7 +363,7 @@
             </div>
 
             <div class="export-buttons-container">
-                <button onclick="saveMissionInternal()">Save Mission Data</button>
+                <button onclick="saveMissionInternal()" class="btn-primary">Save Mission Data</button>
                 
                 <button onclick="exportTopSectionPNG()">Export Mission Data (PNG)</button>
                 
@@ -450,7 +450,7 @@
                 </div>
 
                 <div class="export-buttons-container" style="margin-top: 20px; border-top: 1px solid var(--border-color); padding-top: 20px;">
-                    <button onclick="openCopyModal()">Create Astropathic Message (TXT)</button>
+                    <button onclick="exportTopSectionPNG()" class="btn-primary">Create Astropathic Message</button>
                     <button onclick="saveAsPNG()">Record Aggregated Data Screen (PNG)</button>
                     <button class="danger-btn" onclick="resetImport()">Purge CSV Data</button>
                 </div>
