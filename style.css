@@ -499,6 +499,47 @@ select option { background-color: #000; color: #0f0; }
     white-space: pre-wrap; /* Ensures long text wraps instead of breaking layout */
 }
 
+/* --- UNIVERSAL MODAL CENTERING FIX --- */
+
+/* 1. Target BOTH Overlay Backgrounds */
+#ocr-modal-overlay,
+#copy-modal,
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.85);
+    z-index: 2000;
+    
+    /* CRITICAL: Use Flexbox to center the child (the green window) */
+    display: none; /* Hidden by default */
+    justify-content: center; /* Center Horizontally */
+    align-items: center;     /* Center Vertically */
+}
+
+/* 2. When 'active', force them to be FLEX containers (not block) */
+#ocr-modal-overlay.active,
+#copy-modal.active,
+.modal-overlay.active {
+    display: flex !important;
+}
+
+/* 3. Target the Actual Windows (The Green Boxes) */
+.ocr-modal,
+#copy-modal .modal-content {
+    /* Reset margins so Flexbox can do its job */
+    margin: 0 !important; 
+    
+    /* Ensure they don't touch the screen edges on mobile */
+    max-width: 700px;
+    width: 90%;
+    max-height: 90vh; /* Prevent tall windows from getting cut off */
+    overflow-y: auto; /* Scroll inside the window if needed */
+    box-sizing: border-box;
+}
+
 /* ========================================= */
 /* === SINGLE UNIFIED MOBILE MEDIA QUERY === */
 /* ========================================= */
