@@ -335,11 +335,12 @@ select option { background-color: #000; color: #0f0; }
 
 /* --- PRIMARY ACTION BUTTONS (Solid Green) --- */
 button.btn-primary {
-    background-color: var(--pip-green, #33ff00) !important; /* Solid Green */
+    /* Use 'background' instead of 'background-color' to override any gradients/images */
+    background: var(--pip-green, #33ff00) !important; 
     color: #000000 !important;       /* Black Text */
     font-weight: 900;                /* Extra Bold */
-    border: 1px solid var(--pip-green, #33ff00);
-    box-shadow: 0 0 8px rgba(51, 255, 0, 0.4); /* Subtle steady glow */
+    border: 1px solid var(--pip-green, #33ff00) !important;
+    box-shadow: 0 0 8px rgba(51, 255, 0, 0.4); 
     transition: all 0.2s ease-in-out;
     text-transform: uppercase;
     letter-spacing: 1px;
@@ -347,10 +348,10 @@ button.btn-primary {
 
 /* HOVER EFFECT: Invert to Black + Intense Glow */
 button.btn-primary:hover {
-    background-color: #000000 !important;      /* Background turns Black */
-    color: var(--pip-green, #33ff00) !important; /* Text turns Green */
-    box-shadow: 0 0 20px var(--pip-green, #33ff00), inset 0 0 10px rgba(51,255,0,0.2); /* Radioactive Glow */
-    transform: translateY(-1px); /* Slight lift */
+    background: #000000 !important;      
+    color: var(--pip-green, #33ff00) !important; 
+    box-shadow: 0 0 20px var(--pip-green, #33ff00), inset 0 0 10px rgba(51,255,0,0.2);
+    transform: translateY(-1px);
 }
 
 /* --- UTILS (Modals, Credits) --- */
