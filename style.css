@@ -459,38 +459,44 @@ select option { background-color: #000; color: #0f0; }
     text-shadow: 0 0 5px #33ff00;
 }
 
-/* --- TRANSMISSION LOG (Copy Modal) STYLING --- */
-/* Force the modal window itself to be dark */
+/* --- TRANSMISSION LOG & MODAL FIXES --- */
+
+/* 1. Fix Transmission Log Responsiveness */
 #copy-modal .modal-content {
     background-color: var(--bg-color) !important;
     border: 2px solid var(--pip-green) !important;
     box-shadow: 0 0 30px rgba(51, 255, 0, 0.15), inset 0 0 20px rgba(0, 0, 0, 0.8);
     color: var(--pip-green);
-    max-width: 700px; /* Wider */
-    width: 95%;
+    
+    /* Responsive Fixes */
+    width: 100%;           /* Try to fill width */
+    max-width: 700px;      /* But stop at 700px */
+    width: 90vw;           /* Mobile Safety: Never wider than 90% of screen width */
+    box-sizing: border-box;/* Critical: Includes padding in width calculation so it doesn't clip */
+    margin: auto;          /* Force Center */
 }
 
-/* Force the text box to be dark with green text */
+/* 2. Fix OCR Overlay Alignment (Force Center) */
+.ocr-modal, .modal-content {
+    margin: 0 auto;        /* This forces the box to the center of the flex container */
+    box-sizing: border-box; /* Prevents padding from pushing it off-screen */
+}
+
+/* Ensure the Text Area looks good */
 #copy-text {
-    background-color: #0a0f0a !important; /* Dark background */
-    color: #afffa6 !important;            /* Green text */
+    background-color: #0a0f0a !important; 
+    color: #afffa6 !important;            
     font-family: "VT323", monospace;
     font-size: 1.2rem;
     border: 1px solid var(--pip-dim);
     padding: 15px;
     width: 100%;
-    min-height: 400px; /* Make it tall by default */
-    box-sizing: border-box;
+    min-height: 400px; 
+    box-sizing: border-box; /* Keeps text inside the box */
     margin-bottom: 10px;
     resize: vertical;
     box-shadow: inset 0 0 10px rgba(0,0,0,0.5);
-}
-
-/* Remove the white highlight when you click inside */
-#copy-text:focus {
-    outline: none;
-    border-color: var(--pip-green);
-    box-shadow: 0 0 10px rgba(51, 255, 0, 0.2);
+    white-space: pre-wrap; /* Ensures long text wraps instead of breaking layout */
 }
 
 /* ========================================= */
