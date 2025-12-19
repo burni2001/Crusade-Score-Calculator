@@ -2466,6 +2466,33 @@ function copySummaryText() {
     });
 }
 
+// Function to download the Transmission Log as a .txt file
+function downloadTransmissionLog() {
+    const text = document.getElementById('copy-text').value;
+    if (!text) {
+        alert("No transmission data to save.");
+        return;
+    }
+
+    // Generate filename with timestamp
+    const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);
+    const filename = `Transmission_Log_${timestamp}.txt`;
+
+    // Create blob and download link
+    const blob = new Blob([text], { type: 'text/plain' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = filename;
+    
+    // Trigger download
+    document.body.appendChild(link);
+    link.click();
+    
+    // Cleanup
+    document.body.removeChild(link);
+    URL.revokeObjectURL(link.href);
+}
+
 /* --- NEW: Export Summary (PNG) Button Logic --- */
 document.getElementById('export-summary-btn').addEventListener('click', async () => {
     const btn = document.getElementById('export-summary-btn');
