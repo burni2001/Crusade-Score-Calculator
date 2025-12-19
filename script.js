@@ -2128,7 +2128,7 @@ function aggregateInternalData() {
     }
 }
 
-// Function to export ONLY the Aggregate Data Import section (Bottom)
+// PNG Export of Aggregated Data Screen
 async function saveAsPNG() {
     // 1. Identify the button (for visual feedback)
     // We try to find the button calling this function, or fallback to a likely ID
@@ -2561,74 +2561,77 @@ function downloadTransmissionLog() {
     URL.revokeObjectURL(link.href);
 }
 
-/* --- NEW: Export Summary (PNG) Button Logic --- */
-document.getElementById('export-summary-btn').addEventListener('click', async () => {
-    const btn = document.getElementById('export-summary-btn');
-    const originalText = btn.innerText;
-    btn.innerText = "CAPTURING..."; 
+/* --- FIXED: Top "Export Mission" (PNG) Button Logic --- */
+const missionExportBtn = document.getElementById('export-summary-btn');
+if (missionExportBtn) {
+    missionExportBtn.addEventListener('click', async () => {
+        const btn = missionExportBtn;
+        const originalText = btn.innerText;
+        btn.innerText = "CAPTURING..."; 
 
-    // 1. Select the elements
-    const frame = document.querySelector('.cogitator-frame');
-    const buttonsContainer = document.querySelector('.export-buttons-container');
-    
-    // TARGET THE NEW WRAPPER WE JUST MADE
-    const importWrapper = document.getElementById('import-wrapper');
-
-    // 2. Save original styles
-    const originalImportDisplay = importWrapper ? importWrapper.style.display : '';
-    const originalButtonsDisplay = buttonsContainer.style.display;
-    const originalFrameWidth = frame.style.width;
-    const originalFrameMaxWidth = frame.style.maxWidth;
-    const originalBodyWidth = document.body.style.width;
-    const originalFrameHeight = frame.style.height;
-
-    try {
-        // 3. Hide the unwanted sections
-        if (importWrapper) importWrapper.style.display = 'none';
-        buttonsContainer.style.display = 'none';
-
-        // 4. Force Desktop Layout & Tight Height
-        document.body.style.width = '1120px';
-        frame.style.width = '1100px';
-        frame.style.maxWidth = 'none';
+        const frame = document.querySelector('.cogitator-frame');
+        const importWrapper = document.getElementById('import-wrapper');
+        const dataBank = document.getElementById('data-bank-ui'); // Also hide the data bank!
         
-        // "max-content" shrinks the frame height to fit exactly what is left visible
-        frame.style.height = 'max-content'; 
-        
-        // Slight delay to ensure browser renders the layout change
-        await new Promise(resolve => setTimeout(resolve, 100));
+        // FIX: Select ALL button containers (Top and Bottom)
+        const allBtnContainers = document.querySelectorAll('.export-buttons-container');
 
-        // 5. Capture
-        const canvas = await html2canvas(frame, {
-            scale: 2, 
-            backgroundColor: '#000000', 
-            windowWidth: 1280, 
-            useCORS: true
-        });
+        // Save states
+        const originalImportDisplay = importWrapper ? importWrapper.style.display : '';
+        const originalFrameWidth = frame.style.width;
+        const originalFrameMaxWidth = frame.style.maxWidth;
+        const originalBodyWidth = document.body.style.width;
+        const originalFrameHeight = frame.style.height;
 
-        // 6. Download
-        const link = document.createElement('a');
-        const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);
-        link.download = `Mission_Summary_${timestamp}.png`;
-        link.href = canvas.toDataURL('image/png');
-        link.click();
+        try {
+            // HIDE THE BOTTOM (Import) & Data Bank so we only capture the Mission
+            if (importWrapper) importWrapper.style.display = 'none';
+            if (dataBank) dataBank.style.display = 'none';
 
-    } catch (err) {
-        console.error("Cogitator Error:", err);
-        alert("Error generating pict-record.");
-    } finally {
-        // 7. Restore Everything
-        if (importWrapper) importWrapper.style.display = originalImportDisplay;
-        buttonsContainer.style.display = originalButtonsDisplay;
-        
-        frame.style.width = originalFrameWidth;
-        frame.style.maxWidth = originalFrameMaxWidth;
-        frame.style.height = originalFrameHeight;
-        document.body.style.width = originalBodyWidth;
-        
-        btn.innerText = originalText;
-    }
-});
+            // FIX: Hide ALL button containers
+            allBtnContainers.forEach(el => el.style.display = 'none');
+
+            // Resize Frame
+            document.body.style.width = '1120px';
+            frame.style.width = '1100px';
+            frame.style.maxWidth = 'none';
+            frame.style.height = 'max-content'; 
+            
+            await new Promise(resolve => setTimeout(resolve, 100));
+
+            const canvas = await html2canvas(frame, {
+                scale: 2, 
+                backgroundColor: '#000000', 
+                windowWidth: 1280, 
+                useCORS: true
+            });
+
+            const link = document.createElement('a');
+            const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);
+            link.download = `Mission_Summary_${timestamp}.png`;
+            link.href = canvas.toDataURL('image/png');
+            link.click();
+
+        } catch (err) {
+            console.error("Cogitator Error:", err);
+            alert("Error generating pict-record.");
+        } finally {
+            // RESTORE
+            if (importWrapper) importWrapper.style.display = originalImportDisplay;
+            if (dataBank) dataBank.style.display = 'flex'; // Restore data bank
+            
+            // FIX: Restore all buttons
+            allBtnContainers.forEach(el => el.style.display = 'flex');
+
+            frame.style.width = originalFrameWidth;
+            frame.style.maxWidth = originalFrameMaxWidth;
+            frame.style.height = originalFrameHeight;
+            document.body.style.width = originalBodyWidth;
+            
+            btn.innerText = originalText;
+        }
+    });
+}
 
 /* --- GLOBAL UTILS: Close Modals with ESC Key --- */
 document.addEventListener('keydown', function(event) {
