@@ -2561,3 +2561,20 @@ document.getElementById('export-summary-btn').addEventListener('click', async ()
         btn.innerText = originalText;
     }
 });
+
+/* --- GLOBAL UTILS: Close Modals with ESC Key --- */
+document.addEventListener('keydown', function(event) {
+    if (event.key === "Escape") {
+        // 1. Close OCR Modal if open
+        const ocrModal = document.getElementById('ocr-modal-overlay');
+        if (ocrModal && ocrModal.classList.contains('active')) {
+            closeOCRModal();
+        }
+
+        // 2. Close Transmission Log if open
+        const copyModal = document.getElementById('copy-modal');
+        if (copyModal && copyModal.classList.contains('active')) {
+            copyModal.classList.remove('active');
+        }
+    }
+});
