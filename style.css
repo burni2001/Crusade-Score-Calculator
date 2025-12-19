@@ -333,25 +333,30 @@ select option { background-color: #000; color: #0f0; }
 .export-buttons-container button.danger-btn { border-color: #ff6600; color: #ff6600; }
 .export-buttons-container button.danger-btn:hover { background-color: #ff6600; color: var(--bg-color); box-shadow: 0 0 15px #ff6600; }
 
-/* --- PRIMARY ACTION BUTTONS (Solid Green) --- */
+/* --- PRIMARY ACTION BUTTONS (High Specificity Fix) --- */
+
+/* Target specific modals + generic class to override defaults */
+#ocr-modal-overlay .ocr-modal-buttons button.btn-primary,
+#import-wrapper button.btn-primary,
 button.btn-primary {
-    /* Use 'background' instead of 'background-color' to override any gradients/images */
-    background: var(--pip-green, #33ff00) !important; 
-    color: #000000 !important;       /* Black Text */
-    font-weight: 900;                /* Extra Bold */
-    border: 1px solid var(--pip-green, #33ff00) !important;
-    box-shadow: 0 0 8px rgba(51, 255, 0, 0.4); 
-    transition: all 0.2s ease-in-out;
-    text-transform: uppercase;
-    letter-spacing: 1px;
+    background-color: #33ff00 !important; /* Force solid green (Hex) */
+    background-image: none !important;    /* Remove any dark gradients/textures */
+    color: #000000 !important;            /* Black Text */
+    border: 1px solid #33ff00 !important;
+    font-weight: 900 !important;
+    text-shadow: none !important;         /* Remove text glow for better contrast */
+    box-shadow: 0 0 15px rgba(51, 255, 0, 0.6);
+    opacity: 1 !important;
 }
 
-/* HOVER EFFECT: Invert to Black + Intense Glow */
+/* HOVER EFFECT */
+#ocr-modal-overlay .ocr-modal-buttons button.btn-primary:hover,
+#import-wrapper button.btn-primary:hover,
 button.btn-primary:hover {
-    background: #000000 !important;      
-    color: var(--pip-green, #33ff00) !important; 
-    box-shadow: 0 0 20px var(--pip-green, #33ff00), inset 0 0 10px rgba(51,255,0,0.2);
-    transform: translateY(-1px);
+    background-color: #000000 !important; /* Black Background */
+    color: #33ff00 !important;            /* Green Text */
+    box-shadow: 0 0 20px #33ff00, inset 0 0 10px rgba(51,255,0,0.3);
+    cursor: pointer;
 }
 
 /* --- UTILS (Modals, Credits) --- */
