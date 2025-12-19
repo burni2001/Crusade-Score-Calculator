@@ -17,7 +17,7 @@
                 <div>
                     <div>REF: SM-2/CRUSADE</div>
                     <div style="font-size: 0.8em; opacity: 0.7">
-                        V 4.0d - ADEPTUS ADMINISTRATUM
+                        V 4.0e - ADEPTUS ADMINISTRATUM
                     </div>
                 </div>
                 <h1>Adeptus Astartes - Mission&nbsp;Debrief</h1>
@@ -362,14 +362,16 @@
                 </div>
             </div>
 
-            <div id="data-bank-ui" class="data-bank-display">
-                </div>
-
             <div class="export-buttons-container">
-                <button onclick="saveMissionInternal()">Save Mission Data (Internal)</button>
-                <button id="export-summary-btn">Export Mission (PNG)</button>
+                <button onclick="saveMissionInternal()">Save Mission Data</button>
+                
+                <button onclick="exportTopSectionPNG()">Export Mission Data (PNG)</button>
+                
                 <button class="danger-btn" onclick="clearData()">Purge Mission Data</button>
             </div>
+
+            <div id="data-bank-ui" class="data-bank-display">
+                </div>
             
         </div> <div id="import-wrapper">           
             <div class="divider-line"></div>
