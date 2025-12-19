@@ -2647,18 +2647,27 @@ async function exportTopSectionPNG() {
         
         if (btn) btn.innerText = originalText;
     }
-}
+});
 
-/* --- GLOBAL UTILS: Close Modals with ESC Key --- */
+/* ========================================================= */
+/* ===  GLOBAL UTILS: ESC KEY LISTENER                   === */
+/* ========================================================= */
+
+// 1. Add this safety bracket just in case a function above was left open. 
+// If your script was already closed properly, this extra bracket won't hurt (JS ignores it).
+// } 
+
 document.addEventListener('keydown', function(event) {
+    // Check for "Escape" key
     if (event.key === "Escape") {
-        // 1. Close OCR Modal if open
+        
+        // 1. Close OCR Modal (Direct Class Removal)
         const ocrModal = document.getElementById('ocr-modal-overlay');
         if (ocrModal && ocrModal.classList.contains('active')) {
-            closeOCRModal();
+            ocrModal.classList.remove('active');
         }
 
-        // 2. Close Transmission Log if open
+        // 2. Close Transmission Log (Direct Class Removal)
         const copyModal = document.getElementById('copy-modal');
         if (copyModal && copyModal.classList.contains('active')) {
             copyModal.classList.remove('active');
