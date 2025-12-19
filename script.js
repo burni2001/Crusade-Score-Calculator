@@ -2561,77 +2561,84 @@ function downloadTransmissionLog() {
     URL.revokeObjectURL(link.href);
 }
 
-/* --- FIXED: Top "Export Mission" (PNG) Button Logic --- */
-const missionExportBtn = document.getElementById('export-summary-btn');
-if (missionExportBtn) {
-    missionExportBtn.addEventListener('click', async () => {
-        const btn = missionExportBtn;
-        const originalText = btn.innerText;
-        btn.innerText = "CAPTURING..."; 
+/* --- Top "Export Mission" (PNG) Button Logic --- */
+document.addEventListener("DOMContentLoaded", function() {
+    
+    const btn = document.getElementById('export-summary-btn');
+    
+    if (btn) {
+        btn.addEventListener('click', async () => {
+            const originalText = btn.innerText;
+            btn.innerText = "CAPTURING..."; 
 
-        const frame = document.querySelector('.cogitator-frame');
-        const importWrapper = document.getElementById('import-wrapper');
-        const dataBank = document.getElementById('data-bank-ui'); // Also hide the data bank!
-        
-        // FIX: Select ALL button containers (Top and Bottom)
-        const allBtnContainers = document.querySelectorAll('.export-buttons-container');
+            const frame = document.querySelector('.cogitator-frame');
+            const importWrapper = document.getElementById('import-wrapper');
+            // Select ALL button containers (Top and Bottom)
+            const allBtnContainers = document.querySelectorAll('.export-buttons-container');
+            const dataBank = document.getElementById('data-bank-ui');
 
-        // Save states
-        const originalImportDisplay = importWrapper ? importWrapper.style.display : '';
-        const originalFrameWidth = frame.style.width;
-        const originalFrameMaxWidth = frame.style.maxWidth;
-        const originalBodyWidth = document.body.style.width;
-        const originalFrameHeight = frame.style.height;
+            // Save original states
+            const originalImportDisplay = importWrapper ? importWrapper.style.display : '';
+            const originalDataBankDisplay = dataBank ? dataBank.style.display : '';
+            const originalFrameWidth = frame.style.width;
+            const originalFrameMaxWidth = frame.style.maxWidth;
+            const originalBodyWidth = document.body.style.width;
+            const originalFrameHeight = frame.style.height;
 
-        try {
-            // HIDE THE BOTTOM (Import) & Data Bank so we only capture the Mission
-            if (importWrapper) importWrapper.style.display = 'none';
-            if (dataBank) dataBank.style.display = 'none';
+            try {
+                // HIDE THE BOTTOM (Import) & Data Bank
+                if (importWrapper) importWrapper.style.display = 'none';
+                if (dataBank) dataBank.style.display = 'none';
 
-            // FIX: Hide ALL button containers
-            allBtnContainers.forEach(el => el.style.display = 'none');
+                // HIDE ALL BUTTONS
+                allBtnContainers.forEach(el => el.style.display = 'none');
 
-            // Resize Frame
-            document.body.style.width = '1120px';
-            frame.style.width = '1100px';
-            frame.style.maxWidth = 'none';
-            frame.style.height = 'max-content'; 
-            
-            await new Promise(resolve => setTimeout(resolve, 100));
+                // Resize Frame for clean capture
+                document.body.style.width = '1120px';
+                frame.style.width = '1100px';
+                frame.style.maxWidth = 'none';
+                frame.style.height = 'max-content'; 
+                
+                // Wait for layout to settle
+                await new Promise(resolve => setTimeout(resolve, 100));
 
-            const canvas = await html2canvas(frame, {
-                scale: 2, 
-                backgroundColor: '#000000', 
-                windowWidth: 1280, 
-                useCORS: true
-            });
+                // Capture
+                const canvas = await html2canvas(frame, {
+                    scale: 2, 
+                    backgroundColor: '#000000', 
+                    windowWidth: 1280, 
+                    useCORS: true
+                });
 
-            const link = document.createElement('a');
-            const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);
-            link.download = `Mission_Summary_${timestamp}.png`;
-            link.href = canvas.toDataURL('image/png');
-            link.click();
+                // Download
+                const link = document.createElement('a');
+                const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);
+                link.download = `Mission_Summary_${timestamp}.png`;
+                link.href = canvas.toDataURL('image/png');
+                link.click();
 
-        } catch (err) {
-            console.error("Cogitator Error:", err);
-            alert("Error generating pict-record.");
-        } finally {
-            // RESTORE
-            if (importWrapper) importWrapper.style.display = originalImportDisplay;
-            if (dataBank) dataBank.style.display = 'flex'; // Restore data bank
-            
-            // FIX: Restore all buttons
-            allBtnContainers.forEach(el => el.style.display = 'flex');
+            } catch (err) {
+                console.error("Cogitator Error:", err);
+                alert("Error generating pict-record. Check console (F12) for details.");
+            } finally {
+                // RESTORE EVERYTHING
+                if (importWrapper) importWrapper.style.display = originalImportDisplay;
+                if (dataBank) dataBank.style.display = originalDataBankDisplay;
+                
+                allBtnContainers.forEach(el => el.style.display = 'flex');
 
-            frame.style.width = originalFrameWidth;
-            frame.style.maxWidth = originalFrameMaxWidth;
-            frame.style.height = originalFrameHeight;
-            document.body.style.width = originalBodyWidth;
-            
-            btn.innerText = originalText;
-        }
-    });
-}
+                frame.style.width = originalFrameWidth;
+                frame.style.maxWidth = originalFrameMaxWidth;
+                frame.style.height = originalFrameHeight;
+                document.body.style.width = originalBodyWidth;
+                
+                btn.innerText = originalText;
+            }
+        });
+    } else {
+        console.error("Critical Error: 'export-summary-btn' not found in HTML.");
+    }
+});
 
 /* --- GLOBAL UTILS: Close Modals with ESC Key --- */
 document.addEventListener('keydown', function(event) {
