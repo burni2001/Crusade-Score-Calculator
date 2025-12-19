@@ -17,7 +17,7 @@
                 <div>
                     <div>REF: SM-2/CRUSADE</div>
                     <div style="font-size: 0.8em; opacity: 0.7">
-                        V 3.38 - ADEPTUS ADMINISTRATUM
+                        V 3.39 - ADEPTUS ADMINISTRATUM
                     </div>
                 </div>
                 <h1>Adeptus Astartes - Mission&nbsp;Debrief</h1>
@@ -174,8 +174,7 @@
                     </div>
                 </div>
 
-            </div>         
-            <div class="section" style="margin-bottom: 0">
+            </div> <div class="section" style="margin-bottom: 0">
                 <div class="section-header">SQUAD PERFORMANCE MATRIX</div>
                 <div class="score-table-container">
                     <table class="score-table">
@@ -183,289 +182,23 @@
                             <tr>
                                 <th class="empty-header"></th>
                                 <th>
-                                    <input
-                                        type="text"
-                                        value=""
-                                        placeholder="Name"
-                                        class="player-name-input"
-                                        id="p1-name"
-                                        onchange="saveData(); updateAdditionalStatsHeaders();"
-                                        oninput="updateAdditionalStatsHeaders();"
-                                    />
+                                    <input type="text" value="" placeholder="Name" class="player-name-input" id="p1-name" onchange="saveData(); updateAdditionalStatsHeaders();" oninput="updateAdditionalStatsHeaders();" />
                                 </th>
                                 <th>
-                                    <input
-                                        type="text"
-                                        value=""
-                                        placeholder="Name"
-                                        class="player-name-input"
-                                        id="p2-name"
-                                        onchange="saveData(); updateAdditionalStatsHeaders();"
-                                        oninput="updateAdditionalStatsHeaders();"
-                                    />
+                                    <input type="text" value="" placeholder="Name" class="player-name-input" id="p2-name" onchange="saveData(); updateAdditionalStatsHeaders();" oninput="updateAdditionalStatsHeaders();" />
                                 </th>
                                 <th>
-                                    <input
-                                        type="text"
-                                        value=""
-                                        placeholder="Name"
-                                        class="player-name-input"
-                                        id="p3-name"
-                                        onchange="saveData(); updateAdditionalStatsHeaders();"
-                                        oninput="updateAdditionalStatsHeaders();"
-                                    />
+                                    <input type="text" value="" placeholder="Name" class="player-name-input" id="p3-name" onchange="saveData(); updateAdditionalStatsHeaders();" oninput="updateAdditionalStatsHeaders();" />
                                 </th>
                                 <th>TOTAL</th>
                             </tr>
                         </thead>
                         <tbody>
-                            <tr>
-                                <td class="row-label">Class</td>
-                                <td class="input-cell">
-                                    <select
-                                        id="p1-class"
-                                        onchange="saveData();"
-                                    >
-                                        <option value="">-</option>
-                                        <option value="Tactical">
-                                            Tactical
-                                        </option>
-                                        <option value="Assault">Assault</option>
-                                        <option value="Vanguard">
-                                            Vanguard
-                                        </option>
-                                        <option value="Bulwark">Bulwark</option>
-                                        <option value="Sniper">Sniper</option>
-                                        <option value="Heavy">Heavy</option>
-                                        <option value="Techmarine">
-                                            Techmarine
-                                        </option>
-                                    </select>
-                                </td>
-                                <td class="input-cell">
-                                    <select
-                                        id="p2-class"
-                                        onchange="saveData();"
-                                    >
-                                        <option value="">-</option>
-                                        <option value="Tactical">
-                                            Tactical
-                                        </option>
-                                        <option value="Assault">Assault</option>
-                                        <option value="Vanguard">
-                                            Vanguard
-                                        </option>
-                                        <option value="Bulwark">Bulwark</option>
-                                        <option value="Sniper">Sniper</option>
-                                        <option value="Heavy">Heavy</option>
-                                        <option value="Techmarine">
-                                            Techmarine
-                                        </option>
-                                    </select>
-                                </td>
-                                <td class="input-cell">
-                                    <select
-                                        id="p3-class"
-                                        onchange="saveData();"
-                                    >
-                                        <option value="">-</option>
-                                        <option value="Tactical">
-                                            Tactical
-                                        </option>
-                                        <option value="Assault">Assault</option>
-                                        <option value="Vanguard">
-                                            Vanguard
-                                        </option>
-                                        <option value="Bulwark">Bulwark</option>
-                                        <option value="Sniper">Sniper</option>
-                                        <option value="Heavy">Heavy</option>
-                                        <option value="Techmarine">
-                                            Techmarine
-                                        </option>
-                                    </select>
-                                </td>
-                                <td class="total-cell"></td>
-                            </tr>
-                            <tr>
-                                <td class="row-label">Kills</td>
-                                <td class="input-cell">
-                                    <input
-                                        type="number"
-                                        class="p1-input"
-                                        id="p1-kills"
-                                        value="0"
-                                        min="0"
-                                        inputmode="numeric"
-                                        onchange="calculate(); saveData();"
-                                    />
-                                </td>
-                                <td class="input-cell">
-                                    <input
-                                        type="number"
-                                        class="p2-input"
-                                        id="p2-kills"
-                                        value="0"
-                                        min="0"
-                                        inputmode="numeric"
-                                        onchange="calculate(); saveData();"
-                                    />
-                                </td>
-                                <td class="input-cell">
-                                    <input
-                                        type="number"
-                                        class="p3-input"
-                                        id="p3-kills"
-                                        value="0"
-                                        min="0"
-                                        inputmode="numeric"
-                                        onchange="calculate(); saveData();"
-                                    />
-                                </td>
-                                <td class="total-cell" id="total-kills">0</td>
-                            </tr>
-                            <tr>
-                                <td class="row-label">Special Kills</td>
-                                <td class="input-cell">
-                                    <input
-                                        type="number"
-                                        class="p1-input"
-                                        id="p1-elite"
-                                        value="0"
-                                        min="0"
-                                        inputmode="numeric"
-                                        onchange="calculate(); saveData();"
-                                    />
-                                </td>
-                                <td class="input-cell">
-                                    <input
-                                        type="number"
-                                        class="p2-input"
-                                        id="p2-elite"
-                                        value="0"
-                                        min="0"
-                                        inputmode="numeric"
-                                        onchange="calculate(); saveData();"
-                                    />
-                                </td>
-                                <td class="input-cell">
-                                    <input
-                                        type="number"
-                                        class="p3-input"
-                                        id="p3-elite"
-                                        value="0"
-                                        min="0"
-                                        inputmode="numeric"
-                                        onchange="calculate(); saveData();"
-                                    />
-                                </td>
-                                <td class="total-cell" id="total-elite">0</td>
-                            </tr>
-                            <tr class="base-score-row">
-                                <td class="row-label">Base Score</td>
-                                <td id="p1-base">0</td>
-                                <td id="p2-base">0</td>
-                                <td id="p3-base">0</td>
-                                <td id="total-base">0</td>
-                            </tr>
-                            <tr>
-                                <td class="row-label">Incapacitations</td>
-                                <td class="input-cell">
-                                    <input
-                                        type="number"
-                                        class="p1-input"
-                                        id="p1-death"
-                                        value="0"
-                                        min="0"
-                                        inputmode="numeric"
-                                        onchange="calculate(); saveData();"
-                                    />
-                                </td>
-                                <td class="input-cell">
-                                    <input
-                                        type="number"
-                                        class="p2-input"
-                                        id="p2-death"
-                                        value="0"
-                                        min="0"
-                                        inputmode="numeric"
-                                        onchange="calculate(); saveData();"
-                                    />
-                                </td>
-                                <td class="input-cell">
-                                    <input
-                                        type="number"
-                                        class="p3-input"
-                                        id="p3-death"
-                                        value="0"
-                                        min="0"
-                                        inputmode="numeric"
-                                        onchange="calculate(); saveData();"
-                                    />
-                                </td>
-                                <td class="total-cell" id="total-death">0</td>
-                            </tr>
-                            <tr>
-                                <td class="row-label">Damage Taken</td>
-                                <td class="input-cell">
-                                    <input
-                                        type="number"
-                                        class="p1-input"
-                                        id="p1-damage"
-                                        value="0"
-                                        min="0"
-                                        step="0.1"
-                                        inputmode="decimal"
-                                        onchange="calculate(); saveData();"
-                                    />
-                                </td>
-                                <td class="input-cell">
-                                    <input
-                                        type="number"
-                                        class="p2-input"
-                                        id="p2-damage"
-                                        value="0"
-                                        min="0"
-                                        step="0.1"
-                                        inputmode="decimal"
-                                        onchange="calculate(); saveData();"
-                                    />
-                                </td>
-                                <td class="input-cell">
-                                    <input
-                                        type="number"
-                                        class="p3-input"
-                                        id="p3-damage"
-                                        value="0"
-                                        min="0"
-                                        step="0.1"
-                                        inputmode="decimal"
-                                        onchange="calculate(); saveData();"
-                                    />
-                                </td>
-                                <td class="total-cell" id="total-damage">0</td>
-                            </tr>
-
-                            <tr class="mod-score-row">
-                                <td class="row-label">Modifier Score</td>
-                                <td id="p1-mod">0</td>
-                                <td id="p2-mod">0</td>
-                                <td id="p3-mod">0</td>
-                                <td id="total-mod">0</td>
-                            </tr>
-                            <tr style="height: 10px"></tr>
-                            <tr class="final-score-row">
-                                <td class="row-label" style="color: #afffa6">
-                                    TOTAL SCORE
-                                </td>
-                                <td id="p1-final">0</td>
-                                <td id="p2-final">0</td>
-                                <td id="p3-final">0</td>
-                                <td id="total-final">0</td>
-                            </tr>
-                        </tbody>
+                            </tbody>
                     </table>
                 </div>
-                </div>
+            </div>
+
             <div class="section" style="margin-top: 15px">
                 <div class="section-header">ADDITIONAL STATISTICS</div>
                 <div class="score-table-container">
@@ -473,235 +206,68 @@
                         <thead>
                             <tr>
                                 <th class="empty-header"></th>
-                                <th id="addstats-p1-header">
-                                    Battle Brother 1
-                                </th>
-                                <th id="addstats-p2-header">
-                                    Battle Brother 2
-                                </th>
-                                <th id="addstats-p3-header">
-                                    Battle Brother 3
-                                </th>
+                                <th id="addstats-p1-header">Battle Brother 1</th>
+                                <th id="addstats-p2-header">Battle Brother 2</th>
+                                <th id="addstats-p3-header">Battle Brother 3</th>
                                 <th>TOTAL</th>
                             </tr>
                         </thead>
                         <tbody>
                             <tr>
                                 <td class="row-label">Melee Damage</td>
-                                <td class="input-cell">
-                                    <input
-                                        type="number"
-                                        class="p1-input"
-                                        id="p1-melee"
-                                        value="0"
-                                        min="0"
-                                        inputmode="numeric"
-                                        onchange="calculate(); saveData();"
-                                    />
-                                </td>
-                                <td class="input-cell">
-                                    <input
-                                        type="number"
-                                        class="p2-input"
-                                        id="p2-melee"
-                                        value="0"
-                                        min="0"
-                                        inputmode="numeric"
-                                        onchange="calculate(); saveData();"
-                                    />
-                                </td>
-                                <td class="input-cell">
-                                    <input
-                                        type="number"
-                                        class="p3-input"
-                                        id="p3-melee"
-                                        value="0"
-                                        min="0"
-                                        inputmode="numeric"
-                                        onchange="calculate(); saveData();"
-                                    />
-                                </td>
+                                <td class="input-cell"><input type="number" class="p1-input" id="p1-melee" value="0" min="0" inputmode="numeric" onchange="calculate(); saveData();" /></td>
+                                <td class="input-cell"><input type="number" class="p2-input" id="p2-melee" value="0" min="0" inputmode="numeric" onchange="calculate(); saveData();" /></td>
+                                <td class="input-cell"><input type="number" class="p3-input" id="p3-melee" value="0" min="0" inputmode="numeric" onchange="calculate(); saveData();" /></td>
                                 <td class="total-cell" id="total-melee">0</td>
                             </tr>
                             <tr>
                                 <td class="row-label">Ranged Damage</td>
-                                <td class="input-cell">
-                                    <input
-                                        type="number"
-                                        class="p1-input"
-                                        id="p1-ranged"
-                                        value="0"
-                                        min="0"
-                                        inputmode="numeric"
-                                        onchange="calculate(); saveData();"
-                                    />
-                                </td>
-                                <td class="input-cell">
-                                    <input
-                                        type="number"
-                                        class="p2-input"
-                                        id="p2-ranged"
-                                        value="0"
-                                        min="0"
-                                        inputmode="numeric"
-                                        onchange="calculate(); saveData();"
-                                    />
-                                </td>
-                                <td class="input-cell">
-                                    <input
-                                        type="number"
-                                        class="p3-input"
-                                        id="p3-ranged"
-                                        value="0"
-                                        min="0"
-                                        inputmode="numeric"
-                                        onchange="calculate(); saveData();"
-                                    />
-                                </td>
+                                <td class="input-cell"><input type="number" class="p1-input" id="p1-ranged" value="0" min="0" inputmode="numeric" onchange="calculate(); saveData();" /></td>
+                                <td class="input-cell"><input type="number" class="p2-input" id="p2-ranged" value="0" min="0" inputmode="numeric" onchange="calculate(); saveData();" /></td>
+                                <td class="input-cell"><input type="number" class="p3-input" id="p3-ranged" value="0" min="0" inputmode="numeric" onchange="calculate(); saveData();" /></td>
                                 <td class="total-cell" id="total-ranged">0</td>
                             </tr>
                             <tr>
                                 <td class="row-label">Items Found</td>
-                                <td class="input-cell">
-                                    <input
-                                        type="number"
-                                        class="p1-input"
-                                        id="p1-items"
-                                        value="0"
-                                        min="0"
-                                        inputmode="numeric"
-                                        onchange="calculate(); saveData();"
-                                    />
-                                </td>
-                                <td class="input-cell">
-                                    <input
-                                        type="number"
-                                        class="p2-input"
-                                        id="p2-items"
-                                        value="0"
-                                        min="0"
-                                        inputmode="numeric"
-                                        onchange="calculate(); saveData();"
-                                    />
-                                </td>
-                                <td class="input-cell">
-                                    <input
-                                        type="number"
-                                        class="p3-input"
-                                        id="p3-items"
-                                        value="0"
-                                        min="0"
-                                        inputmode="numeric"
-                                        onchange="calculate(); saveData();"
-                                    />
-                                </td>
+                                <td class="input-cell"><input type="number" class="p1-input" id="p1-items" value="0" min="0" inputmode="numeric" onchange="calculate(); saveData();" /></td>
+                                <td class="input-cell"><input type="number" class="p2-input" id="p2-items" value="0" min="0" inputmode="numeric" onchange="calculate(); saveData();" /></td>
+                                <td class="input-cell"><input type="number" class="p3-input" id="p3-items" value="0" min="0" inputmode="numeric" onchange="calculate(); saveData();" /></td>
                                 <td class="total-cell" id="total-items">0</td>
                             </tr>
                             <tr>
                                 <td class="row-label">Teammates Revived</td>
                                 <td class="input-cell">
-                                    <div
-                                        style="
-                                            display: flex;
-                                            align-items: center;
-                                            gap: 5px;
-                                        "
-                                    >
-                                        <input
-                                            type="number"
-                                            class="p1-input"
-                                            id="p1-revived"
-                                            value="0"
-                                            min="0"
-                                            inputmode="numeric"
-                                            onchange="calculate(); saveData();"
-                                            style="flex: 1"
-                                        />
-                                        <span
-                                            id="p1-diff"
-                                            style="
-                                                color: #afffa6;
-                                                font-size: 0.9em;
-                                            "
-                                            >(0)</span
-                                        >
+                                    <div style="display: flex; align-items: center; gap: 5px;">
+                                        <input type="number" class="p1-input" id="p1-revived" value="0" min="0" inputmode="numeric" onchange="calculate(); saveData();" style="flex: 1;" />
+                                        <span id="p1-diff" style="color: #afffa6; font-size: 0.9em;">(0)</span>
                                     </div>
                                 </td>
                                 <td class="input-cell">
-                                    <div
-                                        style="
-                                            display: flex;
-                                            align-items: center;
-                                            gap: 5px;
-                                        "
-                                    >
-                                        <input
-                                            type="number"
-                                            class="p2-input"
-                                            id="p2-revived"
-                                            value="0"
-                                            min="0"
-                                            inputmode="numeric"
-                                            onchange="calculate(); saveData();"
-                                            style="flex: 1"
-                                        />
-                                        <span
-                                            id="p2-diff"
-                                            style="
-                                                color: #afffa6;
-                                                font-size: 0.9em;
-                                            "
-                                            >(0)</span
-                                        >
+                                    <div style="display: flex; align-items: center; gap: 5px;">
+                                        <input type="number" class="p2-input" id="p2-revived" value="0" min="0" inputmode="numeric" onchange="calculate(); saveData();" style="flex: 1;" />
+                                        <span id="p2-diff" style="color: #afffa6; font-size: 0.9em;">(0)</span>
                                     </div>
                                 </td>
                                 <td class="input-cell">
-                                    <div
-                                        style="
-                                            display: flex;
-                                            align-items: center;
-                                            gap: 5px;
-                                        "
-                                    >
-                                        <input
-                                            type="number"
-                                            class="p3-input"
-                                            id="p3-revived"
-                                            value="0"
-                                            min="0"
-                                            inputmode="numeric"
-                                            onchange="calculate(); saveData();"
-                                            style="flex: 1"
-                                        />
-                                        <span
-                                            id="p3-diff"
-                                            style="
-                                                color: #afffa6;
-                                                font-size: 0.9em;
-                                            "
-                                            >(0)</span
-                                        >
+                                    <div style="display: flex; align-items: center; gap: 5px;">
+                                        <input type="number" class="p3-input" id="p3-revived" value="0" min="0" inputmode="numeric" onchange="calculate(); saveData();" style="flex: 1;" />
+                                        <span id="p3-diff" style="color: #afffa6; font-size: 0.9em;">(0)</span>
                                     </div>
                                 </td>
                                 <td class="total-cell">
                                     <span id="total-revived">0</span>
-                                    <span
-                                        id="total-diff"
-                                        style="font-size: 0.9em"
-                                        >(0)</span
-                                    >
+                                    <span id="total-diff" style="font-size: 0.9em;">(0)</span>
                                 </td>
                             </tr>
                         </tbody>
                     </table>
                 </div>
             </div>
+
             <div class="export-buttons-container">
-                <button onclick="openCopyModal()">Create Astropathic Message</button>
-                <button onclick="saveAsPNG()">Record Cogitator Display (PNG)</button>
+                <button onclick="exportToCSV()">Export to Data Slate (CSV)</button>
                 <button id="export-summary-btn">Export Mission (PNG)</button>
                 <button class="danger-btn" onclick="clearData()">Purge Mission Data</button>
-                <button class="danger-btn" onclick="resetImport()">Reset Import</button>
             </div>
             
         </div> <div id="import-wrapper">           
@@ -779,9 +345,15 @@
                         <table class="score-table" id="stats-table"></table>
                     </div>
                 </div>
-            </div>
-            
-        </div> </div> ```
+
+                <div class="export-buttons-container" style="margin-top: 20px; border-top: 1px solid var(--border-color); padding-top: 20px;">
+                    <button onclick="openCopyModal()">Create Astropathic Message</button>
+                    <button onclick="saveAsPNG()">Record Cogitator Display (PNG)</button>
+                    <button class="danger-btn" onclick="resetImport()">Reset Import</button>
+                </div>
+
+            </div> </div> </div> ```
+        
             </div> <div class="credits-full">
                 <div class="title">Credits</div>
                 <div class="credit-row">
