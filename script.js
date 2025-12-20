@@ -2088,10 +2088,20 @@ function deleteSlot(index) {
     renderDataBankUI();
 }
 
-// 5. Aggregate Data (Import Logic Replacement)
+// 5. Aggregate Data (Self-Repairing Version)
 function aggregateInternalData() {
-    const savedSlots = JSON.parse(localStorage.getItem("cogitator_saved_missions") || "[]");
     const statusEl = document.getElementById('import-status');
+    let savedSlots = [];
+    
+    try {
+        savedSlots = JSON.parse(localStorage.getItem("cogitator_saved_missions") || "[]");
+    } catch (e) {
+        // If JSON is broken, wipe it
+        localStorage.removeItem("cogitator_saved_missions");
+        statusEl.textContent = "MEMORY CORRUPTION DETECTED. BANKS PURGED.";
+        statusEl.style.color = "#ff5555";
+        return;
+    }
 
     if (savedSlots.length === 0) {
         statusEl.textContent = "NO DATA SLATES FOUND IN MEMORY";
@@ -2099,7 +2109,7 @@ function aggregateInternalData() {
         return;
     }
 
-    // Reset State
+    // Reset Global State
     importAppState = {
         mission: { name:'-', diff:'-', waves:'-', obj:'-', gene:'-', arm:'-' },
         modifiers: { kills:'-', specials:'-', incaps:'-', dmg:'-', gene:'-', arm:'-', obj:'-', waves:'-' },
@@ -2108,25 +2118,53 @@ function aggregateInternalData() {
         matrixTotals: {}  
     };
 
-    try {
-        // Loop through stored strings instead of files
-        savedSlots.forEach(slot => {
+    let successCount = 0;
+    let corruptedCount = 0;
+
+    // Process each slot safely
+    const cleanSlots = [];
+    
+    savedSlots.forEach((slot, index) => {
+        try {
+            // Validation: Must have CSV string
+            if (!slot.csv || typeof slot.csv !== 'string') {
+                throw new Error("Invalid Format");
+            }
+            
+            // Check if processCSV exists (critical check)
+            if (typeof processCSV !== "function") {
+                throw new Error("processCSV function missing. Logic not loaded.");
+            }
+
             processCSV(slot.csv);
-        });
+            cleanSlots.push(slot); // Keep good slots
+            successCount++;
+            
+        } catch (err) {
+            console.error(`Slot ${index+1} Corrupted:`, err);
+            corruptedCount++;
+        }
+    });
 
-        renderImportUI();
-        statusEl.textContent = `AGGREGATED ${savedSlots.length} DATA SLATES SUCCESSFULLY`;
+    // Save back only the clean slots (Auto-Repair)
+    if (corruptedCount > 0) {
+        localStorage.setItem("cogitator_saved_missions", JSON.stringify(cleanSlots));
+        renderDataBankUI(); // Refresh UI to remove bad slots
+    }
+
+    renderImportUI();
+    
+    // Status Message
+    if (successCount > 0) {
+        statusEl.textContent = `AGGREGATED ${successCount} SLATES` + (corruptedCount ? ` (${corruptedCount} PURGED)` : "");
         statusEl.style.color = "var(--pip-green)";
-        
-        // Scroll to results
         document.getElementById('results-container').scrollIntoView({ behavior: 'smooth' });
-
-    } catch(err) {
-        console.error(err);
-        statusEl.textContent = "COGITATOR ERROR: DATA CORRUPTION";
+    } else {
+        statusEl.textContent = "ALL SLATES WERE CORRUPTED AND PURGED.";
         statusEl.style.color = "#ff5555";
     }
 }
+
 
 // PNG Export of Aggregated Data Screen
 async function saveAsPNG() {
@@ -2275,22 +2313,21 @@ document.getElementById('csv-upload').addEventListener('change', async (e) => {
     }
 });
 
-/* --- FIXED: Reset/Purge Aggregated Data --- */
+/* --- FIXED: Reset/Purge Aggregated Data + Clear Memory --- */
 function resetImport() {
-    // 1. Clear file input (Only if it exists - Legacy Support)
+    // 1. Clear file input
     const fileInput = document.getElementById('csv-upload');
     if (fileInput) fileInput.value = "";
 
-    // 2. Hide Results Container
+    // 2. Hide Results
     const results = document.getElementById('results-container');
     if (results) results.classList.remove('visible');
 
-    // 3. Clear Status Text
+    // 3. Clear Status
     const status = document.getElementById('import-status');
-    if (status) status.textContent = "";
+    if (status) status.textContent = "MEMORY BANKS FLUSHED.";
 
-    // 4. CRITICAL: Reset the internal memory state
-    // If we don't do this, the next aggregation will mix old data with new data
+    // 4. Reset State
     importAppState = {
         mission: { name:'-', diff:'-', waves:'-', obj:'-', gene:'-', arm:'-' },
         modifiers: { kills:'-', specials:'-', incaps:'-', dmg:'-', gene:'-', arm:'-', obj:'-', waves:'-' },
@@ -2298,6 +2335,11 @@ function resetImport() {
         playerOrder: [],  
         matrixTotals: {}  
     };
+    
+    // 5. NUCLEAR OPTION: Wipe the saved missions too
+    localStorage.removeItem("cogitator_saved_missions");
+    renderDataBankUI(); // Update the green slots to show they are empty
+}
     
     console.log("Aggregated data purged.");
 }
