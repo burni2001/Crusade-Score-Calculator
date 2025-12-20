@@ -300,6 +300,17 @@ select option { background-color: #000; color: #0f0; }
     text-shadow: 0 0 8px var(--pip-green);
 }
 
+/* Fix clipping for long table headers like "Incapacitations" */
+    .cogitator-table th, 
+    .performance-table th {
+        white-space: normal !important; /* Allow text to wrap to next line */
+        word-wrap: break-word !important; /* Force long words to break if needed */
+        padding: 4px 2px !important;    /* Reduce side padding to make room */
+        font-size: 0.7rem !important;   /* Slightly smaller font for headers */
+        vertical-align: middle;         /* Keep it centered vertically */
+        line-height: 1.1;               /* Tighten line height for wrapped text */
+    }
+
 /* --- EXPORT BUTTONS --- */
 .export-buttons-container {
     display: flex;
