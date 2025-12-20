@@ -2275,22 +2275,31 @@ document.getElementById('csv-upload').addEventListener('change', async (e) => {
     }
 });
 
+/* --- FIXED: Reset/Purge Aggregated Data --- */
 function resetImport() {
-    document.getElementById('csv-upload').value = "";
-    document.getElementById('results-container').classList.remove('visible');
-    document.getElementById('import-status').textContent = "";
-}
+    // 1. Clear file input (Only if it exists - Legacy Support)
+    const fileInput = document.getElementById('csv-upload');
+    if (fileInput) fileInput.value = "";
 
-function parseCSVRow(rowStr) {
-    const res = [];
-    let cur = '';
-    let inQ = false;
-    for(let c of rowStr){
-        if(c === '"'){ inQ = !inQ; continue; }
-        if(c === ',' && !inQ){ res.push(cur.trim()); cur = ''; } else cur += c;
-    }
-    res.push(cur.trim());
-    return res;
+    // 2. Hide Results Container
+    const results = document.getElementById('results-container');
+    if (results) results.classList.remove('visible');
+
+    // 3. Clear Status Text
+    const status = document.getElementById('import-status');
+    if (status) status.textContent = "";
+
+    // 4. CRITICAL: Reset the internal memory state
+    // If we don't do this, the next aggregation will mix old data with new data
+    importAppState = {
+        mission: { name:'-', diff:'-', waves:'-', obj:'-', gene:'-', arm:'-' },
+        modifiers: { kills:'-', specials:'-', incaps:'-', dmg:'-', gene:'-', arm:'-', obj:'-', waves:'-' },
+        players: {},      
+        playerOrder: [],  
+        matrixTotals: {}  
+    };
+    
+    console.log("Aggregated data purged.");
 }
 
 function processCSV(text) {
