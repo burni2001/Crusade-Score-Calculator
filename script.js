@@ -2343,6 +2343,19 @@ function resetImport() {
     console.log("Aggregated data purged.");
 }
 
+/* --- RESTORED: Missing Helper Function --- */
+function parseCSVRow(rowStr) {
+    const res = [];
+    let cur = '';
+    let inQ = false;
+    for(let c of rowStr){
+        if(c === '"'){ inQ = !inQ; continue; }
+        if(c === ',' && !inQ){ res.push(cur.trim()); cur = ''; } else cur += c;
+    }
+    res.push(cur.trim());
+    return res;
+}
+
 function processCSV(text) {
     const lines = text.split(/\r?\n/);
     
