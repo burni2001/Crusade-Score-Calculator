@@ -2339,7 +2339,6 @@ function resetImport() {
     // 5. NUCLEAR OPTION: Wipe the saved missions too
     localStorage.removeItem("cogitator_saved_missions");
     renderDataBankUI(); // Update the green slots to show they are empty
-}
     
     console.log("Aggregated data purged.");
 }
