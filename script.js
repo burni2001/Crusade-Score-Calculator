@@ -553,7 +553,6 @@ function parseGameData(text) {
             if (!name || name.length < 3) return false;
             if (gameTerms.test(name)) return false;
             if (/^(.)\1+$/i.test(name)) return false; // Reject "EEE"
-            // Reject if contains multiple random uppercase in the middle
             const midUppers = (name.slice(1, -1).match(/[A-Z]/g) || []).length;
             if (name.length <= 5 && midUppers > 1) return false;
             
@@ -561,7 +560,6 @@ function parseGameData(text) {
             if (name === name.toUpperCase() && name.length < 4) return false;
 
             // FIX: Relaxed letter count check to allow Gamer Tags with numbers (Winnie20787)
-            // Lowered from 0.7 to 0.4
             const letterCount = (
                 name.match(/[a-zA-ZäöüÄÖÜß\u00C0-\u00FF]/g) || []
             ).length;
@@ -883,13 +881,13 @@ function parseGameData(text) {
         }
     }
 
-    // Assign players in REVERSE order
-    const reversedPlayers = [...foundPlayers].reverse();
-    for (let p = 0; p < reversedPlayers.length && p < 3; p++) {
+    // Assign players in DIRECT order (First detected = Player 1)
+    // FIX: Removed .reverse() because OCR detects P1 first in your case
+    for (let p = 0; p < foundPlayers.length && p < 3; p++) {
         const slot = p + 1;
         if (!pendingOCRResults[`p${slot}-name`]) {
-            pendingOCRResults[`p${slot}-name`] = reversedPlayers[p].name;
-            pendingOCRResults[`p${slot}-class`] = reversedPlayers[p].class;
+            pendingOCRResults[`p${slot}-name`] = foundPlayers[p].name;
+            pendingOCRResults[`p${slot}-class`] = foundPlayers[p].class;
         }
     }
 
