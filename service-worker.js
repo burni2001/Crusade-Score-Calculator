@@ -5,7 +5,7 @@ const urlsToCache = [
     "./style.css",
     "./script.js",
     "./manifest.json",
-    "./attached_assets/FFFvLV2Ld6_crt_1765204552094.png",
+    "./attached_assets/FFFvLV2Ld6_crt_frei.png",
     "./service-worker.js", // It's good practice to cache the service worker itself
     "https://fonts.googleapis.com/css2?family=VT323&display=swap", // Cache the Google Font CSS
     // --- Add your PWA icons here ---
