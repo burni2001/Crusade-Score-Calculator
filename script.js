@@ -400,45 +400,29 @@ function parseGameData(text) {
         .replace(/\s+/g, " ");
 
     // === MISSION NAME ===
-    // Known mission names in the game
     const knownMissions = [
-        "RECLAMATION",
-        "INFERNO",
-        "BALLISTIC",
-        "DECAPITATION",
-        "SERVO",
-        "SKULL",
-        "VANGUARD",
-        "VOIDSONG",
-        "RELIQUARY",
-        "TERMINATION",
-        "EXTRACTION",
-        "ATHENA",
+        "RECLAMATION", "INFERNO", "BALLISTIC", "DECAPITATION", "SERVO",
+        "SKULL", "VANGUARD", "VOIDSONG", "RELIQUARY", "TERMINATION",
+        "EXTRACTION", "ATHENA",
     ];
 
-    // Try full "MISSION: NAME" pattern first
     let missionMatch = upperSingleLine.match(
         /MISSION\s*[:\-=]?\s*([A-Z][A-Z\s\-']{2,30})/,
     );
     if (missionMatch) {
         let missionName = missionMatch[1].trim();
-        missionName = missionName
-            .replace(/\s*STATUS.*$/i, "")
-            .trim();
+        missionName = missionName.replace(/\s*STATUS.*$/i, "").trim();
         if (missionName.length > 2) {
             pendingOCRResults["mission-name"] =
-                missionName.charAt(0) +
-                missionName.slice(1).toLowerCase();
+                missionName.charAt(0) + missionName.slice(1).toLowerCase();
         }
     }
 
-    // Fallback: Look for known mission names anywhere in text (handles split lines)
     if (!pendingOCRResults["mission-name"]) {
         for (const mission of knownMissions) {
             if (upperText.includes(mission)) {
                 pendingOCRResults["mission-name"] =
-                    mission.charAt(0) +
-                    mission.slice(1).toLowerCase();
+                    mission.charAt(0) + mission.slice(1).toLowerCase();
                 break;
             }
         }
@@ -446,12 +430,7 @@ function parseGameData(text) {
 
     // === DIFFICULTY ===
     const difficulties = [
-        "MINIMAL",
-        "AVERAGE",
-        "SUBSTANTIAL",
-        "RUTHLESS",
-        "LETHAL",
-        "ABSOLUTE",
+        "MINIMAL", "AVERAGE", "SUBSTANTIAL", "RUTHLESS", "LETHAL", "ABSOLUTE",
     ];
     for (const diff of difficulties) {
         if (upperText.includes(diff)) {
@@ -470,26 +449,16 @@ function parseGameData(text) {
     }
 
     // === GENE-SEED ===
-    // Look for "Gene-Seed Found" or similar patterns
-    // Can appear as "Gene-Seed Found", "GENESEED", or near SECONDARY OBJECTIVES
     const hasGeneseed = /GENE.?SEED/i.test(upperText);
     const hasFound = /FOUND|RETRIEVED/i.test(upperText);
-    const hasSecondaryObj = /SECONDARY\s*OBJECTIVES/i.test(
-        upperText,
-    );
-    const geneseedWithXP = /GENE.?SEED.*?XP\s*\d+/i.test(
-        upperSingleLine,
-    );
+    const hasSecondaryObj = /SECONDARY\s*OBJECTIVES/i.test(upperText);
+    const geneseedWithXP = /GENE.?SEED.*?XP\s*\d+/i.test(upperSingleLine);
 
-    if (
-        hasGeneseed &&
-        (hasFound || geneseedWithXP || hasSecondaryObj)
-    ) {
+    if (hasGeneseed && (hasFound || geneseedWithXP || hasSecondaryObj)) {
         pendingOCRResults["global-geneseed"] = "1";
     }
 
     // === PLAYER NAME AND CLASS ===
-    // Levenshtein distance for fuzzy matching
     function levenshtein(a, b) {
         if (a.length === 0) return b.length;
         if (b.length === 0) return a.length;
@@ -511,41 +480,21 @@ function parseGameData(text) {
         return matrix[b.length][a.length];
     }
 
-    // Canonical class names
     const canonicalClasses = [
-        "BULWARK",
-        "ASSAULT",
-        "VANGUARD",
-        "TACTICAL",
-        "SNIPER",
-        "HEAVY",
-        "TECHMARINE",
+        "BULWARK", "ASSAULT", "VANGUARD", "TACTICAL", "SNIPER", "HEAVY", "TECHMARINE",
     ];
 
-    // Known OCR misreads mapped to correct class
     const ocrClassFixes = {
-        ANGUNRO: "VANGUARD",
-        ANGUARD: "VANGUARD",
-        VANGUNRD: "VANGUARD",
-        VANGURD: "VANGUARD",
-        BULWAR: "BULWARK",
-        BÜLWARK: "BULWARK",
-        ASSAUL: "ASSAULT",
-        ASSAUT: "ASSAULT",
-        TACTIAL: "TACTICAL",
-        SNIPE: "SNIPER",
-        TECHMAR: "TECHMARINE",
-        ECHMAR: "TECHMARINE",
+        ANGUNRO: "VANGUARD", ANGUARD: "VANGUARD", VANGUNRD: "VANGUARD",
+        VANGURD: "VANGUARD", BULWAR: "BULWARK", BÜLWARK: "BULWARK",
+        ASSAUL: "ASSAULT", ASSAUT: "ASSAULT", TACTIAL: "TACTICAL",
+        SNIPE: "SNIPER", TECHMAR: "TECHMARINE", ECHMAR: "TECHMARINE",
     };
 
-    // Strict class matching - requires close match
     function matchClass(word) {
         const upper = word.toUpperCase();
-        // Exact match
         if (canonicalClasses.includes(upper)) return upper;
-        // Known OCR fix
         if (ocrClassFixes[upper]) return ocrClassFixes[upper];
-        // Fuzzy match with strict distance <= 2
         let bestMatch = null;
         let bestDist = 3;
         for (const cls of canonicalClasses) {
@@ -558,29 +507,28 @@ function parseGameData(text) {
         return bestDist <= 2 ? bestMatch : null;
     }
 
-    // Format class name properly
     function formatClass(cls) {
-        return (
-            cls.charAt(0).toUpperCase() + cls.slice(1).toLowerCase()
-        );
+        return cls.charAt(0).toUpperCase() + cls.slice(1).toLowerCase();
     }
 
-    // Collect all found players
     const foundPlayers = [];
 
     // Helper: Extract a valid player name from a line
     function extractPlayerName(line) {
-        // First try to extract names FROM brackets (OCR sometimes puts names inside)
-        // Pattern: [jr Name Lastname q] or similar
+        // First try to extract names FROM brackets
+        // FIXED: Explicitly ignore [LEFT] and [RIGHT] inside brackets
         const bracketContent = line.match(
-            /\[(?:jr\s+)?([A-ZÄÖÜ][a-zäöüß\u00E0-\u00FF]+(?:\s+[A-Za-zäöüß\u00E0-\u00FF]+)*)\s*[qQ\]®]/i,
+            /\[(?:jr\s+)?([A-ZÄÖÜ][a-zäöüß\u00E0-\u00FF0-9]+(?:\s+[A-Za-zäöüß\u00E0-\u00FF0-9]+)*)\s*[qQ\]®]/i,
         );
         if (bracketContent && bracketContent[1].length >= 3) {
-            // Clean the extracted name - remove trailing single chars
             let extracted = bracketContent[1]
                 .trim()
                 .replace(/\s+[a-zA-Z]$/g, "")
                 .trim();
+            
+            // FIX: If extracted name is literally "RIGHT" or "LEFT", ignore it
+            if (/^(RIGHT|LEFT)$/i.test(extracted)) return null;
+
             if (
                 !/^(Kills|Special|Heavy|Assault|Bulwark|Vanguard|Tactical|Sniper)/i.test(
                     extracted,
@@ -598,55 +546,43 @@ function parseGameData(text) {
             return null;
         }
 
-        // Game terms and garbage patterns to filter out
         const gameTerms =
             /^(Kills|Special|Melee|Ranged|Damage|Items|Total|Score|Next|Status|Mission|Rewards|Character|Progress|Primary|Secondary|Objectives|Found|Taken|Revived|Incap|Success|Assault|Vanguard|Bulwark|Tactical|Sniper|Heavy|TRUER|SYREN)$/i;
 
-        // Filter out garbage: all same letter, too short, suspicious patterns
         function isValidName(name) {
             if (!name || name.length < 3) return false;
             if (gameTerms.test(name)) return false;
-            // Reject if all same letter (EEE, RRR, etc)
-            if (/^(.)\1+$/i.test(name)) return false;
-            // Reject all-caps short strings (likely OCR noise)
-            if (name === name.toUpperCase() && name.length < 5)
-                return false;
-            // Reject if mostly non-letters
+            if (/^(.)\1+$/i.test(name)) return false; // Reject "EEE"
+            // Reject if contains multiple random uppercase in the middle
+            const midUppers = (name.slice(1, -1).match(/[A-Z]/g) || []).length;
+            if (name.length <= 5 && midUppers > 1) return false;
+            
+            // FIX: Reject all-caps ONLY if very short. Allow longer tags.
+            if (name === name.toUpperCase() && name.length < 4) return false;
+
+            // FIX: Relaxed letter count check to allow Gamer Tags with numbers (Winnie20787)
+            // Lowered from 0.7 to 0.4
             const letterCount = (
                 name.match(/[a-zA-ZäöüÄÖÜß\u00C0-\u00FF]/g) || []
             ).length;
-            if (letterCount < name.length * 0.7) return false;
-            // Reject weird case patterns like "AajE" (uppercase at end of short word)
-            if (name.length <= 5 && /[a-z][A-Z]$/.test(name))
-                return false;
-            // Reject if contains multiple random uppercase in the middle
-            const midUppers = (
-                name.slice(1, -1).match(/[A-Z]/g) || []
-            ).length;
-            if (name.length <= 5 && midUppers > 1) return false;
-            // Reject very short names that look like OCR artifacts
-            if (name.length <= 4 && !/^[A-Z][a-z]{2,3}$/.test(name))
-                return false;
+            if (letterCount < name.length * 0.4) return false;
+
             return true;
         }
 
-        // Strategy A: Look for proper case names (Uppercase + lowercase)
+        // Strategy A: Proper case names (Updated to allow digits 0-9)
         const properMatch = cleanLine.match(
-            /\b([A-ZÄÖÜ][a-zäöüß\u00E0-\u00FF]{2,}(?:\s+[A-ZÄÖÜ]?[a-zäöüß\u00E0-\u00FF]{2,})*)\b/,
+            /\b([A-ZÄÖÜ][a-zäöüß\u00E0-\u00FF0-9]{2,}(?:\s+[A-ZÄÖÜ]?[a-zäöüß\u00E0-\u00FF0-9]{2,})*)\b/,
         );
         if (properMatch && isValidName(properMatch[1])) {
-            // Clean trailing garbage like "i", "py", "q" from "Zephon py"
-            let cleaned = properMatch[1]
-                .replace(/\s+[a-z]{1,2}$/i, "")
-                .trim();
-            // Also remove trailing single lowercase words under 3 chars
+            let cleaned = properMatch[1].replace(/\s+[a-z]{1,2}$/i, "").trim();
             cleaned = cleaned.replace(/\s+\S{1,2}$/g, "").trim();
             return cleaned;
         }
 
-        // Strategy B: Mixed case names
+        // Strategy B: Mixed case names (Updated to allow digits 0-9)
         const mixedMatch = cleanLine.match(
-            /\b([A-ZÄÖÜ][A-Za-zäöüß\u00C0-\u00FF]{3,})\b/,
+            /\b([A-ZÄÖÜ][A-Za-zäöüß\u00C0-\u00FF0-9]{3,})\b/,
         );
         if (mixedMatch && isValidName(mixedMatch[1])) {
             return mixedMatch[1];
@@ -655,11 +591,9 @@ function parseGameData(text) {
         return null;
     }
 
-    // STRATEGY 1: Look for class names with [a] or [i] markers (game UI pattern)
+    // STRATEGY 1: Look for class names with [a] or [i] markers
     for (let i = 0; i < lines.length; i++) {
         const line = lines[i];
-
-        // Look for pattern: word followed by [a], [i], [E], [of], [a], etc. (OCR variations)
         const markerMatch = line.match(
             /([A-Za-zÄÖÜäöü]{4,})\s*\[([aieAIEof0-9]{1,2})\]/i,
         );
@@ -668,7 +602,6 @@ function parseGameData(text) {
             const matchedClass = matchClass(potentialClass);
 
             if (matchedClass && foundPlayers.length < 3) {
-                // Skip level indicators like "Bulwark MAX"
                 const beforeMatch = line.substring(
                     0,
                     line.indexOf(markerMatch[0]),
@@ -676,31 +609,21 @@ function parseGameData(text) {
                 if (/MAX\b/i.test(beforeMatch)) continue;
 
                 let foundName = null;
-
-                // First check the SAME LINE before the class marker for a name
                 if (beforeMatch.trim()) {
                     const sameLine = beforeMatch
                         .replace(/[|:$#\[\]0-9]/g, " ")
                         .trim();
-                    const sameLineName =
-                        extractPlayerName(sameLine);
+                    const sameLineName = extractPlayerName(sameLine);
                     if (sameLineName) {
                         const isDuplicate = foundPlayers.some(
                             (p) => p.name === sameLineName,
                         );
-                        if (!isDuplicate) {
-                            foundName = sameLineName;
-                        }
+                        if (!isDuplicate) foundName = sameLineName;
                     }
                 }
 
-                // If not found on same line, look backwards up to 6 lines
                 if (!foundName) {
-                    for (
-                        let j = i - 1;
-                        j >= Math.max(0, i - 6);
-                        j--
-                    ) {
+                    for (let j = i - 1; j >= Math.max(0, i - 6); j--) {
                         const name = extractPlayerName(lines[j]);
                         if (name) {
                             const isDuplicate = foundPlayers.some(
@@ -724,46 +647,32 @@ function parseGameData(text) {
         }
     }
 
-    // STRATEGY 2: Look for name [i] pattern (player name marker)
+    // STRATEGY 2: Look for name [i] pattern
     if (foundPlayers.length < 3) {
         for (let i = 0; i < lines.length; i++) {
             if (foundPlayers.length >= 3) break;
-
             const line = lines[i];
-            // Look for "Name [i]" pattern - player names often have [i] after them
             const nameMarkerMatch = line.match(
-                /([A-ZÄÖÜ][a-zäöüß\u00E0-\u00FF]+(?:\s+[A-Za-zäöüß\u00E0-\u00FF]+)*)\s*\[i\]/i,
+                /([A-ZÄÖÜ][a-zäöüß\u00E0-\u00FF0-9]+(?:\s+[A-Za-zäöüß\u00E0-\u00FF0-9]+)*)\s*\[i\]/i,
             );
             if (nameMarkerMatch) {
                 const candidateName = nameMarkerMatch[1].trim();
                 if (candidateName.length >= 3) {
-                    // Look forward for class
-                    for (
-                        let j = i + 1;
-                        j <= Math.min(lines.length - 1, i + 3);
-                        j++
-                    ) {
+                    for (let j = i + 1; j <= Math.min(lines.length - 1, i + 3); j++) {
                         const classLine = lines[j];
                         const classMatch = classLine.match(
                             /([A-Za-zÄÖÜäöü]{4,})\s*\[a\]/i,
                         );
                         if (classMatch) {
-                            const matchedClass = matchClass(
-                                classMatch[1],
-                            );
+                            const matchedClass = matchClass(classMatch[1]);
                             if (matchedClass) {
-                                const isDuplicate =
-                                    foundPlayers.some(
-                                        (p) =>
-                                            p.name ===
-                                            candidateName,
-                                    );
+                                const isDuplicate = foundPlayers.some(
+                                    (p) => p.name === candidateName,
+                                );
                                 if (!isDuplicate) {
                                     foundPlayers.push({
                                         name: candidateName,
-                                        class: formatClass(
-                                            matchedClass,
-                                        ),
+                                        class: formatClass(matchedClass),
                                     });
                                 }
                                 break;
@@ -775,15 +684,13 @@ function parseGameData(text) {
         }
     }
 
-    // STRATEGY 2.5: Look for class names followed by ANY bracket (more flexible)
+    // STRATEGY 2.5: Look for class names followed by ANY bracket
     if (foundPlayers.length < 3) {
         for (let i = 0; i < lines.length; i++) {
             if (foundPlayers.length >= 3) break;
-
             const line = lines[i];
             if (/\bMAX\b/i.test(line)) continue;
 
-            // More flexible pattern: class name followed by bracket with anything
             const flexMatch = line.match(
                 /\b([A-Za-zÄÖÜäöü]{5,})\s*\[[^\]]{0,3}\]/i,
             );
@@ -792,11 +699,8 @@ function parseGameData(text) {
                 const matchedClass = matchClass(potentialClass);
 
                 if (matchedClass) {
-                    // Check if this class already detected
                     const classAlreadyFound = foundPlayers.some(
-                        (p) =>
-                            p.class.toLowerCase() ===
-                            matchedClass.toLowerCase(),
+                        (p) => p.class.toLowerCase() === matchedClass.toLowerCase(),
                     );
                     if (classAlreadyFound) continue;
 
@@ -806,38 +710,20 @@ function parseGameData(text) {
                         line.indexOf(flexMatch[0]),
                     );
 
-                    // Check same line first
                     if (beforeMatch.trim()) {
                         const sameLine = beforeMatch
                             .replace(/[|:$#\[\]0-9]/g, " ")
                             .trim();
                         foundName = extractPlayerName(sameLine);
-                        if (
-                            foundName &&
-                            foundPlayers.some(
-                                (p) => p.name === foundName,
-                            )
-                        ) {
+                        if (foundName && foundPlayers.some((p) => p.name === foundName)) {
                             foundName = null;
                         }
                     }
 
-                    // Look backwards
                     if (!foundName) {
-                        for (
-                            let j = i - 1;
-                            j >= Math.max(0, i - 6);
-                            j--
-                        ) {
-                            const name = extractPlayerName(
-                                lines[j],
-                            );
-                            if (
-                                name &&
-                                !foundPlayers.some(
-                                    (p) => p.name === name,
-                                )
-                            ) {
+                        for (let j = i - 1; j >= Math.max(0, i - 6); j--) {
+                            const name = extractPlayerName(lines[j]);
+                            if (name && !foundPlayers.some((p) => p.name === name)) {
                                 foundName = name;
                                 break;
                             }
@@ -855,33 +741,23 @@ function parseGameData(text) {
         }
     }
 
-    // STRATEGY 3: Fallback - look for standalone class names (skip MAX lines)
+    // STRATEGY 3: Fallback - look for standalone class names
     if (foundPlayers.length < 3) {
         for (let i = 0; i < lines.length; i++) {
             if (foundPlayers.length >= 3) break;
-
             const line = lines[i].trim();
             if (/\bMAX\b/i.test(line)) continue;
 
-            // Extract words and try matching
             const words = line.match(/[A-Za-zÄÖÜäöü]{5,}/g) || [];
             for (const word of words) {
                 const matchedClass = matchClass(word);
                 if (matchedClass) {
-                    // Check if this class already detected
                     const classAlreadyFound = foundPlayers.some(
-                        (p) =>
-                            p.class.toLowerCase() ===
-                            matchedClass.toLowerCase(),
+                        (p) => p.class.toLowerCase() === matchedClass.toLowerCase(),
                     );
                     if (classAlreadyFound) continue;
 
-                    // Look backwards for name
-                    for (
-                        let j = i - 1;
-                        j >= Math.max(0, i - 6);
-                        j--
-                    ) {
+                    for (let j = i - 1; j >= Math.max(0, i - 6); j--) {
                         const name = extractPlayerName(lines[j]);
                         if (name) {
                             const isDuplicate = foundPlayers.some(
@@ -890,9 +766,7 @@ function parseGameData(text) {
                             if (!isDuplicate) {
                                 foundPlayers.push({
                                     name: name,
-                                    class: formatClass(
-                                        matchedClass,
-                                    ),
+                                    class: formatClass(matchedClass),
                                 });
                                 break;
                             }
@@ -904,49 +778,31 @@ function parseGameData(text) {
         }
     }
 
-    // STRATEGY 4: Handle "CLASS MAX" patterns (Character Progress section)
-    // This catches cases where the viewing player's class appears as "Heavy MAX" etc.
+    // STRATEGY 4: Handle "CLASS MAX" patterns
     if (foundPlayers.length < 3) {
         for (let i = 0; i < lines.length; i++) {
             if (foundPlayers.length >= 3) break;
-
             const line = lines[i].trim();
-            // Match pattern like "Heavy MAX" or "25 Heavy MAX"
-            const maxMatch = line.match(
-                /\b([A-Za-z]{5,})\s+MAX\b/i,
-            );
+            const maxMatch = line.match(/\b([A-Za-z]{5,})\s+MAX\b/i);
             if (maxMatch) {
                 const potentialClass = maxMatch[1];
                 const matchedClass = matchClass(potentialClass);
                 if (matchedClass) {
                     const classAlreadyFound = foundPlayers.some(
-                        (p) =>
-                            p.class.toLowerCase() ===
-                            matchedClass.toLowerCase(),
+                        (p) => p.class.toLowerCase() === matchedClass.toLowerCase(),
                     );
                     if (classAlreadyFound) continue;
 
-                    // Look backwards and forwards for name - require higher confidence
-                    // Since CLASS MAX context often has garbled OCR, require longer names (5+ chars)
-                    // or names that look very name-like
                     let foundName = null;
-
                     function isHighConfidenceName(name) {
                         if (!name) return false;
-                        // Require at least 5 chars, OR known OCR pattern for Börni
                         if (name.length >= 5) return true;
                         if (/^B[oö]rni$/i.test(name)) return true;
-                        // Reject very short names from garbage lines
                         return false;
                     }
 
-                    for (
-                        let j = i - 1;
-                        j >= Math.max(0, i - 8);
-                        j--
-                    ) {
+                    for (let j = i - 1; j >= Math.max(0, i - 8); j--) {
                         const candidateLine = lines[j];
-                        // Skip lines that look like garbage (lots of symbols, very short words)
                         if (
                             /^[\s\[\]\(\)\{\}|\\\/\-\.\,\;\:\#\@\!\?\*\&\%\$\=\+\<\>\~\`\'\"0-9]+$/.test(
                                 candidateLine,
@@ -954,20 +810,16 @@ function parseGameData(text) {
                         )
                             continue;
 
-                        const name =
-                            extractPlayerName(candidateLine);
+                        const name = extractPlayerName(candidateLine);
                         if (
                             isHighConfidenceName(name) &&
-                            !foundPlayers.some(
-                                (p) => p.name === name,
-                            )
+                            !foundPlayers.some((p) => p.name === name)
                         ) {
                             foundName = name;
                             break;
                         }
                     }
 
-                    // Also look forward if not found
                     if (!foundName) {
                         for (
                             let j = i + 1;
@@ -982,13 +834,10 @@ function parseGameData(text) {
                             )
                                 continue;
 
-                            const name =
-                                extractPlayerName(candidateLine);
+                            const name = extractPlayerName(candidateLine);
                             if (
                                 isHighConfidenceName(name) &&
-                                !foundPlayers.some(
-                                    (p) => p.name === name,
-                                )
+                                !foundPlayers.some((p) => p.name === name)
                             ) {
                                 foundName = name;
                                 break;
@@ -996,8 +845,6 @@ function parseGameData(text) {
                         }
                     }
 
-                    // If we have a class but no confident name, add with empty name
-                    // (user can fill name in review modal)
                     foundPlayers.push({
                         name: foundName || "",
                         class: formatClass(matchedClass),
@@ -1008,25 +855,19 @@ function parseGameData(text) {
     }
 
     // STRATEGY 5: Look for "Name\nCLASS" pattern in stats panel header
-    // The stats panel shows "ShovelKnight\nTACTICAL" at the top
     if (foundPlayers.length < 3) {
         for (let i = 0; i < lines.length - 1; i++) {
             if (foundPlayers.length >= 3) break;
-
             const line = lines[i].trim();
             const nextLine = lines[i + 1].trim().toUpperCase();
 
-            // Check if next line is a class name
             const matchedClass = matchClass(nextLine);
             if (matchedClass) {
                 const classAlreadyFound = foundPlayers.some(
-                    (p) =>
-                        p.class.toLowerCase() ===
-                        matchedClass.toLowerCase(),
+                    (p) => p.class.toLowerCase() === matchedClass.toLowerCase(),
                 );
                 if (classAlreadyFound) continue;
 
-                // Current line might be the player name
                 const name = extractPlayerName(line);
                 if (
                     name &&
@@ -1042,29 +883,22 @@ function parseGameData(text) {
         }
     }
 
-    // Assign players in REVERSE order (OCR sections appear in reverse screenshot order)
-    // Column 1 stats = last found player, Column 3 stats = first found player
+    // Assign players in REVERSE order
     const reversedPlayers = [...foundPlayers].reverse();
     for (let p = 0; p < reversedPlayers.length && p < 3; p++) {
         const slot = p + 1;
         if (!pendingOCRResults[`p${slot}-name`]) {
-            pendingOCRResults[`p${slot}-name`] =
-                reversedPlayers[p].name;
-            pendingOCRResults[`p${slot}-class`] =
-                reversedPlayers[p].class;
+            pendingOCRResults[`p${slot}-name`] = reversedPlayers[p].name;
+            pendingOCRResults[`p${slot}-class`] = reversedPlayers[p].class;
         }
     }
 
     // === EXTRACT STATS ===
-    // For stats, look for the last 3 numbers on a line containing the label
-    // This handles cases like "Kills XB 10 460 453 425" where we want the last 3
-
     function extractLastThreeNumbers(
         labelPatterns,
         excludeRegex = null,
         defaultToZero = false,
     ) {
-        // Accept array of patterns to try (more lenient options)
         const patterns = Array.isArray(labelPatterns)
             ? labelPatterns
             : [labelPatterns];
@@ -1074,29 +908,18 @@ function parseGameData(text) {
             for (const line of lines) {
                 const upperLine = line.toUpperCase();
                 if (labelRegex.test(upperLine)) {
-                    // Skip if exclude pattern matches (e.g., skip "SPECIAL KILLS" for "KILLS")
-                    if (
-                        excludeRegex &&
-                        excludeRegex.test(upperLine)
-                    )
-                        continue;
+                    if (excludeRegex && excludeRegex.test(upperLine)) continue;
                     labelFound = true;
-                    // Find all numbers in this line
                     const nums = line.match(/\d+/g);
                     if (nums && nums.length >= 1) {
-                        // Take up to the last 3 numbers (skip XP badge numbers)
                         const lastNums = nums
                             .slice(-Math.min(3, nums.length))
                             .map((n) => parseInt(n));
                         if (
                             lastNums.every(
-                                (n) =>
-                                    !isNaN(n) &&
-                                    n >= 0 &&
-                                    n < 1000000,
+                                (n) => !isNaN(n) && n >= 0 && n < 1000000,
                             )
                         ) {
-                            // Pad with nulls if fewer than 3 numbers found
                             while (lastNums.length < 3) {
                                 lastNums.push(null);
                             }
@@ -1106,65 +929,52 @@ function parseGameData(text) {
                 }
             }
         }
-        // If label was found but no numbers, and defaultToZero is true, return zeros
-        // This handles OCR missing small "0" characters for counter fields
         if (labelFound && defaultToZero) {
             return [0, 0, 0];
         }
         return null;
     }
 
-    // Helper to assign stats - only sets non-null values
     function assignStats(nums, statName) {
         if (!nums) return;
-        if (nums[0] !== null)
-            pendingOCRResults[`p1-${statName}`] = nums[0];
-        if (nums[1] !== null)
-            pendingOCRResults[`p2-${statName}`] = nums[1];
-        if (nums[2] !== null)
-            pendingOCRResults[`p3-${statName}`] = nums[2];
+        if (nums[0] !== null) pendingOCRResults[`p1-${statName}`] = nums[0];
+        if (nums[1] !== null) pendingOCRResults[`p2-${statName}`] = nums[1];
+        if (nums[2] !== null) pendingOCRResults[`p3-${statName}`] = nums[2];
     }
 
-    // Kills - try multiple patterns (OCR can mangle text)
+    // Kills
     const killsNums = extractLastThreeNumbers(
         [
-            /\bKILLS\b/, // Standard: "Kills"
-            /K[I1l]{1,2}[L1]{1,2}S/i, // OCR variants: "Ki11s", "Kllls"
-            /KILLS/, // No word boundary (catches "4Kills" etc.)
+            /\bKILLS\b/,
+            /K[I1l]{1,2}[L1]{1,2}S/i,
+            /KILLS/,
         ],
         /SPECIAL|SPECIA/i,
     );
     assignStats(killsNums, "kills");
 
-    // Special Kills -> Elite Kills
+    // Special Kills
     const specialNums = extractLastThreeNumbers([
         /SPECIAL\s*KILLS/,
-        /SPEC[I1]AL\s*K[I1]LLS/i, // OCR variants
-        /SPECIA.*KILLS/i, // Partial match
+        /SPEC[I1]AL\s*K[I1]LLS/i,
+        /SPECIA.*KILLS/i,
     ]);
     assignStats(specialNums, "elite");
 
     // Incapacitations -> Death
-    // Special handling: OCR sometimes reads "0" as "U" or "O" on this line
     let incapNums = null;
     const incapPatterns = [/INCAPACITATION/i, /INCAP/i];
     for (const pattern of incapPatterns) {
         for (const line of lines) {
             if (pattern.test(line.toUpperCase())) {
-                // Replace U and O with 0 for this specific line (OCR misreads)
                 const fixedLine = line.replace(/\b[UO]\b/g, "0");
                 const nums = fixedLine.match(/\d+/g);
                 if (nums && nums.length >= 1) {
                     const lastNums = nums
                         .slice(-Math.min(3, nums.length))
                         .map((n) => parseInt(n));
-                    if (
-                        lastNums.every(
-                            (n) => !isNaN(n) && n >= 0 && n < 100,
-                        )
-                    ) {
-                        while (lastNums.length < 3)
-                            lastNums.push(null);
+                    if (lastNums.every((n) => !isNaN(n) && n >= 0 && n < 100)) {
+                        while (lastNums.length < 3) lastNums.push(null);
                         incapNums = lastNums;
                         break;
                     }
@@ -1175,11 +985,11 @@ function parseGameData(text) {
     }
     assignStats(incapNums, "death");
 
-    // Damage Taken -> Damage
+    // Damage Taken
     const damageNums = extractLastThreeNumbers([
         /DAMAGE\s*TAKEN/,
-        /DAMAGE.*TAKEN/i, // More flexible spacing
-        /DAM.*TAK/i, // Very short match
+        /DAMAGE.*TAKEN/i,
+        /DAM.*TAK/i,
     ]);
     assignStats(damageNums, "damage");
 
@@ -1216,43 +1026,28 @@ function parseGameData(text) {
     assignStats(revivedNums, "revived");
 
     // === WAVES (Siege Mode) ===
-    // Extract wave number from "STATUS: WAVE 15" or similar
-    const waveMatch = upperText.match(
-        /STATUS\s*[:\-=]?\s*WAVE\s+(\d+)/i,
-    );
+    const waveMatch = upperText.match(/STATUS\s*[:\-=]?\s*WAVE\s+(\d+)/i);
     if (waveMatch) {
         pendingOCRResults["global-waves"] = waveMatch[1];
     }
 
     // === ARMOURY DATA ===
-    // Look for patterns near "REWARDS" section (Operations mode)
-    // Also check for armoury in Battle Honours area (Siege mode) or other areas
     let armouryFound = false;
-
-    // First try REWARDS section
     const rewardsIdx = upperText.indexOf("REWARDS");
     if (rewardsIdx !== -1) {
-        // Get text after REWARDS (next 150 chars)
-        const afterRewards = text.substring(
-            rewardsIdx,
-            rewardsIdx + 150,
-        );
+        const afterRewards = text.substring(rewardsIdx, rewardsIdx + 150);
         const afterRewardsUpper = afterRewards.toUpperCase();
-
-        // Skip if we've hit CHARACTER PROGRESS (means we went too far)
         const progressIdx = afterRewardsUpper.indexOf("CHARACTER");
         const cleanText =
             progressIdx > 0
                 ? afterRewards.substring(0, progressIdx)
                 : afterRewards;
 
-        // Split by lines AND tabs to find individual numbers
         const tokens = cleanText
             .split(/[\r\n\t]+/)
             .map((t) => t.trim())
             .filter((t) => t);
 
-        // Find all numbers in the REWARDS area
         const numbersFound = [];
         for (const token of tokens) {
             const nums = token.match(/\d+/g);
@@ -1261,28 +1056,21 @@ function parseGameData(text) {
             }
         }
 
-        // Armoury is 0-3, requisition is typically 260
-        // Find the small number (0-3) that's NOT the requisition value
         for (const num of numbersFound) {
             if (num >= 0 && num <= 3) {
-                // Make sure there's also a larger number (requisition) present
                 const hasRequisition = numbersFound.some(
                     (n) => n >= 100 && n <= 500,
                 );
                 if (hasRequisition || numbersFound.length >= 1) {
-                    pendingOCRResults["global-armoury"] =
-                        num.toString();
+                    pendingOCRResults["global-armoury"] = num.toString();
                     armouryFound = true;
                     break;
                 }
             }
         }
 
-        // Fallback: Look for tab-separated pattern "2\t260" or "2 260"
         if (!armouryFound) {
-            const tabMatch = cleanText.match(
-                /([0-3])[\t\s]+(\d{2,3})/,
-            );
+            const tabMatch = cleanText.match(/([0-3])[\t\s]+(\d{2,3})/);
             if (tabMatch && parseInt(tabMatch[2]) >= 100) {
                 pendingOCRResults["global-armoury"] = tabMatch[1];
                 armouryFound = true;
@@ -1290,9 +1078,7 @@ function parseGameData(text) {
         }
     }
 
-    // Fallback for Siege Mode: Look for armoury data anywhere in the text (not just REWARDS)
     if (!armouryFound) {
-        // Look for icon patterns or numbers near "ARMOURY" text
         const armouryIdx = upperText.indexOf("ARMOURY");
         if (armouryIdx !== -1) {
             const nearArmoury = text.substring(
@@ -1303,22 +1089,15 @@ function parseGameData(text) {
                 /([0-3])[\s\t]+(?:XP|\d{2,}|.*)/i,
             );
             if (armouryMatch) {
-                pendingOCRResults["global-armoury"] =
-                    armouryMatch[1];
+                pendingOCRResults["global-armoury"] = armouryMatch[1];
                 armouryFound = true;
             }
         }
     }
 
-    // Don't default - let user select from dropdown if not found
-
     // === GENE-SEED DEFAULT ===
-    // If gene-seed was not detected anywhere in the text, default to "No"
-    // Gene-seed is only mentioned when it IS retrieved
     if (!pendingOCRResults["global-geneseed"]) {
-        const hasGeneseedMention = /GENE.?SEED|GENESEED/i.test(
-            upperText,
-        );
+        const hasGeneseedMention = /GENE.?SEED|GENESEED/i.test(upperText);
         if (!hasGeneseedMention) {
             pendingOCRResults["global-geneseed"] = "0"; // No
         }
