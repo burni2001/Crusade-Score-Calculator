@@ -2060,35 +2060,40 @@ const ADD_STATS_KEYS = [
     "Melee Damage", "Ranged Damage", "Items Found", "Teammates Revived"
 ];
 
-document.getElementById('csv-upload').addEventListener('change', async (e) => {
-    const files = Array.from(e.target.files).slice(0, 3);
-    if(!files.length) return;
+/* --- SAFE CSV UPLOAD LISTENER --- */
+const csvUploadInput = document.getElementById('csv-upload');
 
-    // Reset State
-    importAppState = {
-        mission: { name:'-', diff:'-', waves:'-', obj:'-', gene:'-', arm:'-' },
-        modifiers: { kills:'-', specials:'-', incaps:'-', dmg:'-', gene:'-', arm:'-', obj:'-', waves:'-' },
-        players: {},
-        playerOrder: [],
-        matrixTotals: {}
-    };
+if (csvUploadInput) {
+    csvUploadInput.addEventListener('change', async (e) => {
+        const files = Array.from(e.target.files).slice(0, 3);
+        if(!files.length) return;
 
-    try {
-        for(const file of files) {
-            const text = await file.text();
-            processCSV(text);
+        // Reset State
+        importAppState = {
+            mission: { name:'-', diff:'-', waves:'-', obj:'-', gene:'-', arm:'-' },
+            modifiers: { kills:'-', specials:'-', incaps:'-', dmg:'-', gene:'-', arm:'-', obj:'-', waves:'-' },
+            players: {},
+            playerOrder: [],
+            matrixTotals: {}
+        };
+
+        try {
+            for(const file of files) {
+                const text = await file.text();
+                processCSV(text);
+            }
+            renderImportUI();
+            const statusEl = document.getElementById('import-status');
+            statusEl.textContent = `PROCESSED ${files.length} FILES SUCCESSFULLY`;
+            statusEl.style.color = "var(--pip-green)";
+        } catch(err) {
+            console.error(err);
+            const statusEl = document.getElementById('import-status');
+            statusEl.textContent = "ERROR READING FILES";
+            statusEl.style.color = "#ff5555";
         }
-        renderImportUI();
-        const statusEl = document.getElementById('import-status');
-        statusEl.textContent = `PROCESSED ${files.length} FILES SUCCESSFULLY`;
-        statusEl.style.color = "var(--pip-green)";
-    } catch(err) {
-        console.error(err);
-        const statusEl = document.getElementById('import-status');
-        statusEl.textContent = "ERROR READING FILES";
-        statusEl.style.color = "#ff5555";
-    }
-});
+    });
+}
 
 /* --- FIXED: Reset/Purge Aggregated Data + Clear Memory --- */
 function resetImport() {
