@@ -1841,18 +1841,94 @@ function renderDataBankUI() {
     for (let i = 0; i < 3; i++) {
         const slotData = savedSlots[i];
         const slotEl = document.createElement("div");
-        slotEl.className = `data-slot ${slotData ? 'occupied' : ''}`;
-
+        
         if (slotData) {
+            slotEl.className = `data-slot occupied`;
+            slotEl.style.cursor = "pointer"; // Visual cue that it's clickable
+            
+            // CLICK HANDLER: Opens the overlay
+            slotEl.onclick = function() { openSlotOverlay(i); };
+
             slotEl.innerHTML = `
                 <span class="slot-name">${i+1}. ${slotData.name}</span>
-                <button class="delete-slot-btn" onclick="deleteSlot(${i})">X</button>
+                <span style="font-size: 0.8em; opacity: 0.7; margin-left: 10px;">[${slotData.difficulty}]</span>
+                <button class="delete-slot-btn" onclick="event.stopPropagation(); deleteSlot(${i})">X</button>
             `;
         } else {
+            slotEl.className = `data-slot`;
             slotEl.innerHTML = `<span class="slot-name" style="opacity:0.5;">[ EMPTY SLOT ]</span>`;
         }
         container.appendChild(slotEl);
     }
+}
+
+/* === NEW: OVERLAY SYSTEM FOR SAVED SLOTS === */
+
+function openSlotOverlay(index) {
+    const savedSlots = JSON.parse(localStorage.getItem("cogitator_saved_missions") || "[]");
+    const slot = savedSlots[index];
+    if(!slot) return;
+
+    // Create modal element if it doesn't exist yet
+    let modal = document.getElementById('slot-modal-overlay');
+    if (!modal) {
+        modal = document.createElement('div');
+        modal.id = 'slot-modal-overlay';
+        // Reuse the existing CSS class for modals to match the style
+        modal.className = 'ocr-modal-overlay'; 
+        document.body.appendChild(modal);
+    }
+
+    // Extract Total Score for a quick summary
+    let totalScore = "N/A";
+    const lines = slot.csv.split('\n');
+    const scoreRow = lines.find(line => line.startsWith("TOTAL SCORE"));
+    if(scoreRow) {
+        // CSV format: TOTAL SCORE, p1, p2, p3, TOTAL. We want the last one.
+        const parts = scoreRow.split(',');
+        totalScore = parts[parts.length - 1];
+    }
+
+    // Build Modal Content
+    modal.innerHTML = `
+        <div class="ocr-modal-content" style="max-width: 600px; border: 2px solid var(--pip-green); background: #050a05; box-shadow: 0 0 20px rgba(51, 255, 0, 0.2);">
+            <h2 style="color: var(--pip-green); border-bottom: 1px solid var(--pip-green); padding-bottom: 10px; margin-top: 0;">
+                DATA SLATE ${index + 1}: ${slot.name.toUpperCase()}
+            </h2>
+            
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin: 20px 0; color: #afffa6;">
+                <div>
+                    <span style="opacity: 0.7; display: block; font-size: 0.8em;">DIFFICULTY</span>
+                    <span style="font-size: 1.2em;">${slot.difficulty}</span>
+                </div>
+                <div>
+                    <span style="opacity: 0.7; display: block; font-size: 0.8em;">TIMESTAMP</span>
+                    <span style="font-size: 1.2em;">${slot.timestamp}</span>
+                </div>
+                <div style="grid-column: span 2; margin-top: 10px; text-align: center; border: 1px solid #333; padding: 10px;">
+                    <span style="opacity: 0.7; display: block; font-size: 0.9em; letter-spacing: 2px;">SQUAD TOTAL SCORE</span>
+                    <span style="font-size: 2em; color: #afffa6; text-shadow: 0 0 10px var(--pip-green); font-weight: bold;">${totalScore}</span>
+                </div>
+            </div>
+
+            <div style="background: rgba(0, 20, 0, 0.5); padding: 10px; border: 1px solid #333; margin-bottom: 20px;">
+                <h3 style="margin-top: 0; font-size: 0.9em; opacity: 0.8; color: var(--pip-green);">RAW DATA PREVIEW</h3>
+                <pre style="font-family: 'VT323', monospace; color: #aaa; height: 150px; overflow-y: auto; font-size: 0.8em; white-space: pre-wrap;">${slot.csv}</pre>
+            </div>
+
+            <div style="display: flex; justify-content: flex-end;">
+                <button onclick="closeSlotModal()" class="ocr-btn" style="width: auto; padding: 5px 30px;">CLOSE</button>
+            </div>
+        </div>
+    `;
+
+    // Show it
+    requestAnimationFrame(() => modal.classList.add('active'));
+}
+
+function closeSlotModal() {
+    const modal = document.getElementById('slot-modal-overlay');
+    if (modal) modal.classList.remove('active');
 }
 
 // 4. Delete a Slot
@@ -2503,24 +2579,26 @@ async function exportTopSectionPNG() {
 /* ===  GLOBAL UTILS: ESC KEY LISTENER                   === */
 /* ========================================================= */
 
-// 1. Add this safety bracket just in case a function above was left open. 
-// If your script was already closed properly, this extra bracket won't hurt (JS ignores it).
-// } 
-
 document.addEventListener('keydown', function(event) {
     // Check for "Escape" key
     if (event.key === "Escape") {
         
-        // 1. Close OCR Modal (Direct Class Removal)
+        // 1. Close OCR Modal
         const ocrModal = document.getElementById('ocr-modal-overlay');
         if (ocrModal && ocrModal.classList.contains('active')) {
             ocrModal.classList.remove('active');
         }
 
-        // 2. Close Transmission Log (Direct Class Removal)
+        // 2. Close Transmission Log
         const copyModal = document.getElementById('copy-modal');
         if (copyModal && copyModal.classList.contains('active')) {
             copyModal.classList.remove('active');
+        }
+
+        // 3. Close Saved Slot Modal
+        const slotModal = document.getElementById('slot-modal-overlay');
+        if (slotModal && slotModal.classList.contains('active')) {
+            slotModal.classList.remove('active');
         }
     }
 });
