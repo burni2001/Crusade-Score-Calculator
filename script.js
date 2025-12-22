@@ -1914,7 +1914,7 @@ function csvToHtmlTable(csvText, sectionTitle) {
     return html;
 }
 
-/* === UPDATED: OVERLAY SYSTEM (Inner Wrapper Fix) === */
+/* === UPDATED: OVERLAY SYSTEM (Structure Fix for Padding) === */
 function openSlotOverlay(index) {
     const savedSlots = JSON.parse(localStorage.getItem("cogitator_saved_missions") || "[]");
     const slot = savedSlots[index];
@@ -1929,27 +1929,38 @@ function openSlotOverlay(index) {
         document.body.appendChild(modal);
     }
 
-    // Generate Tables from the stored CSV data
+    // Generate Tables
     const matrixTable = csvToHtmlTable(slot.csv, "SQUAD PERFORMANCE MATRIX");
     const statsTable = csvToHtmlTable(slot.csv, "ADDITIONAL STATISTICS");
 
     // Build Modal Content
-    // FIX: We moved padding to an INNER div. 
-    // The Outer 'ocr-modal-content' only handles the Scrollbar and Border.
+    // STRATEGY: 
+    // 1. Outer Box: Handles the Green Border and size. Overflow HIDDEN (no scrollbar here).
+    // 2. Inner Box: Handles the Scrolling and the Padding.
     modal.innerHTML = `
         <div class="ocr-modal-content" style="
             max-width: 900px; 
             width: 95%; 
+            max-height: 90vh;
+            display: flex;         /* flex layout to manage height */
+            flex-direction: column;
+            
             box-sizing: border-box;
             border: 2px solid var(--pip-green); 
             background: #050a05; 
             box-shadow: 0 0 20px rgba(51, 255, 0, 0.2); 
-            max-height: 90vh; 
-            overflow-y: auto; /* Scrollbar lives here */
-            padding: 0; /* No padding on the scroll container */
+            
+            overflow: hidden;      /* CRITICAL: Hides scrollbar on the border box */
+            padding: 0;            /* No padding on the border box */
         ">
             
-            <div style="padding: 30px 100px 30px 30px;">
+            <div style="
+                overflow-y: auto;  /* Scrollbar lives here */
+                width: 100%;
+                height: 100%;
+                padding: 30px 60px 30px 30px; /* 60px Right Padding = The Gap */
+                box-sizing: border-box;       /* Ensures padding subtracts from width */
+            ">
                 
                 <div style="text-align: center; border-bottom: 1px solid var(--pip-green); padding-bottom: 15px; margin-bottom: 20px;">
                     <h2 style="color: var(--pip-green); margin: 0; font-size: 2em; letter-spacing: 2px;">${slot.name.toUpperCase()}</h2>
