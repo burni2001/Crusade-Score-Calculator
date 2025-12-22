@@ -1862,8 +1862,59 @@ function renderDataBankUI() {
     }
 }
 
-/* === NEW: OVERLAY SYSTEM FOR SAVED SLOTS === */
+/* === HELPER: Convert CSV Section to HTML Table === */
+function csvToHtmlTable(csvText, sectionTitle) {
+    const lines = csvText.split('\n');
+    const startIdx = lines.findIndex(line => line.includes(sectionTitle));
+    
+    if (startIdx === -1) return `<p>Data not found for ${sectionTitle}</p>`;
 
+    let html = '<table style="width: 100%; border-collapse: collapse; margin-bottom: 20px; font-family: \'VT323\', monospace;">';
+    
+    // Process Header (Line immediately after title)
+    // The CSV Header looks like: ,Player1,Player2,Player3,TOTAL
+    const headerLine = lines[startIdx + 1];
+    if (headerLine) {
+        const headers = headerLine.split(',');
+        html += '<thead style="color: var(--pip-green); border-bottom: 1px solid var(--pip-green);">';
+        html += '<tr>';
+        // First column is usually empty in CSV, label it "METRIC"
+        html += `<th style="text-align: left; padding: 5px;">METRIC</th>`;
+        // Rest of the headers (Players + Total)
+        for (let i = 1; i < headers.length; i++) {
+            html += `<th style="text-align: center; padding: 5px;">${headers[i].trim()}</th>`;
+        }
+        html += '</tr></thead>';
+    }
+
+    // Process Body
+    html += '<tbody>';
+    for (let i = startIdx + 2; i < lines.length; i++) {
+        const line = lines[i].trim();
+        // Stop if we hit an empty line or the start of a new section
+        if (!line || line === "ADDITIONAL STATISTICS" || line === "MODIFIERS") break;
+
+        const cols = line.split(',');
+        html += '<tr style="border-bottom: 1px solid #333;">';
+        
+        // Metric Name (First Column) - Align Left
+        html += `<td style="text-align: left; padding: 5px; color: #aaa;">${cols[0].trim()}</td>`;
+        
+        // Data Columns - Align Center
+        for (let j = 1; j < cols.length; j++) {
+            // Highlight the TOTAL column (last one) slightly
+            const isTotal = j === cols.length - 1;
+            const style = isTotal ? "color: #fff; font-weight: bold;" : "color: #afffa6;";
+            html += `<td style="text-align: center; padding: 5px; ${style}">${cols[j].trim()}</td>`;
+        }
+        html += '</tr>';
+    }
+    html += '</tbody></table>';
+    
+    return html;
+}
+
+/* === UPDATED: OVERLAY SYSTEM (Full Tables) === */
 function openSlotOverlay(index) {
     const savedSlots = JSON.parse(localStorage.getItem("cogitator_saved_missions") || "[]");
     const slot = savedSlots[index];
@@ -1874,49 +1925,30 @@ function openSlotOverlay(index) {
     if (!modal) {
         modal = document.createElement('div');
         modal.id = 'slot-modal-overlay';
-        // Reuse the existing CSS class for modals to match the style
         modal.className = 'ocr-modal-overlay'; 
         document.body.appendChild(modal);
     }
 
-    // Extract Total Score for a quick summary
-    let totalScore = "N/A";
-    const lines = slot.csv.split('\n');
-    const scoreRow = lines.find(line => line.startsWith("TOTAL SCORE"));
-    if(scoreRow) {
-        // CSV format: TOTAL SCORE, p1, p2, p3, TOTAL. We want the last one.
-        const parts = scoreRow.split(',');
-        totalScore = parts[parts.length - 1];
-    }
+    // Generate Tables from the stored CSV data
+    const matrixTable = csvToHtmlTable(slot.csv, "SQUAD PERFORMANCE MATRIX");
+    const statsTable = csvToHtmlTable(slot.csv, "ADDITIONAL STATISTICS");
 
     // Build Modal Content
     modal.innerHTML = `
-        <div class="ocr-modal-content" style="max-width: 600px; border: 2px solid var(--pip-green); background: #050a05; box-shadow: 0 0 20px rgba(51, 255, 0, 0.2);">
-            <h2 style="color: var(--pip-green); border-bottom: 1px solid var(--pip-green); padding-bottom: 10px; margin-top: 0;">
-                DATA SLATE ${index + 1}: ${slot.name.toUpperCase()}
-            </h2>
+        <div class="ocr-modal-content" style="max-width: 900px; width: 95%; border: 2px solid var(--pip-green); background: #050a05; box-shadow: 0 0 20px rgba(51, 255, 0, 0.2); max-height: 90vh; overflow-y: auto;">
             
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin: 20px 0; color: #afffa6;">
-                <div>
-                    <span style="opacity: 0.7; display: block; font-size: 0.8em;">DIFFICULTY</span>
-                    <span style="font-size: 1.2em;">${slot.difficulty}</span>
-                </div>
-                <div>
-                    <span style="opacity: 0.7; display: block; font-size: 0.8em;">TIMESTAMP</span>
-                    <span style="font-size: 1.2em;">${slot.timestamp}</span>
-                </div>
-                <div style="grid-column: span 2; margin-top: 10px; text-align: center; border: 1px solid #333; padding: 10px;">
-                    <span style="opacity: 0.7; display: block; font-size: 0.9em; letter-spacing: 2px;">SQUAD TOTAL SCORE</span>
-                    <span style="font-size: 2em; color: #afffa6; text-shadow: 0 0 10px var(--pip-green); font-weight: bold;">${totalScore}</span>
-                </div>
+            <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--pip-green); padding-bottom: 10px; margin-bottom: 15px;">
+                <h2 style="color: var(--pip-green); margin: 0;">${slot.name.toUpperCase()}</h2>
+                <span style="background: rgba(0, 255, 0, 0.1); padding: 2px 8px; border: 1px solid var(--pip-green); font-size: 0.8em; color: #afffa6;">${slot.difficulty}</span>
             </div>
 
-            <div style="background: rgba(0, 20, 0, 0.5); padding: 10px; border: 1px solid #333; margin-bottom: 20px;">
-                <h3 style="margin-top: 0; font-size: 0.9em; opacity: 0.8; color: var(--pip-green);">RAW DATA PREVIEW</h3>
-                <pre style="font-family: 'VT323', monospace; color: #aaa; height: 150px; overflow-y: auto; font-size: 0.8em; white-space: pre-wrap;">${slot.csv}</pre>
-            </div>
+            <h3 style="color: var(--pip-green); margin-top: 0; font-size: 1.1em; opacity: 0.8;">SQUAD PERFORMANCE MATRIX</h3>
+            ${matrixTable}
 
-            <div style="display: flex; justify-content: flex-end;">
+            <h3 style="color: var(--pip-green); margin-top: 20px; font-size: 1.1em; opacity: 0.8;">ADDITIONAL STATISTICS</h3>
+            ${statsTable}
+
+            <div style="display: flex; justify-content: flex-end; margin-top: 20px;">
                 <button onclick="closeSlotModal()" class="ocr-btn" style="width: auto; padding: 5px 30px;">CLOSE</button>
             </div>
         </div>
