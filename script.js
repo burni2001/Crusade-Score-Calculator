@@ -1949,7 +1949,7 @@ function openSlotOverlay(index) {
             padding: 0; /* No padding on the scroll container */
         ">
             
-            <div style="padding: 30px 50px 30px 30px;">
+            <div style="padding: 30px 70px 30px 30px;">
                 
                 <div style="text-align: center; border-bottom: 1px solid var(--pip-green); padding-bottom: 15px; margin-bottom: 20px;">
                     <h2 style="color: var(--pip-green); margin: 0; font-size: 2em; letter-spacing: 2px;">${slot.name.toUpperCase()}</h2>
