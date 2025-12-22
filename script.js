@@ -1914,7 +1914,7 @@ function csvToHtmlTable(csvText, sectionTitle) {
     return html;
 }
 
-/* === UPDATED: OVERLAY SYSTEM (Centered & Clean Layout) === */
+/* === UPDATED: OVERLAY SYSTEM (Responsive Fix) === */
 function openSlotOverlay(index) {
     const savedSlots = JSON.parse(localStorage.getItem("cogitator_saved_missions") || "[]");
     const slot = savedSlots[index];
@@ -1930,7 +1930,6 @@ function openSlotOverlay(index) {
     }
 
     // Generate Tables from the stored CSV data
-    // (This uses the csvToHtmlTable helper we added earlier)
     const matrixTable = csvToHtmlTable(slot.csv, "SQUAD PERFORMANCE MATRIX");
     const statsTable = csvToHtmlTable(slot.csv, "ADDITIONAL STATISTICS");
 
@@ -1939,12 +1938,14 @@ function openSlotOverlay(index) {
         <div class="ocr-modal-content" style="
             max-width: 900px; 
             width: 95%; 
+            /* FIX: This ensures padding doesn't make the box wider than the screen */
+            box-sizing: border-box;
             border: 2px solid var(--pip-green); 
             background: #050a05; 
             box-shadow: 0 0 20px rgba(51, 255, 0, 0.2); 
             max-height: 90vh; 
             overflow-y: auto;
-            /* Added 30px padding on RIGHT to create gap for scrollbar */
+            /* Padding for scrollbar gap */
             padding: 20px 30px 20px 20px; 
         ">
             
