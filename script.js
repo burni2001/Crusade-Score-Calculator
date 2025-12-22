@@ -1823,7 +1823,7 @@ function saveMissionInternal() {
     localStorage.setItem("cogitator_saved_missions", JSON.stringify(savedSlots));
     
     renderDataBankUI();
-    alert("Mission Data Saved to Internal Memory.");
+    // Alert removed for smoother workflow
 }
 
 // 3. Render the UI slots (Top Section)
