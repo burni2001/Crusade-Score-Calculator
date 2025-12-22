@@ -1914,7 +1914,7 @@ function csvToHtmlTable(csvText, sectionTitle) {
     return html;
 }
 
-/* === UPDATED: OVERLAY SYSTEM (Full Tables) === */
+/* === UPDATED: OVERLAY SYSTEM (Centered & Clean Layout) === */
 function openSlotOverlay(index) {
     const savedSlots = JSON.parse(localStorage.getItem("cogitator_saved_missions") || "[]");
     const slot = savedSlots[index];
@@ -1930,16 +1930,30 @@ function openSlotOverlay(index) {
     }
 
     // Generate Tables from the stored CSV data
+    // (This uses the csvToHtmlTable helper we added earlier)
     const matrixTable = csvToHtmlTable(slot.csv, "SQUAD PERFORMANCE MATRIX");
     const statsTable = csvToHtmlTable(slot.csv, "ADDITIONAL STATISTICS");
 
     // Build Modal Content
     modal.innerHTML = `
-        <div class="ocr-modal-content" style="max-width: 900px; width: 95%; border: 2px solid var(--pip-green); background: #050a05; box-shadow: 0 0 20px rgba(51, 255, 0, 0.2); max-height: 90vh; overflow-y: auto;">
+        <div class="ocr-modal-content" style="
+            max-width: 900px; 
+            width: 95%; 
+            border: 2px solid var(--pip-green); 
+            background: #050a05; 
+            box-shadow: 0 0 20px rgba(51, 255, 0, 0.2); 
+            max-height: 90vh; 
+            overflow-y: auto;
+            /* Added 30px padding on RIGHT to create gap for scrollbar */
+            padding: 20px 30px 20px 20px; 
+        ">
             
-            <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--pip-green); padding-bottom: 10px; margin-bottom: 15px;">
-                <h2 style="color: var(--pip-green); margin: 0;">${slot.name.toUpperCase()}</h2>
-                <span style="background: rgba(0, 255, 0, 0.1); padding: 2px 8px; border: 1px solid var(--pip-green); font-size: 0.8em; color: #afffa6;">${slot.difficulty}</span>
+            <div style="text-align: center; border-bottom: 1px solid var(--pip-green); padding-bottom: 15px; margin-bottom: 20px;">
+                <h2 style="color: var(--pip-green); margin: 0; font-size: 2em; letter-spacing: 2px;">${slot.name.toUpperCase()}</h2>
+                
+                <div style="margin-top: 5px; font-size: 0.9em; color: #afffa6; opacity: 0.6; font-family: 'VT323', monospace;">
+                    Difficulty: ${slot.difficulty}
+                </div>
             </div>
 
             <h3 style="color: var(--pip-green); margin-top: 0; font-size: 1.1em; opacity: 0.8;">SQUAD PERFORMANCE MATRIX</h3>
