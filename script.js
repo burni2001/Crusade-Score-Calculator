@@ -2097,19 +2097,24 @@ if (csvUploadInput) {
 
 /* --- FIXED: Reset/Purge Aggregated Data + Clear Memory --- */
 function resetImport() {
-    // 1. Clear file input
+    // 1. Safety Check: Confirm before wiping
+    if (!confirm("WARNING: This will purge ALL aggregated data and wipe the internal memory banks. \n\nAre you sure you want to proceed?")) {
+        return;
+    }
+
+    // 2. Clear file input
     const fileInput = document.getElementById('csv-upload');
     if (fileInput) fileInput.value = "";
 
-    // 2. Hide Results
+    // 3. Hide Results
     const results = document.getElementById('results-container');
     if (results) results.classList.remove('visible');
 
-    // 3. Clear Status
+    // 4. Clear Status
     const status = document.getElementById('import-status');
     if (status) status.textContent = "MEMORY BANKS FLUSHED.";
 
-    // 4. Reset State
+    // 5. Reset State
     importAppState = {
         mission: { name:'-', diff:'-', waves:'-', obj:'-', gene:'-', arm:'-' },
         modifiers: { kills:'-', specials:'-', incaps:'-', dmg:'-', gene:'-', arm:'-', obj:'-', waves:'-' },
@@ -2118,7 +2123,7 @@ function resetImport() {
         matrixTotals: {}  
     };
     
-    // 5. NUCLEAR OPTION: Wipe the saved missions too
+    // 6. NUCLEAR OPTION: Wipe the saved missions too
     localStorage.removeItem("cogitator_saved_missions");
     renderDataBankUI(); // Update the green slots to show they are empty
     
