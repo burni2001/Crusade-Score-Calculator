@@ -1914,7 +1914,7 @@ function csvToHtmlTable(csvText, sectionTitle) {
     return html;
 }
 
-/* === UPDATED: OVERLAY SYSTEM (Responsive Fix) === */
+/* === UPDATED: OVERLAY SYSTEM (Inner Wrapper Fix) === */
 function openSlotOverlay(index) {
     const savedSlots = JSON.parse(localStorage.getItem("cogitator_saved_missions") || "[]");
     const slot = savedSlots[index];
@@ -1934,37 +1934,41 @@ function openSlotOverlay(index) {
     const statsTable = csvToHtmlTable(slot.csv, "ADDITIONAL STATISTICS");
 
     // Build Modal Content
+    // FIX: We moved padding to an INNER div. 
+    // The Outer 'ocr-modal-content' only handles the Scrollbar and Border.
     modal.innerHTML = `
         <div class="ocr-modal-content" style="
             max-width: 900px; 
             width: 95%; 
-            /* FIX: This ensures padding doesn't make the box wider than the screen */
             box-sizing: border-box;
             border: 2px solid var(--pip-green); 
             background: #050a05; 
             box-shadow: 0 0 20px rgba(51, 255, 0, 0.2); 
             max-height: 90vh; 
-            overflow-y: auto;
-            /* Padding for scrollbar gap */
-            padding: 20px 60px 20px 20px; 
+            overflow-y: auto; /* Scrollbar lives here */
+            padding: 0; /* No padding on the scroll container */
         ">
             
-            <div style="text-align: center; border-bottom: 1px solid var(--pip-green); padding-bottom: 15px; margin-bottom: 20px;">
-                <h2 style="color: var(--pip-green); margin: 0; font-size: 2em; letter-spacing: 2px;">${slot.name.toUpperCase()}</h2>
+            <div style="padding: 30px 50px 30px 30px;">
                 
-                <div style="margin-top: 5px; font-size: 0.9em; color: #afffa6; opacity: 0.6; font-family: 'VT323', monospace;">
-                    Difficulty: ${slot.difficulty}
+                <div style="text-align: center; border-bottom: 1px solid var(--pip-green); padding-bottom: 15px; margin-bottom: 20px;">
+                    <h2 style="color: var(--pip-green); margin: 0; font-size: 2em; letter-spacing: 2px;">${slot.name.toUpperCase()}</h2>
+                    
+                    <div style="margin-top: 5px; font-size: 0.9em; color: #afffa6; opacity: 0.6; font-family: 'VT323', monospace;">
+                        Difficulty: ${slot.difficulty}
+                    </div>
                 </div>
-            </div>
 
-            <h3 style="color: var(--pip-green); margin-top: 0; font-size: 1.1em; opacity: 0.8;">SQUAD PERFORMANCE MATRIX</h3>
-            ${matrixTable}
+                <h3 style="color: var(--pip-green); margin-top: 0; font-size: 1.1em; opacity: 0.8;">SQUAD PERFORMANCE MATRIX</h3>
+                ${matrixTable}
 
-            <h3 style="color: var(--pip-green); margin-top: 20px; font-size: 1.1em; opacity: 0.8;">ADDITIONAL STATISTICS</h3>
-            ${statsTable}
+                <h3 style="color: var(--pip-green); margin-top: 20px; font-size: 1.1em; opacity: 0.8;">ADDITIONAL STATISTICS</h3>
+                ${statsTable}
 
-            <div style="display: flex; justify-content: flex-end; margin-top: 20px;">
-                <button onclick="closeSlotModal()" class="ocr-btn" style="width: auto; padding: 5px 30px;">CLOSE</button>
+                <div style="display: flex; justify-content: flex-end; margin-top: 20px;">
+                    <button onclick="closeSlotModal()" class="ocr-btn" style="width: auto; padding: 5px 30px;">CLOSE</button>
+                </div>
+
             </div>
         </div>
     `;
