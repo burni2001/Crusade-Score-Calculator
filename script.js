@@ -1946,7 +1946,7 @@ function openSlotOverlay(index) {
             max-height: 90vh; 
             overflow-y: auto;
             /* Padding for scrollbar gap */
-            padding: 20px 30px 20px 20px; 
+            padding: 20px 40px 20px 20px; 
         ">
             
             <div style="text-align: center; border-bottom: 1px solid var(--pip-green); padding-bottom: 15px; margin-bottom: 20px;">
