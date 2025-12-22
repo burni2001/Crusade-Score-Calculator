@@ -1958,7 +1958,7 @@ function openSlotOverlay(index) {
                 overflow-y: auto;  /* Scrollbar lives here */
                 width: 100%;
                 height: 100%;
-                padding: 30px 60px 30px 30px; /* 60px Right Padding = The Gap */
+                padding: 30px 100px 30px 30px; /* 60px Right Padding = The Gap */
                 box-sizing: border-box;       /* Ensures padding subtracts from width */
             ">
                 
