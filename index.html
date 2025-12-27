@@ -17,7 +17,7 @@
                 <div>
                     <div>REF: SM-2/CRUSADE</div>
                     <div style="font-size: 0.8em; opacity: 0.7">
-                        V 4.42 - ADEPTUS ADMINISTRATUM
+                        V 4.5 Alpha6 - ADEPTUS ADMINISTRATUM
                     </div>
                 </div>
                 <h1>Adeptus Astartes - Mission&nbsp;Debrief</h1>
@@ -127,8 +127,12 @@
                             </select>
                         </div>
                         <div class="mission-params">
-                            <label>Waves</label>
+                            <label>Total Waves Completed</label>
                             <input type="number" id="global-waves" value="0" min="0" inputmode="numeric" onchange="calculate(); saveData();" />
+                        </div>
+                        <div class="mission-params">
+                            <label>Tasks Completed</label>
+                            <input type="number" id="global-tasks" value="0" min="0" inputmode="numeric" onchange="calculate(); saveData();" />
                         </div>
                     </div>
                 </div>
@@ -170,8 +174,12 @@
                                 <input type="number" id="mod-obj" value="100" onchange="calculate(); saveData();">
                             </div>
                             <div class="mod-row">
-                                <label>Waves</label>
-                                <input type="number" id="mod-waves" value="10" onchange="calculate(); saveData();">
+                                <label>Waves ( >15 )</label>
+                                <input type="number" id="mod-waves" value="250" onchange="calculate(); saveData();">
+                            </div>
+                            <div class="mod-row">
+                                <label>Siege Tasks</label>
+                                <input type="number" id="mod-tasks" value="25" onchange="calculate(); saveData();">
                             </div>
                             <div></div> 
                         </div>
@@ -422,7 +430,7 @@
                         <div class="kv-row"><span class="kv-label">Difficulty:</span><span class="kv-val" id="mp-diff">-</span></div>
                         <div class="kv-row"><span class="kv-label">Waves:</span><span class="kv-val" id="mp-waves">-</span></div>
                         <div class="kv-row"><span class="kv-label">Objectives:</span><span class="kv-val" id="mp-obj">-</span></div>
-                        <div class="kv-row"><span class="kv-label">Geneseed:</span><span class="kv-val" id="mp-gene">-</span></div>
+                        <div class="kv-row"><span class="kv-label">Gene-Seed:</span><span class="kv-val" id="mp-gene">-</span></div>
                         <div class="kv-row"><span class="kv-label">Armoury:</span><span class="kv-val" id="mp-arm">-</span></div>
                     </div>
 
@@ -432,10 +440,11 @@
                         <div class="kv-row"><span class="kv-label">Special Kills:</span><span class="kv-val" id="import-mod-specials">-</span></div>
                         <div class="kv-row"><span class="kv-label">Incapacitations:</span><span class="kv-val" id="import-mod-incaps">-</span></div>
                         <div class="kv-row"><span class="kv-label">Damage Taken:</span><span class="kv-val" id="import-mod-dmg">-</span></div>
-                        <div class="kv-row"><span class="kv-label">Geneseed:</span><span class="kv-val" id="import-mod-gene">-</span></div>
+                        <div class="kv-row"><span class="kv-label">Gene-Seed:</span><span class="kv-val" id="import-mod-gene">-</span></div>
                         <div class="kv-row"><span class="kv-label">Armoury:</span><span class="kv-val" id="import-mod-arm">-</span></div>
                         <div class="kv-row"><span class="kv-label">Objective:</span><span class="kv-val" id="import-mod-obj">-</span></div>
-                        <div class="kv-row"><span class="kv-label">Waves:</span><span class="kv-val" id="import-mod-waves">-</span></div>
+                        <div class="kv-row"><span class="kv-label">Waves Completed ( >15 ):</span><span class="kv-val" id="import-mod-waves">-</span></div>
+                        <div class="kv-row"><span class="kv-label">Siege Tasks:</span><span class="kv-val" id="import-mod-tasks">-</span></div>
                     </div>
                 </div>
 
