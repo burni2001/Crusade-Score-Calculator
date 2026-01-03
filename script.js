@@ -1212,7 +1212,7 @@ function showOCRModal() {
     );
     gridHTML += createInput(
         "global-armoury",
-        "armoury",
+        "number",
         "Armoury Data",
     );
     gridHTML += createInput(
