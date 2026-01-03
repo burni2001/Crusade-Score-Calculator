@@ -17,7 +17,7 @@
                 <div>
                     <div>REF: SM-2/CRUSADE</div>
                     <div style="font-size: 0.8em; opacity: 0.7">
-                        V 4.5 Alpha6 - ADEPTUS ADMINISTRATUM
+                        V 4.5 Alpha7 - ADEPTUS ADMINISTRATUM
                     </div>
                 </div>
                 <h1>Adeptus Astartes - Mission&nbsp;Debrief</h1>
@@ -118,13 +118,7 @@
                         </div>
                         <div class="mission-params">
                             <label>Armoury Data Retrieved</label>
-                            <select id="global-armoury" onchange="calculate(); saveData();">
-                                <option value="" disabled selected hidden>Select</option>
-                                <option value="0">0</option>
-                                <option value="1">1</option>
-                                <option value="2">2</option>
-                                <option value="3">3</option>
-                            </select>
+                            <input type="number" id="global-armoury" value="0" min="0" onchange="calculate(); saveData();">
                         </div>
                         <div class="mission-params">
                             <label>Total Waves Completed</label>
