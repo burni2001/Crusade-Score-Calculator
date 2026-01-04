@@ -1103,7 +1103,6 @@ function parseGameData(text) {
 }
 
 // Show OCR review modal
-// Show OCR review modal
 function showOCRModal() {
     const modal = document.getElementById('ocr-modal-overlay');
     const grid = document.getElementById('ocr-detected-grid');
@@ -1111,17 +1110,19 @@ function showOCRModal() {
     
     if(!modal || !grid) return;
 
-    // FIX 1: Use 'rawOCRText', which is defined at the top of your script
     rawText.textContent = rawOCRText; 
     
     let html = "";
 
-    // helper to create a clean row: Label | [Input]
+    // Helper to create a clean row
     const createRow = (id, type, label) => {
         let inputHtml = "";
+        
         if (type === "yesno") {
             inputHtml = `<select data-target-id="${id}"><option value="0">No</option><option value="1">Yes</option></select>`;
-        } else if (type === "difficulty") {
+        } 
+        else if (type === "difficulty") {
+             // UPDATED: Added Normal and Hard
              inputHtml = `<select data-target-id="${id}">
                 <option value="Minimal">Minimal</option>
                 <option value="Average">Average</option>
@@ -1129,8 +1130,23 @@ function showOCRModal() {
                 <option value="Ruthless">Ruthless</option>
                 <option value="Lethal">Lethal</option>
                 <option value="Absolute">Absolute</option>
+                <option value="Normal">Normal</option>
+                <option value="Hard">Hard</option>
             </select>`;
-        } else {
+        } 
+        else if (type === "class") {
+            // UPDATED: Class is now a Dropdown
+            inputHtml = `<select data-target-id="${id}">
+                <option value="Tactical">Tactical</option>
+                <option value="Assault">Assault</option>
+                <option value="Vanguard">Vanguard</option>
+                <option value="Bulwark">Bulwark</option>
+                <option value="Sniper">Sniper</option>
+                <option value="Heavy">Heavy</option>
+                <option value="Techmarine">Techmarine</option>
+            </select>`;
+        }
+        else {
             // Standard Text/Number
             inputHtml = `<input type="${type}" data-target-id="${id}" />`;
         }
@@ -1140,13 +1156,13 @@ function showOCRModal() {
     // 1. MISSION INFO (Top Section - Full Width)
     html += `<div class="ocr-section">`;
     html += `<div class="ocr-section-title">MISSION PARAMETERS</div>`;
-    html += `<div class="mission-info-flex">`; // Horizontal Flex layout
+    html += `<div class="mission-info-flex">`; 
     
     html += createRow("mission-name", "text", "Mission");
     html += createRow("mission-difficulty", "difficulty", "Difficulty");
     html += createRow("global-objective", "yesno", "Objective");
     html += createRow("global-geneseed", "yesno", "Geneseed");
-    html += createRow("global-armoury", "number", "Armoury");
+    html += createRow("global-armoury", "number", "Armoury Data");
     html += createRow("global-waves", "number", "Waves");
     
     html += `</div></div>`;
@@ -1154,22 +1170,28 @@ function showOCRModal() {
     // 2. PLAYER SECTIONS (3 Columns)
     for (let i = 1; i <= 3; i++) {
         html += `<div class="ocr-section">`;
-        html += `<div class="ocr-section-title">PLAYER ${i}</div>`;
         
-        // Name & Class (Top of card)
-        html += createRow(`p${i}-name`, "text", "Name");
-        html += createRow(`p${i}-class`, "text", "Class");
-        html += `<div style="height:1px; background:#335533; margin:10px 0;"></div>`; // Divider
+        // UPDATED: Name Input IS the Header now
+        html += `<div class="ocr-section-title" style="display:flex; align-items:center; gap:10px;">
+                    <span style="font-size:0.7em; opacity:0.7;">P${i}</span>
+                    <input type="text" class="player-header-input" data-target-id="p${i}-name" placeholder="PLAYER ${i}" />
+                 </div>`;
         
         // Stats List
+        html += createRow(`p${i}-class`, "class", "Class"); // Class Dropdown
+        html += `<div style="height:1px; background:#335533; margin:10px 0;"></div>`; // Divider
+        
         html += createRow(`p${i}-kills`, "number", "Kills");
         html += createRow(`p${i}-elite`, "number", "Special Kills");
-        html += createRow(`p${i}-tasks`, "number", "Tasks"); // New Tasks Input
+        html += createRow(`p${i}-tasks`, "number", "Tasks Completed");
         html += createRow(`p${i}-death`, "number", "Incapacitations");
-        html += createRow(`p${i}-damage`, "number", "Dmg Taken");
-        html += createRow(`p${i}-melee`, "number", "Melee Dmg");
-        html += createRow(`p${i}-ranged`, "number", "Ranged Dmg");
-        html += createRow(`p${i}-items`, "number", "Items");
+        
+        // UPDATED LABELS: Full words
+        html += createRow(`p${i}-damage`, "number", "Damage Taken");
+        html += createRow(`p${i}-melee`, "number", "Melee Damage");
+        html += createRow(`p${i}-ranged`, "number", "Ranged Damage");
+        html += createRow(`p${i}-items`, "number", "Items Found");
+        
         html += createRow(`p${i}-revived`, "number", "Revived");
         
         html += `</div>`;
@@ -1182,12 +1204,9 @@ function showOCRModal() {
     inputs.forEach(input => {
         const id = input.dataset.targetId;
         
-        // FIX 2: Use 'pendingOCRResults', which is defined at the top of your script
-        // (ocrResults was undefined)
         if(id && pendingOCRResults[id] !== undefined) {
             input.value = pendingOCRResults[id];
         } 
-        // 2. Fallback to current Form Value
         else if (id) {
             const existing = document.getElementById(id);
             if(existing) input.value = existing.value;
