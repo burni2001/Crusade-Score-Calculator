@@ -1122,7 +1122,6 @@ function showOCRModal() {
             inputHtml = `<select data-target-id="${id}"><option value="0">No</option><option value="1">Yes</option></select>`;
         } 
         else if (type === "difficulty") {
-             // UPDATED: Added Normal and Hard
              inputHtml = `<select data-target-id="${id}">
                 <option value="Minimal">Minimal</option>
                 <option value="Average">Average</option>
@@ -1135,7 +1134,6 @@ function showOCRModal() {
             </select>`;
         } 
         else if (type === "class") {
-            // UPDATED: Class is now a Dropdown
             inputHtml = `<select data-target-id="${id}">
                 <option value="Tactical">Tactical</option>
                 <option value="Assault">Assault</option>
@@ -1147,7 +1145,6 @@ function showOCRModal() {
             </select>`;
         }
         else {
-            // Standard Text/Number
             inputHtml = `<input type="${type}" data-target-id="${id}" />`;
         }
         return `<div class="ocr-input-row"><label>${label}</label>${inputHtml}</div>`;
@@ -1171,22 +1168,20 @@ function showOCRModal() {
     for (let i = 1; i <= 3; i++) {
         html += `<div class="ocr-section">`;
         
-        // UPDATED: Name Input IS the Header now
-        html += `<div class="ocr-section-title" style="display:flex; align-items:center; gap:10px;">
-                    <span style="font-size:0.7em; opacity:0.7;">P${i}</span>
+        // Header: Just the input box (No P1/P2 label)
+        html += `<div class="ocr-section-title" style="border:none; padding-bottom:0; margin-bottom:10px;">
                     <input type="text" class="player-header-input" data-target-id="p${i}-name" placeholder="PLAYER ${i}" />
                  </div>`;
         
         // Stats List
-        html += createRow(`p${i}-class`, "class", "Class"); // Class Dropdown
-        html += `<div style="height:1px; background:#335533; margin:10px 0;"></div>`; // Divider
+        html += createRow(`p${i}-class`, "class", "Class");
+        html += `<div style="height:1px; background:#335533; margin:10px 0;"></div>`; 
         
         html += createRow(`p${i}-kills`, "number", "Kills");
         html += createRow(`p${i}-elite`, "number", "Special Kills");
         html += createRow(`p${i}-tasks`, "number", "Tasks Completed");
         html += createRow(`p${i}-death`, "number", "Incapacitations");
         
-        // UPDATED LABELS: Full words
         html += createRow(`p${i}-damage`, "number", "Damage Taken");
         html += createRow(`p${i}-melee`, "number", "Melee Damage");
         html += createRow(`p${i}-ranged`, "number", "Ranged Damage");
@@ -1199,11 +1194,15 @@ function showOCRModal() {
 
     grid.innerHTML = html;
 
-    // 3. FILL VALUES
+    // 3. Spacer for Raw Text (Add class for CSS targeting)
+    const rawTextHeader = document.querySelector('.ocr-modal h3:last-of-type'); 
+    // If the H3 exists in HTML, we target it. 
+    // But since the modal structure is static in index.html, we need to ensure the gap exists there.
+    
+    // FILL VALUES
     const inputs = grid.querySelectorAll('input, select');
     inputs.forEach(input => {
         const id = input.dataset.targetId;
-        
         if(id && pendingOCRResults[id] !== undefined) {
             input.value = pendingOCRResults[id];
         } 
