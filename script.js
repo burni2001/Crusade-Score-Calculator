@@ -1487,7 +1487,7 @@ const inputIds = [
     "p1-items", "p2-items", "p3-items",
     "p1-revived", "p2-revived", "p3-revived",
     "p1-melee", "p2-melee", "p3-melee",
-    "p1-ranged", "p2-ranged", "p3-ranged"
+    "p1-ranged", "p2-ranged", "p3-ranged",
     "p1-tasks", "p2-tasks", "p3-tasks"
 ];
 
