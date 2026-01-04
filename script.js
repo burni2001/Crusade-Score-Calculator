@@ -1220,12 +1220,7 @@ function showOCRModal() {
         "number",
         "Waves Reached",
     );
-    // NEW
-    gridHTML += createInput(
-        "global-tasks",
-        "number",
-        "Tasks Completed"
-    );
+    
     gridHTML += `</div>`;
 
     // Space Marine sections
@@ -1271,6 +1266,11 @@ function showOCRModal() {
             `p${p}-revived`,
             "number",
             "Revived",
+        );
+        gridHTML += createInput(
+            `p${p}-tasks`,
+            "number",
+            "Tasks Completed"
         );
         gridHTML += `</div></div>`;
     }
