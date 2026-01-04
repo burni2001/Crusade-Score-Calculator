@@ -1170,7 +1170,7 @@ function showOCRModal() {
         
         // Header: Just the input box (No P1/P2 label)
         html += `<div class="ocr-section-title" style="border:none; padding-bottom:0; margin-bottom:10px;">
-                    <input type="text" class="player-header-input" data-target-id="p${i}-name" placeholder="PLAYER ${i}" />
+                    <input type="text" class="player-header-input" data-target-id="p${i}-name" placeholder="Name ${i}" />
                  </div>`;
         
         // Stats List
