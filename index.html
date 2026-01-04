@@ -17,7 +17,7 @@
                 <div>
                     <div>REF: SM-2/CRUSADE</div>
                     <div style="font-size: 0.8em; opacity: 0.7">
-                        V 4.5 Alpha9 - ADEPTUS ADMINISTRATUM
+                        V 4.5 Alpha10 - ADEPTUS ADMINISTRATUM
                     </div>
                 </div>
                 <h1>Adeptus Astartes - Mission&nbsp;Debrief</h1>
@@ -277,6 +277,14 @@
                                 <td class="total-cell" id="total-damage">0</td>
                             </tr>
 
+                            <tr>
+                                <td class="row-label">Tasks Completed</td>
+                                <td class="input-cell"><input type="number" class="p1-input" id="p1-tasks" value="0" min="0" inputmode="numeric" onchange="calculate(); saveData();" /></td>
+                                <td class="input-cell"><input type="number" class="p2-input" id="p2-tasks" value="0" min="0" inputmode="numeric" onchange="calculate(); saveData();" /></td>
+                                <td class="input-cell"><input type="number" class="p3-input" id="p3-tasks" value="0" min="0" inputmode="numeric" onchange="calculate(); saveData();" /></td>
+                                <td class="total-cell" id="total-tasks">0</td>
+                            </tr>
+
                             <tr class="mod-score-row">
                                 <td class="row-label">Modifier Score</td>
                                 <td id="p1-mod">0</td>
@@ -358,13 +366,6 @@
                                     <span id="total-revived">0</span>
                                     <span id="total-diff" style="font-size: 0.9em;">(0)</span>
                                 </td>
-                            </tr>
-                            <tr>
-                                <td class="row-label">Tasks Completed</td>
-                                <td class="input-cell"><input type="number" class="p1-input" id="p1-tasks" value="0" min="0" inputmode="numeric" onchange="calculate(); saveData();" /></td>
-                                <td class="input-cell"><input type="number" class="p2-input" id="p2-tasks" value="0" min="0" inputmode="numeric" onchange="calculate(); saveData();" /></td>
-                                <td class="input-cell"><input type="number" class="p3-input" id="p3-tasks" value="0" min="0" inputmode="numeric" onchange="calculate(); saveData();" /></td>
-                                <td class="total-cell" id="total-tasks">0</td>
                             </tr>
                         </tbody>
                     </table>
