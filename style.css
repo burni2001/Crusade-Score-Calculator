@@ -29,7 +29,7 @@ body {
     );
 }
 
-/* --- COGITATOR FRAME (The main box) --- */
+/* --- COGITATOR FRAME --- */
 .cogitator-frame {
     width: 100%;
     max-width: 1100px;
@@ -81,34 +81,29 @@ h1, h2, h3 {
     99% { opacity: 1; }
 }
 
-/* --- CUSTOM COGITATOR LIST (Green Squares) --- */
+/* --- CUSTOM LIST --- */
 .cogitator-list {
-    list-style: none;        /* Remove default round bullets */
+    list-style: none;
     padding: 0;
-    margin: 10px auto;       /* Spacing */
-    text-align: left;        /* Keep text left-aligned for readability */
-    display: inline-block;   /* Keeps the list block centered on screen */
-    max-width: 90%;          /* Prevents it from hitting edges on mobile */
+    margin: 10px auto;
+    text-align: left;
+    display: inline-block;
+    max-width: 90%;
 }
-
 .cogitator-list li {
-    position: relative;      /* Needed to place the square */
-    padding-left: 20px;      /* Space for the square */
-    margin-bottom: 6px;      /* Space between lines */
-    color: var(--pip-dim);   /* Standard text color */
+    position: relative;
+    padding-left: 20px;
+    margin-bottom: 6px;
+    color: var(--pip-dim);
     line-height: 1.4;
 }
-
-/* The Little Green Square */
 .cogitator-list li::before {
     content: '';
     position: absolute;
-    left: 0;
-    top: 7px;                /* Adjust this to move square up/down */
-    width: 6px;              /* Size of the square */
-    height: 6px;
-    background-color: var(--pip-green); /* Solid Green */
-    box-shadow: 0 0 4px var(--pip-green); /* Glowing effect */
+    left: 0; top: 7px;
+    width: 6px; height: 6px;
+    background-color: var(--pip-green);
+    box-shadow: 0 0 4px var(--pip-green);
 }
 
 /* --- INPUTS & UI ELEMENTS --- */
@@ -123,19 +118,15 @@ input, select {
     width: 100%;
     box-sizing: border-box;
     border-radius: 0;
-    -webkit-border-radius: 0; /* Critical for Safari/iOS */
-    -webkit-appearance: none; /* Removes default iOS glossy gradient/styling */
-    appearance: none;         /* Standard property */
+    -webkit-border-radius: 0;
+    -webkit-appearance: none;
+    appearance: none;
 }
 input:focus, select:focus {
     outline: none;
     box-shadow: 0 0 8px var(--pip-green);
     background-color: #0f240f;
 }
-input::-webkit-outer-spin-button, input::-webkit-inner-spin-button {
-    -webkit-appearance: none; margin: 0;
-}
-input[type="number"] { -moz-appearance: textfield; }
 select option { background-color: #000; color: #0f0; }
 
 .section {
@@ -159,25 +150,22 @@ select option { background-color: #000; color: #0f0; }
     width: 100%;
 }
 
-/* --- DASHBOARD LAYOUT (The Side-by-Side Logic) --- */
-/* 1. The Wrapper: Force side-by-side (no wrap) */
+/* --- DASHBOARD LAYOUT --- */
 .dashboard-wrapper {
     display: flex;
-    flex-wrap: nowrap;     /* <--- CRITICAL: Never stack */
+    flex-wrap: nowrap;
     gap: 10px;
     align-items: stretch;
     width: 100%;
 }
-
-/* 2. The Panels: Allow shrinking to 0 so they fit on phones */
 .mission-panel, .modifiers-panel {
     flex: 1;
-    min-width: 0;          /* <--- CRITICAL: Allows shrinking */
+    min-width: 0;
     display: flex;
     flex-direction: column;
 }
 
-/* 3. Mission Params (Left): Fluid Grid */
+/* Mission Params Grid */
 .mission-params {
     display: grid;
     grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
@@ -194,19 +182,14 @@ select option { background-color: #000; color: #0f0; }
     white-space: normal;
     line-height: 1.1;
 }
-.mission-params input, .mission-params select {
-    width: 100%;
-    height: 100%;
-    font-size: 1.1rem;
-}
 
-/* 4. Modifiers (Right): Fluid Grid */
+/* Modifiers Grid */
 .mod-grid-clean {
     display: grid;
     grid-template-columns: 1fr 1fr;
     grid-template-rows: repeat(6, 32px);
     row-gap: 8px; 
-    column-gap: 15px; /* Slightly tighter than desktop default */
+    column-gap: 15px;
 }
 .mod-row {
     display: flex;
@@ -236,14 +219,12 @@ select option { background-color: #000; color: #0f0; }
 /* --- IMPORT & TABLE SECTIONS --- */
 .results-container { display: none; }
 .results-container.visible { display: block; }
-
 .panels-wrapper {
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 20px;
     margin-bottom: 20px;
 }
-
 .stat-panel {
     background-color: rgba(20, 40, 20, 0.3);
     border: 1px solid var(--border-color);
@@ -278,7 +259,15 @@ select option { background-color: #000; color: #0f0; }
     padding: 4px;
     vertical-align: middle;
 }
-.score-table th { background-color: #000; padding: 10px; }
+.score-table th { 
+    background-color: #000; 
+    padding: 10px; 
+    /* Fix clipping for long headers */
+    white-space: normal;
+    word-wrap: break-word;
+    font-size: 0.9rem;
+    line-height: 1.1;
+}
 .score-table th.empty-header { border: none; background: transparent; }
 
 /* Column Widths */
@@ -299,17 +288,6 @@ select option { background-color: #000; color: #0f0; }
     padding: 15px 0;
     text-shadow: 0 0 8px var(--pip-green);
 }
-
-/* Fix clipping for long table headers like "Incapacitations" */
-    .cogitator-table th, 
-    .performance-table th {
-        white-space: normal !important; /* Allow text to wrap to next line */
-        word-wrap: break-word !important; /* Force long words to break if needed */
-        padding: 4px 2px !important;    /* Reduce side padding to make room */
-        font-size: 0.7rem !important;   /* Slightly smaller font for headers */
-        vertical-align: middle;         /* Keep it centered vertically */
-        line-height: 1.1;               /* Tighten line height for wrapped text */
-    }
 
 /* --- EXPORT BUTTONS --- */
 .export-buttons-container {
@@ -344,73 +322,118 @@ select option { background-color: #000; color: #0f0; }
 .export-buttons-container button.danger-btn { border-color: #ff6600; color: #ff6600; }
 .export-buttons-container button.danger-btn:hover { background-color: #ff6600; color: var(--bg-color); box-shadow: 0 0 15px #ff6600; }
 
-/* --- PRIMARY ACTION BUTTONS (High Specificity Fix) --- */
-
-/* Target specific modals + generic class to override defaults */
+/* --- PRIMARY ACTION BUTTONS --- */
 #ocr-modal-overlay .ocr-modal-buttons button.btn-primary,
 #import-wrapper button.btn-primary,
 button.btn-primary {
-    background-color: #33ff00 !important; /* Force solid green (Hex) */
-    background-image: none !important;    /* Remove any dark gradients/textures */
-    color: #000000 !important;            /* Black Text */
-    border: 1px solid #33ff00 !important;
+    background-color: var(--pip-green) !important;
+    background-image: none !important;
+    color: #000000 !important;
+    border: 1px solid var(--pip-green) !important;
     font-weight: 900 !important;
-    text-shadow: none !important;         /* Remove text glow for better contrast */
+    text-shadow: none !important;
     box-shadow: 0 0 15px rgba(51, 255, 0, 0.6);
     opacity: 1 !important;
 }
-
-/* HOVER EFFECT */
 #ocr-modal-overlay .ocr-modal-buttons button.btn-primary:hover,
 #import-wrapper button.btn-primary:hover,
 button.btn-primary:hover {
-    background-color: #000000 !important; /* Black Background */
-    color: #33ff00 !important;            /* Green Text */
-    box-shadow: 0 0 20px #33ff00, inset 0 0 10px rgba(51,255,0,0.3);
-    cursor: pointer;
+    background-color: #000000 !important;
+    color: var(--pip-green) !important;
+    box-shadow: 0 0 20px var(--pip-green), inset 0 0 10px rgba(51,255,0,0.3);
 }
 
-/* --- UTILS (Modals, Credits) --- */
-.ocr-modal-overlay, .modal-overlay {
-    display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-    background: rgba(0,0,0,0.9); z-index: 1000; justify-content: center; align-items: center;
+/* --- MODALS & OCR LAYOUT --- */
+.ocr-modal-overlay, .modal-overlay, #copy-modal {
+    display: none; 
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(0,0,0,0.9); z-index: 1000; 
+    justify-content: center; align-items: center;
     padding: 20px;
+    box-sizing: border-box;
 }
-.ocr-modal-overlay.active, .modal-overlay.active { display: flex; }
+.ocr-modal-overlay.active, .modal-overlay.active, #copy-modal.active { display: flex !important; }
 
 .ocr-modal, .modal-content {
     background: var(--bg-color);
     border: 2px solid var(--pip-green);
     box-shadow: 0 0 30px rgba(51, 255, 0, 0.3);
     width: 100%;
-    max-width: 95vw;
+    max-width: 900px; /* Default Max Width */
     max-height: 90vh;
     overflow-y: auto;
     padding: 20px;
     box-sizing: border-box;
+    margin: 0;
 }
-.ocr-detected-grid { 
-    display: grid; 
-    grid-template-columns: 1fr 1fr; 
-    gap: 20px; /* Increased from 10px to create distinct gaps */
+
+/* OCR GRID LAYOUT (The Layout Fix) */
+#ocr-detected-grid {
+    display: grid;
+    grid-template-columns: 1fr; /* Mobile Default */
+    gap: 15px;
 }
-.ocr-detected-item { display: flex; justify-content: space-between; align-items: center; background: rgba(51,255,0,0.1); padding: 8px; border: 1px solid var(--border-color); }
-.ocr-input {
-    background: #0a1f0a;
-    border: 1px solid var(--border-color);
+
+/* Section Styling */
+.ocr-section {
+    background: rgba(0, 20, 0, 0.4);
+    border: 1px solid var(--pip-green);
+    padding: 15px;
+}
+.ocr-section-title {
+    color: var(--pip-green);
+    border-bottom: 1px solid #335533;
+    padding-bottom: 5px;
+    margin-bottom: 15px;
+    font-weight: bold;
+    text-transform: uppercase;
+    text-align: center;
+    letter-spacing: 1px;
+}
+
+/* Input Row styling */
+.ocr-input-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 6px;
+    padding-bottom: 6px;
+    border-bottom: 1px solid rgba(51, 255, 0, 0.1);
+}
+.ocr-input-row label {
+    font-size: 0.85em;
     color: #afffa6;
-    font-family: inherit;
-    width: 100%;        /* Fill available space */
-    max-width: 140px;   /* Cap at desktop size */
-    min-width: 60px;    /* Allow shrinking down to this size */
+    opacity: 0.8;
+    flex: 1; 
 }
-.ocr-stats-row { 
-    display: grid; 
-    grid-template-columns: repeat(2, 1fr); 
-    gap: 15px;        /* More space between Stat boxes */
-    margin-top: 25px; /* Creates a clear visual break before the stats start */
+.ocr-input-row input, .ocr-input-row select {
+    width: 80px; 
+    background: #050a05;
+    border: 1px solid #335533;
+    color: var(--pip-green);
+    padding: 4px;
+    text-align: center;
+    font-family: 'VT323', monospace;
+    font-size: 1.1em;
 }
-.ocr-stats-row .ocr-input { width: 100%; }
+
+/* Mission Info Flex Bar */
+.mission-info-flex {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+    justify-content: space-around;
+}
+.mission-info-flex .ocr-input-row {
+    border-bottom: none;
+    flex-direction: column;
+    align-items: center;
+}
+.mission-info-flex input, .mission-info-flex select {
+    width: 140px; 
+}
+
+/* OCR BUTTONS */
 .ocr-modal-buttons {
     display: flex;
     gap: 15px;
@@ -420,6 +443,24 @@ button.btn-primary:hover {
     border-top: 1px solid var(--border-color);
     flex-wrap: wrap;
 }
+.ocr-modal-buttons button {
+    background-color: var(--panel-bg);
+    color: var(--pip-green);
+    border: 1px solid var(--pip-green);
+    padding: 10px 20px;
+    font-family: "VT323", monospace;
+    font-size: 1.1rem;
+    cursor: pointer;
+    text-transform: uppercase;
+    min-width: 140px;
+}
+.ocr-modal-buttons button:hover {
+    background-color: var(--pip-green);
+    color: var(--bg-color);
+    box-shadow: 0 0 15px var(--pip-green);
+}
+.ocr-modal-buttons .cancel-btn { border-color: #ff6600; color: #ff6600; }
+.ocr-modal-buttons .cancel-btn:hover { background-color: #ff6600; color: var(--bg-color); box-shadow: 0 0 15px #ff6600; }
 
 .ocr-raw-text {
     background-color: #000;
@@ -428,86 +469,31 @@ button.btn-primary:hover {
     max-height: 150px;
     overflow-y: auto;
     font-size: 0.9rem;
-    white-space: pre-wrap;  /* Wraps text to next line */
-    word-break: break-word; /* Forces long unbroken words to break */
+    white-space: pre-wrap; 
+    word-break: break-word;
     margin-top: 10px;
 }
 
-/* --- OCR MODAL BUTTON STYLES --- */
-
-/* Base style for all OCR buttons (Apply, Export, Cancel) */
-.ocr-modal-buttons button {
-    background-color: var(--panel-bg) !important; /* !important overrides inline HTML styles */
-    color: var(--pip-green);
-    border: 1px solid var(--pip-green);
-    padding: 10px 20px;
-    font-family: "VT323", monospace;
-    font-size: 1.1rem;
-    cursor: pointer;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    transition: all 0.2s ease-in-out;
-    box-shadow: 0 0 5px rgba(51, 255, 0, 0.2);
-    min-width: 140px; /* Ensures they aren't too skinny on desktop */
-}
-
-/* Hover effect: Glow green */
-.ocr-modal-buttons button:hover {
-    background-color: var(--pip-green) !important;
-    color: var(--bg-color);
-    box-shadow: 0 0 15px var(--pip-green);
-}
-
-/* Specific styling for the 'Cancel' button (Danger/Orange) */
-.ocr-modal-buttons .cancel-btn {
-    border-color: #ff6600;
-    color: #ff6600;
-}
-
-/* Hover effect for Cancel: Glow Orange */
-.ocr-modal-buttons .cancel-btn:hover {
-    background-color: #ff6600 !important;
-    color: var(--bg-color);
-    box-shadow: 0 0 15px #ff6600;
-}
-
-/* Update the main container to ensure padding doesn't break layout */
+/* --- CREDITS --- */
 .credits-full {
     padding: 20px;
     margin-top: 30px;
     text-align: center;
     width: 100%;
     max-width: 1100px;
-    box-sizing: border-box; /* Added this from v2.08 */
+    box-sizing: border-box; 
 }
-
-/* Update title to be uppercase with spacing */
 .credits-full .title {
     font-size: 1.1rem;
     font-weight: bold;
     color: #afffa6;
     margin-bottom: 15px;
-    text-transform: uppercase; /* Added */
-    letter-spacing: 2px;       /* Added */
+    text-transform: uppercase;
+    letter-spacing: 2px;
 }
-
-/* Row styling remains similar */
-.credits-full .credit-row {
-    margin: 8px 0;
-    font-size: 0.95rem;
-}
-
-/* NEW: Add specific color for the Role (Development, etc.) */
-.credits-full .role {
-    color: #1a8000;
-}
-
-/* NEW: Add specific color for the Name */
-.credits-full .name {
-    color: #33ff00;
-}
-
-/* NEW: Add styling for the bottom copyright section with the line separator */
+.credits-full .credit-row { margin: 8px 0; font-size: 0.95rem; }
+.credits-full .role { color: #1a8000; }
+.credits-full .name { color: #33ff00; }
 .credits-full .copyright {
     margin-top: 15px;
     padding-top: 15px;
@@ -515,112 +501,20 @@ button.btn-primary:hover {
     font-size: 0.85rem;
     opacity: 0.7;
 }
+.credits-full a { color: #afffa6; text-decoration: none; }
+.credits-full a:hover { color: #33ff00; text-shadow: 0 0 5px #33ff00; }
 
-/* Update link styling to include hover glow */
-.credits-full a {
-    color: #afffa6;
-    text-decoration: none;
-}
-.credits-full a:hover {
-    color: #33ff00;
-    text-shadow: 0 0 5px #33ff00;
-}
-
-/* --- TRANSMISSION LOG & MODAL FIXES --- */
-
-/* 1. Fix Transmission Log Responsiveness */
-#copy-modal .modal-content {
-    background-color: var(--bg-color) !important;
-    border: 2px solid var(--pip-green) !important;
-    box-shadow: 0 0 30px rgba(51, 255, 0, 0.15), inset 0 0 20px rgba(0, 0, 0, 0.8);
-    color: var(--pip-green);
-    
-    /* Responsive Fixes */
-    width: 100%;           /* Try to fill width */
-    max-width: 700px;      /* But stop at 700px */
-    width: 90vw;           /* Mobile Safety: Never wider than 90% of screen width */
-    box-sizing: border-box;/* Critical: Includes padding in width calculation so it doesn't clip */
-    margin: auto;          /* Force Center */
-}
-
-/* 2. Fix OCR Overlay Alignment (Force Center) */
-.ocr-modal, .modal-content {
-    margin: 0 auto;        /* This forces the box to the center of the flex container */
-    box-sizing: border-box; /* Prevents padding from pushing it off-screen */
-}
-
-/* Ensure the Text Area looks good */
-#copy-text {
-    background-color: #0a0f0a !important; 
-    color: #afffa6 !important;            
-    font-family: "VT323", monospace;
-    font-size: 1.2rem;
-    border: 1px solid var(--pip-dim);
-    padding: 15px;
-    width: 100%;
-    min-height: 400px; 
-    box-sizing: border-box; /* Keeps text inside the box */
-    margin-bottom: 10px;
-    resize: vertical;
-    box-shadow: inset 0 0 10px rgba(0,0,0,0.5);
-    white-space: pre-wrap; /* Ensures long text wraps instead of breaking layout */
-}
-
-/* --- UNIVERSAL MODAL CENTERING FIX --- */
-
-/* 1. Target BOTH Overlay Backgrounds */
-#ocr-modal-overlay,
-#copy-modal,
-.modal-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(0, 0, 0, 0.85);
-    z-index: 2000;
-    
-    /* CRITICAL: Use Flexbox to center the child (the green window) */
-    display: none; /* Hidden by default */
-    justify-content: center; /* Center Horizontally */
-    align-items: center;     /* Center Vertically */
-}
-
-/* 2. When 'active', force them to be FLEX containers (not block) */
-#ocr-modal-overlay.active,
-#copy-modal.active,
-.modal-overlay.active {
-    display: flex !important;
-}
-
-/* 3. Target the Actual Windows (The Green Boxes) */
-.ocr-modal,
-#copy-modal .modal-content {
-    /* Reset margins so Flexbox can do its job */
-    margin: 0 !important; 
-    
-    /* Ensure they don't touch the screen edges on mobile */
-    max-width: 700px;
-    width: 90%;
-    max-height: 90vh; /* Prevent tall windows from getting cut off */
-    overflow-y: auto; /* Scroll inside the window if needed */
-    box-sizing: border-box;
-}
-
-/* --- INTERNAL DATA BANK STYLING --- */
+/* --- INTERNAL DATA BANK --- */
 .data-bank-display {
     display: flex;
     gap: 10px;
     justify-content: center;
     flex-wrap: wrap;
     width: 100%;
-    
-    /* SEPARATION FROM BUTTONS ABOVE */
-    margin-top: 20px;            /* The Gap */
-    padding-top: 20px;           /* Breathing room for the line */
-    border-top: 1px solid rgba(51, 255, 0, 0.3); /* The Line */
+    margin-top: 20px;
+    padding-top: 20px;
+    border-top: 1px solid rgba(51, 255, 0, 0.3);
 }
-
 .data-slot {
     background-color: rgba(0, 20, 0, 0.6);
     border: 1px solid var(--pip-dim);
@@ -636,21 +530,19 @@ button.btn-primary:hover {
     color: var(--pip-dim);
     transition: all 0.3s ease;
 }
-
 .data-slot.occupied {
     border-color: var(--pip-green);
     background-color: rgba(51, 255, 0, 0.15);
     color: #afffa6;
     box-shadow: 0 0 5px rgba(51, 255, 0, 0.2);
+    cursor: pointer; /* Added for clarity */
 }
-
 .data-slot .slot-name {
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
     max-width: 150px;
 }
-
 .delete-slot-btn {
     background: none;
     border: none;
@@ -661,59 +553,67 @@ button.btn-primary:hover {
     padding: 0 5px;
     opacity: 0.7;
 }
+.delete-slot-btn:hover { opacity: 1; text-shadow: 0 0 5px #ff0000; }
 
-.delete-slot-btn:hover {
-    opacity: 1;
-    text-shadow: 0 0 5px #ff0000;
-}
-
-/* Mobile tweak for slots */
-@media (max-width: 768px) {
-    .data-bank-display {
-        flex-direction: column;
-    }
-    .data-slot {
-        width: 100%;
-        box-sizing: border-box;
-    }
+/* --- TRANSMISSION LOG --- */
+#copy-text {
+    background-color: #0a0f0a !important; 
+    color: #afffa6 !important;            
+    font-family: "VT323", monospace;
+    font-size: 1.2rem;
+    border: 1px solid var(--pip-dim);
+    padding: 15px;
+    width: 100%;
+    min-height: 400px; 
+    box-sizing: border-box;
+    margin-bottom: 10px;
+    resize: vertical;
+    box-shadow: inset 0 0 10px rgba(0,0,0,0.5);
+    white-space: pre-wrap;
 }
 
 /* ========================================= */
-/* === SINGLE UNIFIED MOBILE MEDIA QUERY === */
+/* === RESPONSIVE MEDIA QUERIES === */
 /* ========================================= */
+
+/* TABLET & DESKTOP (Larger Screens) */
+@media (min-width: 900px) {
+    /* OCR GRID: 3 Columns for Players */
+    #ocr-detected-grid {
+        grid-template-columns: 1fr 1fr 1fr;
+    }
+    /* Mission Info spans all 3 columns */
+    #ocr-detected-grid > .ocr-section:first-child {
+        grid-column: 1 / -1; 
+    }
+}
+
+/* MOBILE (Smaller Screens) */
 @media (max-width: 768px) {
-    /* 1. Global Frame & Body Adjustments */
     body { padding: 5px; }
-    .cogitator-frame { 
-        padding: 10px; 
-        border-width: 2px;
-    }
+    .cogitator-frame { padding: 10px; border-width: 2px; }
     
-    /* 2. Header & Typography */
     .header-decor { flex-direction: column; align-items: center; text-align: center; }
     h1 { font-size: 1.4rem; }
     .section-header { font-size: 0.9rem; }
 
-    /* 3. Main Dashboard Layout */
+    /* Dashboard Layout */
     .dashboard-wrapper { gap: 4px; }
     .mission-params { gap: 2px; }
     
-    .mission-params label, 
-    .mod-row label, 
-    .mission-params input, 
-    .mission-params select, 
-    .mod-row input {
+    .mission-params label, .mod-row label, 
+    .mission-params input, .mission-params select, .mod-row input {
         font-size: 0.8rem; 
     }
-    /* Force text centering on iOS */
+    /* iOS Input Fix */
     select { 
         text-align: center;
-        text-align-last: center; /* <--- THIS IS THE MAGIC FIX FOR iPHONE */
+        text-align-last: center;
         text-indent: 0px; 
         padding-left: 0px; 
     }
 
-    /* 4. Modifiers Section (Stacking) */
+    /* Modifiers Stack */
     .mod-grid-clean {
         grid-template-columns: 1fr;
         grid-template-rows: auto;
@@ -724,7 +624,7 @@ button.btn-primary:hover {
     .mod-row label { font-size: 0.85rem; margin: 0; }
     .mod-row input { height: 20px; font-size: 0.9rem; padding: 0; }
 
-    /* 5. Squad Matrix Table */
+    /* Table Headers */
     .row-label {
         font-size: 0.75rem;
         padding-right: 5px !important;
@@ -732,121 +632,37 @@ button.btn-primary:hover {
         line-height: 1.1;
     }
 
-    /* 6. Import Section & Buttons */
+    /* Stacking Panels */
     .panels-wrapper { grid-template-columns: 1fr; }
     .export-buttons-container { flex-direction: column; gap: 10px; }
     .export-buttons-container button { width: 100%; }
+    #screenshot-upload { width: 100% !important; }
+    .data-bank-display { flex-direction: column; }
+    .data-slot { width: 100%; box-sizing: border-box; }
+
+    /* OCR Mobile Tweaks */
+    .ocr-modal-overlay { padding: 5px; }
+    .ocr-modal { max-width: 95vw; padding: 10px; }
     
-    /* Fix for the main file upload button */
-    #screenshot-upload {
-        width: 100% !important;
-        box-sizing: border-box;
-    }
-
-    /* --- MOBILE RESPONSIVE TWEAKS --- */
-
-    /* Default: Hide mobile text on desktop */
-    .mobile-text {
-        display: none;
-    }
-
-    /* Mobile Rules (Screens smaller than 600px) */
-    @media (max-width: 600px) {
+    /* Force 1 Column for OCR Grid on Mobile */
+    #ocr-detected-grid { grid-template-columns: 1fr !important; }
     
-        /* Swap Incapacitations -> Incap. */
-        .desktop-text {
-            display: none;
-        }
-        .mobile-text {
-            display: inline;
-        }
+    .ocr-input-row input, .ocr-input-row select { width: 60px; font-size: 1rem; }
+    .ocr-modal-buttons { flex-direction: column; gap: 10px; }
+    .ocr-modal-buttons button { width: 100%; margin: 0; }
+}
 
-        /* Shrink "TOTAL SCORE" to avoid clipping */
-        .final-score-row .row-label {
-            font-size: 0.85rem !important; /* Slightly smaller than the default */
-            letter-spacing: 0px !important; /* Tighten the letters slightly */
-        }
-    }
+/* VERY SMALL SCREENS (Phones) */
+@media (max-width: 600px) {
+    /* Swap "Incapacitations" -> "Incap." */
+    .desktop-text { display: none; }
+    .mobile-text { display: inline; }
 
-    /* ========================================= */
-    /* === CRITICAL OCR FIXES === */
-    /* ========================================= */
-    
-    /* Give the modal wrapper breathing room */
-    .ocr-modal-overlay { 
-        padding: 5px; 
-    }
-    
-    /* Ensure the modal itself doesn't overflow */
-    .ocr-modal {
-        max-width: 95vw; /* Never wider than 95% of viewport */
-        padding: 10px;   /* Reduce internal padding */
-    }
-
-    /* Force the Main Grid to 1 Column */
-    .ocr-detected-grid { 
-        grid-template-columns: 1fr !important; 
-    }
-
-    /* Fix the Stats Rows (Kills, Deaths, etc.) */
-    .ocr-stats-row {
-        /* minmax(0, 1fr) is CRITICAL. It allows columns to shrink below content size. */
-        grid-template-columns: repeat(2, minmax(0, 1fr)); 
-        gap: 5px;
-    }
-
-    /* Fix the Individual Items (Label + Input boxes) */
-    .ocr-detected-item {
-        flex-direction: column; 
-        align-items: stretch;
-        gap: 2px;
-        /* OVERRIDE: Reduce the 12px desktop padding to 4px. This saves ~16px width per box. */
-        padding: 6px 4px !important; 
-    }
-
-    /* FORCE ALL INPUTS TO SHRINK */
-    /* We use !important to crush the desktop "140px" width rule */
-    .ocr-input, 
-    .ocr-input[type="number"],
-    .ocr-select {
-        width: 100% !important;
-        min-width: 0 !important;
-        max-width: 100% !important;
-        box-sizing: border-box;
-        font-size: 0.9rem; /* Slightly smaller text prevents expansion */
-    }
-
-    /* Stack the Action Buttons */
-    .ocr-modal-buttons {
-        flex-direction: column;
-        gap: 10px;
-    }
-    .ocr-modal-buttons button {
-        width: 100%;
-        margin: 0;
-    }
-
-    /* ========================================= */
-    /* === TRANSMISSION LOG MOBILE FIXES === */
-    /* ========================================= */
-
-    /* 1. Force the Overlay to be a Flex Container (Centers content) */
-    #copy-modal.active,
-    .modal-overlay.active {
-        display: flex !important;
-        justify-content: center !important;
-        align-items: center !important;
-        padding: 15px !important; /* Safety padding from screen edges */
-        box-sizing: border-box !important;
-    }
-
-    /* 2. Force the Window to Center and Size Correctly */
-    #copy-modal .modal-content {
-        margin: 0 !important;       /* Kill any auto margins drifting right */
-        width: 100% !important;     /* Fill the available padded space */
-        max-width: 100% !important; 
-        left: auto !important;      /* Kill absolute positioning */
-        right: auto !important;
-        transform: none !important; /* Kill centering transforms */
+    /* Shrink "TOTAL SCORE" */
+    .final-score-row .row-label {
+        font-size: 0.85rem !important;
+        letter-spacing: 0px !important;
     }
 }
+/* Helper classes for the text swap */
+.mobile-text { display: none; } /* Hidden by default on Desktop */
