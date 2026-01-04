@@ -1478,7 +1478,6 @@ const inputIds = [
     "global-geneseed",
     "global-armoury",
     "global-waves", // Existing
-    "global-tasks", // NEW
     "p1-name", "p2-name", "p3-name",
     "p1-class", "p2-class", "p3-class",
     "p1-kills", "p2-kills", "p3-kills",
@@ -1489,6 +1488,7 @@ const inputIds = [
     "p1-revived", "p2-revived", "p3-revived",
     "p1-melee", "p2-melee", "p3-melee",
     "p1-ranged", "p2-ranged", "p3-ranged"
+    "p1-tasks", "p2-tasks", "p3-tasks"
 ];
 
 // Save all form data to localStorage
@@ -1571,42 +1571,32 @@ function calculate() {
     const modGene = getVal("mod-gene");
     const modArmoury = getVal("mod-armoury");
     const modObj = getVal("mod-obj");
-    
-    // NEW: Logic for specific Wave/Task values
-    // NOTE: In your HTML, set the default value of 'mod-waves' to 250
-    // and 'mod-tasks' to 25 to match your new rules.
     const modWaves = getVal("mod-waves"); 
-    const modTasks = getVal("mod-tasks"); 
+    const modTasks = getVal("mod-tasks"); // Value is 25
 
     // 2. Get Global statuses
     const globalObj = document.getElementById("global-objective").value === "" ? 0 : getVal("global-objective");
     const globalGene = document.getElementById("global-geneseed").value === "" ? 0 : getVal("global-geneseed");
-    const globalArmoury = document.getElementById("global-armoury").value === "" ? 0 : getVal("global-armoury");
-    
+    const globalArmoury = getVal("global-armoury"); // Now an Input, not dropdown
     const globalWaves = getVal("global-waves");
-    const globalTasks = getVal("global-tasks"); // NEW
-
-    // --- NEW LOGIC CALCULATION ---
     
-    // Wave Bonus: Only applies to waves > 15
+    // Wave Bonus Logic (>15)
     let waveScore = 0;
     if (globalWaves > 15) {
         waveScore = (globalWaves - 15) * modWaves;
     }
 
-    // Task Bonus: Simple multiplication
-    let taskScore = globalTasks * modTasks;
-
-    // Initialize Total Accumulators
+    // Initialize Totals
     let sumKills = 0; let sumElite = 0; let sumDeath = 0;
     let sumDamage = 0; let sumMelee = 0; let sumRanged = 0;
-    let sumItems = 0; let sumRevived = 0;
+    let sumItems = 0; let sumRevived = 0; let sumTasks = 0; // NEW
 
-    // --- Calculate for each player ---
+    // --- Loop Players ---
     for (let i = 1; i <= 3; i++) {
-        // Player Inputs
+        // Inputs
         const kills = getVal(`p${i}-kills`);
         const elite = getVal(`p${i}-elite`);
+        const tasks = getVal(`p${i}-tasks`); // NEW: Individual Tasks
         const death = getVal(`p${i}-death`);
         const damage = getVal(`p${i}-damage`);
         const melee = getVal(`p${i}-melee`);
@@ -1616,33 +1606,33 @@ function calculate() {
 
         // Accumulate
         sumKills += kills; sumElite += elite; sumDeath += death;
+        sumTasks += tasks; // Accumulate Tasks
         sumDamage += damage; sumMelee += melee; sumRanged += ranged;
         sumItems += items; sumRevived += revived;
 
-        // Base Score
+        // Base Score (Kills + Special Kills + Objective)
         const playerBaseScore =
             kills * modKills +
             elite * modElite +
             globalObj * modObj;
 
-        // Modifier Score (Now includes the new Wave Logic + Tasks)
+        // Modifier Score
+        // Tasks (+25 each) are added here
         const playerModifierScore =
             death * modDeath +
             damage * modDamage +
             globalGene * modGene +
             globalArmoury * modArmoury +
-            waveScore +  // Added calculated wave score
-            taskScore;   // Added calculated task score
+            waveScore +
+            (tasks * modTasks); // NEW: Player Specific Task Score
 
-        // Final Score
         const playerFinalScore = Math.round(playerBaseScore + playerModifierScore);
 
-        // Update DOM
         setTxt(`p${i}-base`, Math.round(playerBaseScore * 10) / 10);
         setTxt(`p${i}-mod`, parseFloat(playerModifierScore.toFixed(1)));
         setTxt(`p${i}-final`, playerFinalScore);
 
-        // Differential
+        // Diff Display
         const diff = revived - death;
         const diffEl = document.getElementById(`p${i}-diff`);
         if (diffEl) {
@@ -1652,10 +1642,15 @@ function calculate() {
     }
 
     // --- Totals ---
-    setTxt("total-kills", sumKills); setTxt("total-elite", sumElite);
-    setTxt("total-death", sumDeath); setTxt("total-damage", sumDamage);
-    setTxt("total-melee", sumMelee); setTxt("total-ranged", sumRanged);
-    setTxt("total-items", sumItems); setTxt("total-revived", sumRevived);
+    setTxt("total-kills", sumKills); 
+    setTxt("total-elite", sumElite);
+    setTxt("total-tasks", sumTasks); // NEW
+    setTxt("total-death", sumDeath); 
+    setTxt("total-damage", sumDamage);
+    setTxt("total-melee", sumMelee); 
+    setTxt("total-ranged", sumRanged);
+    setTxt("total-items", sumItems); 
+    setTxt("total-revived", sumRevived);
 
     updateAdditionalStatsHeaders();
 
@@ -1666,20 +1661,19 @@ function calculate() {
         totalDiffEl.style.color = totalDiff >= 0 ? "#afffa6" : "#ff6600";
     }
 
-    // Squad Base Score
+    // Squad Totals
     const totalSquadBaseScore =
         sumKills * modKills +
         sumElite * modElite +
         globalObj * modObj;
 
-    // Squad Modifier Score (New Logic)
     const totalSquadModifierScore =
         sumDeath * modDeath +
         sumDamage * modDamage +
         globalGene * modGene +
         globalArmoury * modArmoury +
-        waveScore + 
-        taskScore;
+        waveScore +
+        (sumTasks * modTasks); // NEW
 
     const totalSquadFinalScore = Math.round(totalSquadBaseScore + totalSquadModifierScore);
 
@@ -1707,7 +1701,6 @@ function generateCSVString() {
     csv.push(`Mission Played:,${getStr("mission-name")}`);
     csv.push(`Difficulty:,${missionDifficulty}`);
     csv.push(`Waves Reached:,${getVal("global-waves")}`);
-    csv.push(`Tasks Completed:,${getVal("global-tasks")}`); // NEW LINE
     csv.push(`Objective Completion:,${document.getElementById("global-objective").value === "1" ? "Yes" : "No"}`);
     csv.push(`Geneseed Retrieved:,${document.getElementById("global-geneseed").value === "1" ? "Yes" : "No"}`);
     csv.push(`Armoury Data Retrieved:,${getVal("global-armoury")}`);
@@ -1745,6 +1738,7 @@ function generateCSVString() {
     csv.push(`Melee Damage,${getVal("p1-melee")},${getVal("p2-melee")},${getVal("p3-melee")},${document.getElementById("total-melee").textContent}`);
     csv.push(`Ranged Damage,${getVal("p1-ranged")},${getVal("p2-ranged")},${getVal("p3-ranged")},${document.getElementById("total-ranged").textContent}`);
     csv.push(`Items Found,${getVal("p1-items")},${getVal("p2-items")},${getVal("p3-items")},${document.getElementById("total-items").textContent}`);
+    csv.push(generateRow("Tasks Completed", "tasks")); // NEW ROW
 
     // Teammates Revived logic
     const p1Revived = getVal("p1-revived");
@@ -2202,7 +2196,7 @@ const MATRIX_KEYS = [
 ];
 
 const ADD_STATS_KEYS = [
-    "Melee Damage", "Ranged Damage", "Items Found", "Teammates Revived"
+    "Melee Damage", "Ranged Damage", "Items Found", "Teammates Revived", "Tasks Completed"
 ];
 
 /* --- SAFE CSV UPLOAD LISTENER --- */
