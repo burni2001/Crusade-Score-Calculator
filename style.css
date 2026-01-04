@@ -743,6 +743,31 @@ button.btn-primary:hover {
         box-sizing: border-box;
     }
 
+    /* --- MOBILE RESPONSIVE TWEAKS --- */
+
+    /* Default: Hide mobile text on desktop */
+    .mobile-text {
+        display: none;
+    }
+
+    /* Mobile Rules (Screens smaller than 600px) */
+    @media (max-width: 600px) {
+    
+        /* Swap Incapacitations -> Incap. */
+        .desktop-text {
+            display: none;
+        }
+        .mobile-text {
+            display: inline;
+        }
+
+        /* Shrink "TOTAL SCORE" to avoid clipping */
+        .final-score-row .row-label {
+            font-size: 0.85rem !important; /* Slightly smaller than the default */
+            letter-spacing: 0px !important; /* Tighten the letters slightly */
+        }
+    }
+
     /* ========================================= */
     /* === CRITICAL OCR FIXES === */
     /* ========================================= */
