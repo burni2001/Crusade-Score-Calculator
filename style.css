@@ -343,7 +343,7 @@ button.btn-primary:hover {
     box-shadow: 0 0 20px var(--pip-green), inset 0 0 10px rgba(51,255,0,0.3);
 }
 
-/* --- MODALS & OCR LAYOUT --- */
+/* --- MODALS & OCR BASE STYLES --- */
 .ocr-modal-overlay, .modal-overlay, #copy-modal {
     display: none; 
     position: fixed; top: 0; left: 0; width: 100%; height: 100%;
@@ -367,19 +367,23 @@ button.btn-primary:hover {
     margin: 0;
 }
 
-/* OCR GRID LAYOUT (The Layout Fix) */
+/* --- OCR MODAL LAYOUT (CLEAN V3) --- */
+
+/* Main Container Grid */
 #ocr-detected-grid {
     display: grid;
-    grid-template-columns: 1fr; /* Mobile Default */
+    grid-template-columns: 1fr; /* Default: 1 Column (Mobile) */
     gap: 15px;
 }
 
-/* Section Styling */
+/* The Cards (Green Boxes) */
 .ocr-section {
     background: rgba(0, 20, 0, 0.4);
     border: 1px solid var(--pip-green);
     padding: 15px;
 }
+
+/* Card Titles */
 .ocr-section-title {
     color: var(--pip-green);
     border-bottom: 1px solid #335533;
@@ -391,7 +395,7 @@ button.btn-primary:hover {
     letter-spacing: 1px;
 }
 
-/* Input Row styling */
+/* Standard Input Rows (Label Left | Input Right) */
 .ocr-input-row {
     display: flex;
     justify-content: space-between;
@@ -400,13 +404,17 @@ button.btn-primary:hover {
     padding-bottom: 6px;
     border-bottom: 1px solid rgba(51, 255, 0, 0.1);
 }
+
 .ocr-input-row label {
     font-size: 0.85em;
     color: #afffa6;
     opacity: 0.8;
-    flex: 1; 
+    flex: 1; /* Label takes space */
 }
-.ocr-input-row input, .ocr-input-row select {
+
+/* Standard Inputs */
+.ocr-input-row input, 
+.ocr-input-row select {
     width: 80px; 
     background: #050a05;
     border: 1px solid #335533;
@@ -417,37 +425,63 @@ button.btn-primary:hover {
     font-size: 1.1em;
 }
 
-/* Mission Info Flex Bar */
-.mission-info-flex {
-    flex-wrap: nowrap !important; /* Force single line */
-    justify-content: space-between;
-    gap: 10px;
-}
-.mission-info-flex .ocr-input-row {
-    flex: 1; /* Make them equal width */
-    width: auto !important;
-}
-.mission-info-flex input, 
-.mission-info-flex select {
-    width: 100% !important; /* Fill the flex item */
-}
-
-/* Name Input in Header Styling */
+/* --- PLAYER NAME HEADER (Box Style) --- */
 .player-header-input {
-    background: transparent !important;
-    border: none !important;
-    border-bottom: 1px solid var(--pip-dim) !important;
+    background: rgba(0, 0, 0, 0.5) !important;
+    border: 1px solid var(--pip-green) !important;
     color: var(--pip-green) !important;
     font-weight: bold;
     font-size: 1.2rem !important;
     width: 100% !important;
     text-align: center;
-    padding: 0 !important;
+    padding: 5px !important;
+    font-family: "VT323", monospace;
+    margin-bottom: 5px;
 }
 .player-header-input:focus {
     outline: none;
-    border-bottom-color: var(--pip-green) !important;
-    box-shadow: none !important;
+    background: #050a05 !important;
+    box-shadow: 0 0 10px var(--pip-green) !important;
+}
+
+/* --- MISSION PARAMETERS (Flex) --- */
+.mission-info-flex {
+    display: flex;
+    width: 100%;
+    /* Default: Mobile Stack */
+    flex-direction: column; 
+    gap: 0;
+}
+
+/* Mobile Mission Row Styling */
+.mission-info-flex .ocr-input-row {
+    display: flex;
+    flex-direction: row; /* Keep Label Left, Input Right */
+    width: 100%;
+    border-bottom: 1px solid rgba(51, 255, 0, 0.1);
+    padding: 8px 0;
+}
+.mission-info-flex input, 
+.mission-info-flex select {
+    width: 50% !important; /* Half width for alignment */
+    text-align: center;
+}
+
+/* --- RAW TEXT SECTION (Gap Fix) --- */
+.raw-text-section-header {
+    margin-top: 50px !important; /* The Gap */
+    border-top: 1px solid #335533;
+    padding-top: 20px;
+}
+.ocr-raw-text {
+    background-color: #000;
+    border: 1px solid var(--border-color);
+    padding: 10px;
+    max-height: 150px;
+    overflow-y: auto;
+    font-size: 0.9rem;
+    white-space: pre-wrap; 
+    word-break: break-word;
 }
 
 /* OCR BUTTONS */
@@ -478,18 +512,6 @@ button.btn-primary:hover {
 }
 .ocr-modal-buttons .cancel-btn { border-color: #ff6600; color: #ff6600; }
 .ocr-modal-buttons .cancel-btn:hover { background-color: #ff6600; color: var(--bg-color); box-shadow: 0 0 15px #ff6600; }
-
-.ocr-raw-text {
-    background-color: #000;
-    border: 1px solid var(--border-color);
-    padding: 10px;
-    max-height: 150px;
-    overflow-y: auto;
-    font-size: 0.9rem;
-    white-space: pre-wrap; 
-    word-break: break-word;
-    margin-top: 40px;
-}
 
 /* --- CREDITS --- */
 .credits-full {
@@ -590,18 +612,41 @@ button.btn-primary:hover {
 }
 
 /* ========================================= */
-/* === RESPONSIVE MEDIA QUERIES === */
+/* === RESPONSIVE MEDIA QUERIES (MERGED) === */
 /* ========================================= */
 
 /* TABLET & DESKTOP (Larger Screens) */
 @media (min-width: 900px) {
-    /* OCR GRID: 3 Columns for Players */
+    /* 1. OCR GRID: 3 Columns */
     #ocr-detected-grid {
         grid-template-columns: 1fr 1fr 1fr;
     }
-    /* Mission Info spans all 3 columns */
+    
+    /* 2. Mission Info spans full width */
     #ocr-detected-grid > .ocr-section:first-child {
         grid-column: 1 / -1; 
+    }
+
+    /* 3. MISSION PARAMS: Single Horizontal Line */
+    .mission-info-flex {
+        flex-direction: row !important;
+        align-items: flex-end;
+        gap: 15px;
+    }
+    .mission-info-flex .ocr-input-row {
+        flex-direction: column !important; /* Label Top, Input Bottom */
+        border-bottom: none;
+        padding: 0;
+        flex: 1; /* Distribute width evenly */
+    }
+    .mission-info-flex label {
+        width: 100%;
+        text-align: center;
+        margin-bottom: 5px;
+    }
+    .mission-info-flex input, 
+    .mission-info-flex select {
+        width: 100% !important;
     }
 }
 
