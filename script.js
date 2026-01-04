@@ -1727,6 +1727,7 @@ function generateCSVString() {
     csv.push(`Special Kills,${getVal("p1-elite")},${getVal("p2-elite")},${getVal("p3-elite")},${document.getElementById("total-elite").textContent}`);
     csv.push(`Incapacitations,${getVal("p1-death")},${getVal("p2-death")},${getVal("p3-death")},${document.getElementById("total-death").textContent}`);
     csv.push(`Damage Taken,${getVal("p1-damage")},${getVal("p2-damage")},${getVal("p3-damage")},${document.getElementById("total-damage").textContent}`);
+    csv.push(`Tasks Completed,${getVal("p1-tasks")},${getVal("p2-tasks")},${getVal("p3-tasks")},${document.getElementById("total-tasks").textContent}`);
     csv.push(`Base Score,${document.getElementById("p1-base").textContent},${document.getElementById("p2-base").textContent},${document.getElementById("p3-base").textContent},${document.getElementById("total-base").textContent}`);
     csv.push(`Modifier Score,${document.getElementById("p1-mod").textContent},${document.getElementById("p2-mod").textContent},${document.getElementById("p3-mod").textContent},${document.getElementById("total-mod").textContent}`);
     csv.push(`TOTAL SCORE,${document.getElementById("p1-final").textContent},${document.getElementById("p2-final").textContent},${document.getElementById("p3-final").textContent},${document.getElementById("total-final").textContent}`);
@@ -1738,7 +1739,6 @@ function generateCSVString() {
     csv.push(`Melee Damage,${getVal("p1-melee")},${getVal("p2-melee")},${getVal("p3-melee")},${document.getElementById("total-melee").textContent}`);
     csv.push(`Ranged Damage,${getVal("p1-ranged")},${getVal("p2-ranged")},${getVal("p3-ranged")},${document.getElementById("total-ranged").textContent}`);
     csv.push(`Items Found,${getVal("p1-items")},${getVal("p2-items")},${getVal("p3-items")},${document.getElementById("total-items").textContent}`);
-    csv.push(generateRow("Tasks Completed", "tasks")); // NEW ROW
 
     // Teammates Revived logic
     const p1Revived = getVal("p1-revived");
@@ -2192,11 +2192,11 @@ let importAppState = {
 
 const MATRIX_KEYS = [
     "Kills", "Special Kills", "Incapacitations", 
-    "Damage Taken", "Base Score", "Modifier Score", "TOTAL SCORE"
+    "Damage Taken", "Base Score", "Tasks Completed", "Modifier Score", "TOTAL SCORE"
 ];
 
 const ADD_STATS_KEYS = [
-    "Melee Damage", "Ranged Damage", "Items Found", "Teammates Revived", "Tasks Completed"
+    "Melee Damage", "Ranged Damage", "Items Found", "Teammates Revived"
 ];
 
 /* --- SAFE CSV UPLOAD LISTENER --- */
