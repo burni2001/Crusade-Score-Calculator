@@ -1104,181 +1104,93 @@ function parseGameData(text) {
 
 // Show OCR review modal
 function showOCRModal() {
-    const modal = document.getElementById("ocr-modal-overlay");
-    const grid = document.getElementById("ocr-detected-grid");
-    const rawTextDiv = document.getElementById("ocr-raw-text");
-
-    // Display raw text
-    rawTextDiv.textContent = rawOCRText || "No text detected";
-
-    // Helper to create input HTML
-    function createInput(key, type, label) {
-        const value = pendingOCRResults[key];
-        // Explicitly handle 0 as a valid detected value (not missing)
-        const hasValue =
-            value !== undefined &&
-            value !== null &&
-            String(value) !== "";
-        let displayValue = hasValue ? value : "";
-
-        // Format special values
-        if (key === "global-objective" && value === "1")
-            displayValue = "Yes";
-        if (key === "global-geneseed" && value === "1")
-            displayValue = "Yes";
-        if (key === "global-geneseed" && value === "0")
-            displayValue = "No";
-
-        let inputHTML = "";
-        if (type === "difficulty") {
-            inputHTML = `
-                <select class="ocr-input ocr-select" data-key="${key}">
-                    <option value="">- Select -</option>
-                    <option value="Minimal" ${displayValue === "Minimal" ? "selected" : ""}>Minimal</option>
-                    <option value="Average" ${displayValue === "Average" ? "selected" : ""}>Average</option>
-                    <option value="Substantial" ${displayValue === "Substantial" ? "selected" : ""}>Substantial</option>
-                    <option value="Ruthless" ${displayValue === "Ruthless" ? "selected" : ""}>Ruthless</option>
-                    <option value="Lethal" ${displayValue === "Lethal" ? "selected" : ""}>Lethal</option>
-                    <option value="Absolute" ${displayValue === "Absolute" ? "selected" : ""}>Absolute</option>
-                    <option value="Normal" ${displayValue === "Normal" ? "selected" : ""}>Normal</option>
-                    <option value="Hard" ${displayValue === "Hard" ? "selected" : ""}>Hard</option>
-                </select>`;
-        } else if (type === "class") {
-            inputHTML = `
-                <select class="ocr-input ocr-select" data-key="${key}">
-                    <option value="">- Select -</option>
-                    <option value="Tactical" ${displayValue === "Tactical" ? "selected" : ""}>Tactical</option>
-                    <option value="Assault" ${displayValue === "Assault" ? "selected" : ""}>Assault</option>
-                    <option value="Vanguard" ${displayValue === "Vanguard" ? "selected" : ""}>Vanguard</option>
-                    <option value="Bulwark" ${displayValue === "Bulwark" ? "selected" : ""}>Bulwark</option>
-                    <option value="Sniper" ${displayValue === "Sniper" ? "selected" : ""}>Sniper</option>
-                    <option value="Heavy" ${displayValue === "Heavy" ? "selected" : ""}>Heavy</option>
-                    <option value="Techmarine" ${displayValue === "Techmarine" ? "selected" : ""}>Techmarine</option>
-                </select>`;
-        } else if (type === "yesno") {
-            const yesSelected =
-                displayValue === "Yes" ? "selected" : "";
-            const noSelected =
-                displayValue === "No" || !hasValue
-                    ? "selected"
-                    : "";
-            inputHTML = `
-                <select class="ocr-input ocr-select" data-key="${key}">
-                    <option value="0" ${noSelected}>No</option>
-                    <option value="1" ${yesSelected}>Yes</option>
-                </select>`;
-        } else if (type === "armoury") {
-            inputHTML = `
-                <select class="ocr-input ocr-select" data-key="${key}">
-                    <option value="0" ${displayValue === "0" ? "selected" : ""}>0</option>
-                    <option value="1" ${displayValue === "1" ? "selected" : ""}>1</option>
-                    <option value="2" ${displayValue === "2" ? "selected" : ""}>2</option>
-                    <option value="3" ${displayValue === "3" ? "selected" : ""}>3</option>
-                </select>`;
-        } else if (type === "number") {
-            inputHTML = `<input type="number" class="ocr-input" data-key="${key}" value="${displayValue}" min="0" placeholder="0">`;
-        } else {
-            inputHTML = `<input type="text" class="ocr-input" data-key="${key}" value="${displayValue}" placeholder="Not detected">`;
-        }
-
-        return `
-            <div class="ocr-detected-item ${hasValue ? "" : "not-found"}">
-                <span class="ocr-detected-label">${label}:</span>
-                ${inputHTML}
-            </div>
-        `;
-    }
-
-    // Build grouped layout
-    let gridHTML = "";
-
-    // Mission Info Section
-    gridHTML += `<div class="ocr-section"><div class="ocr-section-title">Mission Info</div>`;
-    gridHTML += createInput("mission-name", "text", "Mission");
-    gridHTML += createInput(
-        "mission-difficulty",
-        "difficulty",
-        "Difficulty",
-    );
-    gridHTML += createInput(
-        "global-objective",
-        "yesno",
-        "Objective Complete",
-    );
-    gridHTML += createInput(
-        "global-geneseed",
-        "yesno",
-        "Geneseed Retrieved",
-    );
-    gridHTML += createInput(
-        "global-armoury",
-        "number",
-        "Armoury Data",
-    );
-    gridHTML += createInput(
-        "global-waves",
-        "number",
-        "Waves Reached",
-    );
+    const modal = document.getElementById('ocr-modal-overlay');
+    const grid = document.getElementById('ocr-detected-grid');
+    const rawText = document.getElementById('ocr-raw-text');
     
-    gridHTML += `</div>`;
+    if(!modal || !grid) return;
 
-    // Space Marine sections
-    for (let p = 1; p <= 3; p++) {
-        gridHTML += `<div class="ocr-section ocr-player-section"><div class="ocr-section-title">Space Marine ${p}</div>`;
-        gridHTML += createInput(`p${p}-name`, "text", "Name");
-        gridHTML += createInput(`p${p}-class`, "class", "Class");
-        gridHTML += `<div class="ocr-stats-row">`;
-        gridHTML += createInput(`p${p}-kills`, "number", "Kills");
-        gridHTML += createInput(
-            `p${p}-elite`,
-            "number",
-            "Special Kills",
-        );
-        gridHTML += createInput(
-            `p${p}-death`,
-            "number",
-            "Incapacitations",
-        );
-        gridHTML += createInput(
-            `p${p}-damage`,
-            "number",
-            "Damage Taken",
-        );
-        gridHTML += `</div>`;
-        gridHTML += `<div class="ocr-stats-row">`;
-        gridHTML += createInput(
-            `p${p}-melee`,
-            "number",
-            "Melee Damage",
-        );
-        gridHTML += createInput(
-            `p${p}-ranged`,
-            "number",
-            "Ranged Damage",
-        );
-        gridHTML += createInput(
-            `p${p}-items`,
-            "number",
-            "Items Found",
-        );
-        gridHTML += createInput(
-            `p${p}-revived`,
-            "number",
-            "Revived",
-        );
-        gridHTML += createInput(
-            `p${p}-tasks`,
-            "number",
-            "Tasks Completed"
-        );
-        gridHTML += `</div></div>`;
+    rawText.textContent = ocrDebugText; // Show debug info
+    
+    let html = "";
+
+    // helper to create a clean row: Label | [Input]
+    const createRow = (id, type, label) => {
+        let inputHtml = "";
+        if (type === "yesno") {
+            inputHtml = `<select data-target-id="${id}"><option value="0">No</option><option value="1">Yes</option></select>`;
+        } else if (type === "difficulty") {
+             inputHtml = `<select data-target-id="${id}">
+                <option value="Minimal">Minimal</option>
+                <option value="Average">Average</option>
+                <option value="Substantial">Substantial</option>
+                <option value="Ruthless">Ruthless</option>
+                <option value="Lethal">Lethal</option>
+                <option value="Absolute">Absolute</option>
+            </select>`;
+        } else {
+            // Standard Text/Number
+            inputHtml = `<input type="${type}" data-target-id="${id}" />`;
+        }
+        return `<div class="ocr-input-row"><label>${label}</label>${inputHtml}</div>`;
+    };
+
+    // 1. MISSION INFO (Top Section - Full Width)
+    html += `<div class="ocr-section">`;
+    html += `<div class="ocr-section-title">MISSION PARAMETERS</div>`;
+    html += `<div class="mission-info-flex">`; // Horizontal Flex layout
+    
+    html += createRow("mission-name", "text", "Mission");
+    html += createRow("mission-difficulty", "difficulty", "Difficulty");
+    html += createRow("global-objective", "yesno", "Objective");
+    html += createRow("global-geneseed", "yesno", "Geneseed");
+    html += createRow("global-armoury", "number", "Armoury");
+    html += createRow("global-waves", "number", "Waves");
+    
+    html += `</div></div>`;
+
+    // 2. PLAYER SECTIONS (3 Columns)
+    for (let i = 1; i <= 3; i++) {
+        html += `<div class="ocr-section">`;
+        html += `<div class="ocr-section-title">PLAYER ${i}</div>`;
+        
+        // Name & Class (Top of card)
+        html += createRow(`p${i}-name`, "text", "Name");
+        html += createRow(`p${i}-class`, "text", "Class");
+        html += `<div style="height:1px; background:#335533; margin:10px 0;"></div>`; // Divider
+        
+        // Stats List
+        html += createRow(`p${i}-kills`, "number", "Kills");
+        html += createRow(`p${i}-elite`, "number", "Special Kills");
+        html += createRow(`p${i}-tasks`, "number", "Tasks"); // New Tasks Input
+        html += createRow(`p${i}-death`, "number", "Incapacitations");
+        html += createRow(`p${i}-damage`, "number", "Dmg Taken");
+        html += createRow(`p${i}-melee`, "number", "Melee Dmg");
+        html += createRow(`p${i}-ranged`, "number", "Ranged Dmg");
+        html += createRow(`p${i}-items`, "number", "Items");
+        html += createRow(`p${i}-revived`, "number", "Revived");
+        
+        html += `</div>`;
     }
 
-    grid.innerHTML = gridHTML;
+    grid.innerHTML = html;
 
-    // Show modal
-    modal.classList.add("active");
+    // 3. FILL VALUES
+    const inputs = grid.querySelectorAll('input, select');
+    inputs.forEach(input => {
+        const id = input.dataset.targetId;
+        // 1. Try OCR Result
+        if(id && ocrResults[id] !== undefined) {
+            input.value = ocrResults[id];
+        } 
+        // 2. Fallback to current Form Value
+        else if (id) {
+            const existing = document.getElementById(id);
+            if(existing) input.value = existing.value;
+        }
+    });
+
+    modal.classList.add('active');
 }
 
 // Apply OCR results to form
