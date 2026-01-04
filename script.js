@@ -1103,6 +1103,7 @@ function parseGameData(text) {
 }
 
 // Show OCR review modal
+// Show OCR review modal
 function showOCRModal() {
     const modal = document.getElementById('ocr-modal-overlay');
     const grid = document.getElementById('ocr-detected-grid');
@@ -1110,7 +1111,8 @@ function showOCRModal() {
     
     if(!modal || !grid) return;
 
-    rawText.textContent = ocrDebugText; // Show debug info
+    // FIX 1: Use 'rawOCRText', which is defined at the top of your script
+    rawText.textContent = rawOCRText; 
     
     let html = "";
 
@@ -1179,9 +1181,11 @@ function showOCRModal() {
     const inputs = grid.querySelectorAll('input, select');
     inputs.forEach(input => {
         const id = input.dataset.targetId;
-        // 1. Try OCR Result
-        if(id && ocrResults[id] !== undefined) {
-            input.value = ocrResults[id];
+        
+        // FIX 2: Use 'pendingOCRResults', which is defined at the top of your script
+        // (ocrResults was undefined)
+        if(id && pendingOCRResults[id] !== undefined) {
+            input.value = pendingOCRResults[id];
         } 
         // 2. Fallback to current Form Value
         else if (id) {
