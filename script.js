@@ -2066,7 +2066,7 @@ async function saveAsPNG() {
         // 7. Download
         const link = document.createElement("a");
         const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);
-        link.download = `Import_Data_${timestamp}.png`;
+        link.download = `Aggregated_Data_${timestamp}.png`;
         link.href = canvas.toDataURL("image/png");
         link.click();
 
