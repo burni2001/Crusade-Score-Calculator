@@ -1217,34 +1217,54 @@ function showOCRModal() {
 
 // Apply OCR results to form
 function applyOCRResults() {
-    // Read values from the editable input fields in the modal
-    const inputs = document.querySelectorAll(".ocr-input");
+    // 1. Find the grid container
+    const grid = document.getElementById('ocr-detected-grid');
+    if (!grid) return;
+
+    // 2. Select ALL inputs and dropdowns inside the grid
+    const inputs = grid.querySelectorAll('input, select');
+
+    let appliedCount = 0;
+
     inputs.forEach((input) => {
-        const key = input.dataset.key;
-        const value = input.value;
-        const el = document.getElementById(key);
-        if (el && value !== undefined && value !== "") {
-            el.value = value;
+        // 3. Get the ID of the real form field from the dataset
+        const targetId = input.dataset.targetId;
+        const newValue = input.value;
+
+        if (targetId && newValue !== undefined) {
+            // 4. Find the actual field in the main app
+            const mainField = document.getElementById(targetId);
+            
+            if (mainField) {
+                // Apply value
+                mainField.value = newValue;
+                
+                // Visual feedback (optional: flash the field green)
+                mainField.style.transition = "background-color 0.5s";
+                const originalBg = mainField.style.backgroundColor;
+                mainField.style.backgroundColor = "#1a331a";
+                setTimeout(() => {
+                    mainField.style.backgroundColor = originalBg;
+                }, 500);
+
+                appliedCount++;
+            }
         }
     });
 
-    // Recalculate and save
+    // 5. Trigger calculations and save
     calculate();
     saveData();
+    updateAdditionalStatsHeaders(); // Ensure names update in the bottom table
 
-    // Close modal
+    // 6. Close and Notify
     closeOCRModal();
 
-    // Update status
     const statusDiv = document.getElementById("upload-status");
-    statusDiv.textContent = "Values applied successfully!";
-    statusDiv.style.color = "#afffa6";
-}
-
-// Close OCR modal
-function closeOCRModal() {
-    const modal = document.getElementById("ocr-modal-overlay");
-    modal.classList.remove("active");
+    if (statusDiv) {
+        statusDiv.textContent = `Successfully applied ${appliedCount} values.`;
+        statusDiv.style.color = "#afffa6";
+    }
 }
 
 // Export OCR debug data for troubleshooting
