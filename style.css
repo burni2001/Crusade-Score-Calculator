@@ -714,17 +714,32 @@ button.btn-primary:hover {
     .ocr-modal-buttons button { width: 100%; margin: 0; }
 }
 
-/* VERY SMALL SCREENS (Phones) */
-@media (max-width: 600px) {
-    /* Swap "Incapacitations" -> "Incap." */
-    .desktop-text { display: none; }
-    .mobile-text { display: inline; }
+/* ========================================= */
+/* === RESPONSIVE TEXT SWAPPING (FIXED)  === */
+/* ========================================= */
 
-    /* Shrink "TOTAL SCORE" */
+/* 1. GLOBAL DEFAULTS (Desktop) */
+/* Defined FIRST so they can be overridden */
+.mobile-text { 
+    display: none; 
+}
+.desktop-text { 
+    display: inline; 
+}
+
+/* 2. MOBILE OVERRIDE (Tablets & Phones) */
+/* Defined SECOND so it takes priority on small screens */
+@media (max-width: 768px) {
+    .desktop-text { 
+        display: none; 
+    }
+    .mobile-text { 
+        display: inline; 
+    }
+
+    /* Shrink "TOTAL SCORE" to avoid clipping */
     .final-score-row .row-label {
         font-size: 0.85rem !important;
         letter-spacing: 0px !important;
     }
 }
-/* Helper classes for the text swap */
-.mobile-text { display: none; } /* Hidden by default on Desktop */
