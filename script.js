@@ -1175,19 +1175,18 @@ function showOCRModal() {
         
         // Stats List
         html += createRow(`p${i}-class`, "class", "Class");
-        html += `<div style="height:1px; background:#335533; margin:10px 0;"></div>`; 
+        html += `<div style="height:1px; background:#335533; margin:10px 0;"></div>`;
+        
+        html += createRow(`p${i}-tasks`, "number", "Tasks Completed");
         
         html += createRow(`p${i}-kills`, "number", "Kills");
         html += createRow(`p${i}-elite`, "number", "Special Kills");
-        html += createRow(`p${i}-tasks`, "number", "Tasks Completed");
-        html += createRow(`p${i}-death`, "number", "Incapacitations");
-        
-        html += createRow(`p${i}-damage`, "number", "Damage Taken");
         html += createRow(`p${i}-melee`, "number", "Melee Damage");
         html += createRow(`p${i}-ranged`, "number", "Ranged Damage");
         html += createRow(`p${i}-items`, "number", "Items Found");
-        
-        html += createRow(`p${i}-revived`, "number", "Revived");
+        html += createRow(`p${i}-damage`, "number", "Damage Taken");
+        html += createRow(`p${i}-death`, "number", "Incapacitations");
+        html += createRow(`p${i}-revived`, "number", "Teammates Revived");
         
         html += `</div>`;
     }
@@ -1217,53 +1216,74 @@ function showOCRModal() {
 
 // Apply OCR results to form
 function applyOCRResults() {
-    // 1. Find the grid container
-    const grid = document.getElementById('ocr-detected-grid');
-    if (!grid) return;
+    try {
+        // 1. Find the grid container
+        const grid = document.getElementById('ocr-detected-grid');
+        if (!grid) return;
 
-    // 2. Select ALL inputs and dropdowns inside the grid
-    const inputs = grid.querySelectorAll('input, select');
+        // 2. Select ALL inputs and dropdowns inside the grid
+        const inputs = grid.querySelectorAll('input, select');
+        let appliedCount = 0;
 
-    let appliedCount = 0;
+        inputs.forEach((input) => {
+            // 3. Get the ID of the real form field from the dataset
+            const targetId = input.dataset.targetId;
+            const newValue = input.value;
 
-    inputs.forEach((input) => {
-        // 3. Get the ID of the real form field from the dataset
-        const targetId = input.dataset.targetId;
-        const newValue = input.value;
-
-        if (targetId && newValue !== undefined) {
-            // 4. Find the actual field in the main app
-            const mainField = document.getElementById(targetId);
-            
-            if (mainField) {
-                // Apply value
-                mainField.value = newValue;
+            if (targetId && newValue !== undefined) {
+                // 4. Find the actual field in the main app
+                const mainField = document.getElementById(targetId);
                 
-                // Visual feedback (optional: flash the field green)
-                mainField.style.transition = "background-color 0.5s";
-                const originalBg = mainField.style.backgroundColor;
-                mainField.style.backgroundColor = "#1a331a";
-                setTimeout(() => {
-                    mainField.style.backgroundColor = originalBg;
-                }, 500);
+                if (mainField) {
+                    // Apply value
+                    mainField.value = newValue;
+                    
+                    // Visual feedback (flash the field)
+                    mainField.style.transition = "background-color 0.5s";
+                    const originalBg = mainField.style.backgroundColor;
+                    mainField.style.backgroundColor = "#1a331a";
+                    setTimeout(() => {
+                        mainField.style.backgroundColor = originalBg;
+                    }, 500);
 
-                appliedCount++;
+                    appliedCount++;
+                }
             }
+        });
+
+        // 5. Update Status Message
+        const statusDiv = document.getElementById("upload-status");
+        if (statusDiv) {
+            statusDiv.textContent = `Successfully applied ${appliedCount} values.`;
+            statusDiv.style.color = "#afffa6";
         }
-    });
 
-    // 5. Trigger calculations and save
-    calculate();
-    saveData();
-    updateAdditionalStatsHeaders(); // Ensure names update in the bottom table
+        // 6. Trigger calculations (Wrapped in try/catch to prevent crashes)
+        try {
+            calculate();
+            saveData();
+            if (typeof updateAdditionalStatsHeaders === "function") {
+                updateAdditionalStatsHeaders();
+            }
+        } catch (calcError) {
+            console.error("Calculation error after OCR apply:", calcError);
+        }
 
-    // 6. Close and Notify
-    closeOCRModal();
+    } catch (e) {
+        console.error("Critical error in applyOCRResults:", e);
+    } finally {
+        // 7. ALWAYS CLOSE THE MODAL (No matter what happens above)
+        closeOCRModal();
+    }
+}
 
-    const statusDiv = document.getElementById("upload-status");
-    if (statusDiv) {
-        statusDiv.textContent = `Successfully applied ${appliedCount} values.`;
-        statusDiv.style.color = "#afffa6";
+// Close OCR modal (Robust Version)
+function closeOCRModal() {
+    const modal = document.getElementById("ocr-modal-overlay");
+    if (modal) {
+        modal.classList.remove("active");
+    } else {
+        console.warn("OCR Modal overlay not found in DOM");
     }
 }
 
