@@ -488,6 +488,40 @@
     </div>
 </div>
 
+        <div id="modifiers-modal" class="modal-overlay">
+    <div class="modal-content" style="max-width: 500px;">
+        <h3 style="
+            text-align:center; 
+            color: var(--pip-green); 
+            border-bottom: 1px solid var(--pip-dim); 
+            padding-bottom: 10px; 
+            margin-top: 0;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        ">⚙️ SCORING CONFIGURATION</h3>
+        
+        <p style="text-align: center; font-size: 0.9em; opacity: 0.8; margin-bottom: 20px;">
+            Adjust the multiplier values below to customize the scoring algorithm.
+        </p>
+
+        <div class="mod-grid-clean" style="grid-template-columns: 1fr; row-gap: 10px;">
+            <div class="mod-row"><label>Kills Multiplier</label><input type="number" id="mod-kills" value="1" onchange="calculate(); saveData();"></div>
+            <div class="mod-row"><label>Special Kills Multiplier</label><input type="number" id="mod-elite" value="20" onchange="calculate(); saveData();"></div>
+            <div class="mod-row"><label>Siege Tasks Bonus</label><input type="number" id="mod-tasks" value="25" onchange="calculate(); saveData();"></div>
+            <div class="mod-row"><label>Incapacitations Penalty</label><input type="number" id="mod-death" value="-100" onchange="calculate(); saveData();"></div>
+            <div class="mod-row"><label>Damage Taken Penalty</label><input type="number" id="mod-damage" value="-0.1" step="0.1" onchange="calculate(); saveData();"></div>
+            <div class="mod-row"><label>Gene-Seed Bonus</label><input type="number" id="mod-gene" value="100" onchange="calculate(); saveData();"></div>
+            <div class="mod-row"><label>Armoury Data Bonus</label><input type="number" id="mod-armoury" value="25" onchange="calculate(); saveData();"></div>
+            <div class="mod-row"><label>Objective Completion Bonus</label><input type="number" id="mod-obj" value="100" onchange="calculate(); saveData();"></div>
+            <div class="mod-row"><label>Bonus per Wave (>15)</label><input type="number" id="mod-waves" value="250" onchange="calculate(); saveData();"></div>
+        </div>
+
+        <div style="margin-top: 25px; text-align: center;">
+            <button class="btn-primary" onclick="closeModifiersModal()" style="width: 100%;">APPLY CONFIGURATION</button>
+        </div>
+    </div>
+</div>
+
         <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
         <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
         
