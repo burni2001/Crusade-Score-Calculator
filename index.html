@@ -17,7 +17,7 @@
                 <div>
                     <div>REF: SM-2/CRUSADE</div>
                     <div style="font-size: 0.8em; opacity: 0.7">
-                        V 4.5 - ADEPTUS ADMINISTRATUM
+                        V 5.0 Alpha1 - ADEPTUS ADMINISTRATUM
                     </div>
                 </div>
                 <h1>Adeptus Astartes - Mission&nbsp;Debrief</h1>
@@ -74,107 +74,59 @@
                 <div id="upload-progress" style="font-size: 0.85rem; color: var(--pip-dim);"></div>
             </div>
 
-            <div class="dashboard-wrapper">
+            <div class="mission-panel section" style="position: relative;">
                 
-                <div class="mission-panel">
-                    <div class="section">
-                        <div style="font-weight: bold; font-size: 1.2rem; margin-bottom: 15px; text-align: left; color: var(--pip-green);">
-                            MISSION PARAMETERS AND RESULTS
-                        </div>
-                        
-                        <div class="mission-params">
-                            <label for="mission-name">Mission Played</label>
-                            <input type="text" id="mission-name" placeholder="e.g., Inferno" onchange="saveData();" />
-                        </div>
-                        <div class="mission-params">
-                            <label for="mission-difficulty">Difficulty</label>
-                            <select id="mission-difficulty" onchange="calculate(); saveData();">
-                                <option value="" disabled selected hidden>Select</option>
-                                <option value="Minimal">Minimal</option>
-                                <option value="Average">Average</option>
-                                <option value="Substantial">Substantial</option>
-                                <option value="Ruthless">Ruthless</option>
-                                <option value="Lethal">Lethal</option>
-                                <option value="Absolute">Absolute</option>
-                                <option value="Normal">Normal</option>
-                                <option value="Hard">Hard</option>
-                            </select>
-                        </div>
-                        <div class="mission-params">
-                            <label>Main Objective Completion</label>
-                            <select id="global-objective" onchange="calculate(); saveData();">
-                                <option value="" disabled selected hidden>Select</option>
-                                <option value="0">No</option>
-                                <option value="1">Yes</option>
-                            </select>
-                        </div>
-                        <div class="mission-params">
-                            <label>Gene-Seed Retrieved</label>
-                            <select id="global-geneseed" onchange="calculate(); saveData();">
-                                <option value="" disabled selected hidden>Select</option>
-                                <option value="0">No</option>
-                                <option value="1">Yes</option>
-                            </select>
-                        </div>
-                        <div class="mission-params">
-                            <label>Armoury Data Retrieved</label>
-                            <input type="number" id="global-armoury" value="0" min="0" onchange="calculate(); saveData();">
-                        </div>
-                        <div class="mission-params">
-                            <label>Total Waves Completed</label>
-                            <input type="number" id="global-waves" value="0" min="0" inputmode="numeric" onchange="calculate(); saveData();" />
-                        </div>
-                    </div>
+                <div class="section-header" style="display: flex; justify-content: center; align-items: center; position: relative;">
+                    <span>MISSION PARAMETERS AND RESULTS</span>
+                    
+                    <button onclick="openModifiersModal()" class="gear-btn" title="Configure General Modifiers">
+                        ⚙️
+                    </button>
                 </div>
-
-                <div class="modifiers-panel">
-                    <div class="section" style="height: 100%;">
-                        <div style="font-weight: bold; font-size: 1.2rem; margin-bottom: 15px; text-align: left; color: var(--pip-green);">
-                            GENERAL MODIFIERS AND MULTIPLIERS
-                        </div>
-                        <div class="mod-grid-clean">
-                            <div class="mod-row">
-                                <label>Kills</label>
-                                <input type="number" id="mod-kills" value="1" onchange="calculate(); saveData();">
-                            </div>
-                            <div class="mod-row">
-                                <label>Special Kills</label>
-                                <input type="number" id="mod-elite" value="20" onchange="calculate(); saveData();">
-                            </div>
-                            <div class="mod-row">
-                                <label>Incapacitations</label>
-                                <input type="number" id="mod-death" value="-100" onchange="calculate(); saveData();">
-                            </div>
-
-                            <div class="mod-row">
-                                <label>Damage Taken</label>
-                                <input type="number" id="mod-damage" value="-0.1" step="0.1" onchange="calculate(); saveData();">
-                            </div>
-                            <div class="mod-row">
-                                <label>Gene-Seed</label>
-                                <input type="number" id="mod-gene" value="100" onchange="calculate(); saveData();">
-                            </div>
-                            <div class="mod-row">
-                                <label>Armoury Data</label>
-                                <input type="number" id="mod-armoury" value="25" onchange="calculate(); saveData();">
-                            </div>
-
-                            <div class="mod-row">
-                                <label>Objective</label>
-                                <input type="number" id="mod-obj" value="100" onchange="calculate(); saveData();">
-                            </div>
-                            <div class="mod-row">
-                                <label>Waves ( >15 )</label>
-                                <input type="number" id="mod-waves" value="250" onchange="calculate(); saveData();">
-                            </div>
-                            <div class="mod-row">
-                                <label>Siege Tasks</label>
-                                <input type="number" id="mod-tasks" value="25" onchange="calculate(); saveData();">
-                            </div>
-                            <div></div> 
-                        </div>
-                    </div>
+                
+                <div class="mission-params">
+                    <label for="mission-name">Mission Played</label>
+                    <input type="text" id="mission-name" placeholder="e.g., Inferno" onchange="saveData();" />
                 </div>
+                <div class="mission-params">
+                    <label for="mission-difficulty">Difficulty</label>
+                    <select id="mission-difficulty" onchange="calculate(); saveData();">
+                        <option value="" disabled selected hidden>Select</option>
+                        <option value="Minimal">Minimal</option>
+                        <option value="Average">Average</option>
+                        <option value="Substantial">Substantial</option>
+                        <option value="Ruthless">Ruthless</option>
+                        <option value="Lethal">Lethal</option>
+                        <option value="Absolute">Absolute</option>
+                        <option value="Normal">Normal</option>
+                        <option value="Hard">Hard</option>
+                    </select>
+                </div>
+                <div class="mission-params">
+                    <label>Main Objective Completion</label>
+                    <select id="global-objective" onchange="calculate(); saveData();">
+                        <option value="" disabled selected hidden>Select</option>
+                        <option value="0">No</option>
+                        <option value="1">Yes</option>
+                    </select>
+                </div>
+                <div class="mission-params">
+                    <label>Gene-Seed Retrieved</label>
+                    <select id="global-geneseed" onchange="calculate(); saveData();">
+                        <option value="" disabled selected hidden>Select</option>
+                        <option value="0">No</option>
+                        <option value="1">Yes</option>
+                    </select>
+                </div>
+                <div class="mission-params">
+                    <label>Armoury Data Retrieved</label>
+                    <input type="number" id="global-armoury" value="0" min="0" onchange="calculate(); saveData();">
+                </div>
+                <div class="mission-params">
+                    <label>Total Waves Completed</label>
+                    <input type="number" id="global-waves" value="0" min="0" inputmode="numeric" onchange="calculate(); saveData();" />
+                </div>
+            </div>
 
             </div> <div class="section" style="margin-bottom: 0">
                 <div class="section-header">SQUAD PERFORMANCE MATRIX</div>
