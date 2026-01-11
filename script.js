@@ -2488,10 +2488,6 @@ function toggleModifiersMenu() {
     }
 }
 
-    // Recalculate one last time just to be sure visual updates are applied
-    calculate(); 
-}
-
 function copySummaryText() {
     const el = document.getElementById('copy-text');
     el.select();
