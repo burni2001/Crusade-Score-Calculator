@@ -184,14 +184,23 @@ select option { background-color: #000; color: #0f0; }
     transform: rotate(90deg) scale(1.1);
 }
 
-/* --- GEAR MENU & TOOLTIP STYLING --- */
+/* --- CONFIGURATION BAR & GEAR MENU --- */
 
-/* 1. Wrapper to hold the button and the menu together */
+/* The row container */
+.config-bar {
+    width: 100%;
+    margin: 0 0 10px 0; /* Spacing between Upload and Dashboard */
+    display: flex;
+    justify-content: flex-start; /* Align left */
+    align-items: center;
+}
+
+/* 1. Wrapper to hold the button, text, and menu */
 .gear-wrapper {
-    position: absolute;
-    right: 10px;
-    top: 50%;
-    transform: translateY(-50%);
+    position: relative; /* Context for absolute dropdown */
+    display: flex;
+    align-items: center;
+    gap: 10px; /* Space between Icon and Text */
 }
 
 /* 2. The Gear Button */
@@ -203,48 +212,57 @@ select option { background-color: #000; color: #0f0; }
     cursor: pointer;
     padding: 0;
     line-height: 1;
-    position: relative; /* For tooltip positioning */
+    transition: text-shadow 0.3s ease;
 }
+
+/* Stop button spin, add glow */
 .gear-btn:hover {
     text-shadow: 0 0 10px var(--pip-green);
     background: transparent !important;
     box-shadow: none !important;
 }
 
-/* 3. THE INFO-POP (Tooltip) */
-.gear-btn[data-tooltip]:hover::after {
-    content: attr(data-tooltip);
-    position: absolute;
-    top: 100%;
-    right: 0;
-    width: max-content;
-    background: #000;
-    border: 1px solid var(--pip-green);
-    color: #afffa6;
-    padding: 4px 8px;
-    font-size: 0.8rem;
-    font-family: "VT323", monospace;
-    z-index: 200;
-    margin-top: 5px;
-    box-shadow: 0 0 10px rgba(51, 255, 0, 0.3);
-    pointer-events: none; /* Let clicks pass through */
+/* Spin ONLY the icon span */
+.gear-icon {
+    display: inline-block;
+    transition: transform 0.3s ease;
+}
+.gear-btn:hover .gear-icon {
+    transform: rotate(90deg) scale(1.1);
 }
 
-/* 4. THE FOLD-OUT MENU (Dropdown) */
+/* 3. The Label Text */
+.config-label {
+    color: var(--pip-green);
+    font-family: "VT323", monospace;
+    font-size: 1.1rem;
+    cursor: pointer;
+    opacity: 0.8;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+.config-label:hover {
+    opacity: 1;
+    text-shadow: 0 0 5px var(--pip-green);
+}
+
+/* 4. THE FOLD-OUT MENU (Dropdown) - Updated Positioning */
 .modifiers-dropdown {
-    display: none; /* Hidden by default */
+    display: none;
     position: absolute;
-    top: 130%; /* Just below the button */
-    right: -5px; /* Align to right edge */
-    width: 280px; /* Compact width */
-    background-color: #000000; /* Matches panel bg */
+    top: 100%;       /* Below the button row */
+    left: 0;         /* Align to left edge of wrapper */
+    right: auto;     /* Reset right alignment */
+    width: 280px;
+    background-color: #000000; /* Solid Black Background */
     border: 2px solid var(--pip-green);
     padding: 15px;
-    z-index: 1000; /* Float above everything */
+    z-index: 1000;
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.9), 0 0 15px rgba(51, 255, 0, 0.2);
+    margin-top: 5px; /* Small gap */
 }
 
-/* Show menu when active class is added */
+/* Show menu animation */
 .modifiers-dropdown.active {
     display: block;
     animation: menu-unfold 0.2s ease-out;
@@ -255,7 +273,7 @@ select option { background-color: #000; color: #0f0; }
     to { opacity: 1; transform: translateY(0) scale(1); }
 }
 
-/* 5. Menu Internals */
+/* Menu Internals */
 .menu-title {
     margin: 0 0 15px 0;
     font-size: 1.1rem;
@@ -263,43 +281,6 @@ select option { background-color: #000; color: #0f0; }
     padding-bottom: 5px;
     color: #afffa6;
     text-align: center;
-}
-
-/* 6. The Close 'X' Button */
-.menu-close-x {
-    position: absolute;
-    top: 5px;
-    right: 5px;
-    background: transparent;
-    border: none;
-    color: #ff5555;
-    font-weight: bold;
-    font-size: 1.2rem;
-    cursor: pointer;
-    line-height: 1;
-    padding: 2px 6px;
-    min-width: auto; /* Override global button styles */
-}
-.menu-close-x:hover {
-    color: #ff0000;
-    background: transparent !important;
-    text-shadow: 0 0 5px #ff0000;
-    box-shadow: none !important;
-}
-
-/* Fix Mod row label color inside the dark menu */
-.modifiers-dropdown .mod-row label {
-    color: #afffa6;
-    opacity: 0.9;
-}
-
-/* Fix Mod row spacing inside the modal */
-#modifiers-modal .mod-row {
-    border-bottom: 1px solid rgba(51, 255, 0, 0.1);
-    padding-bottom: 2px;
-}
-#modifiers-modal .mod-row label {
-    color: #afffa6;
 }
 
 /* --- DASHBOARD LAYOUT --- */
