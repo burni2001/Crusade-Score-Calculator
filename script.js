@@ -2475,20 +2475,19 @@ function openCopyModal() {
     document.getElementById('copy-modal').classList.add('active');
 }
 
-/* --- MODIFIERS MODAL FUNCTIONS --- */
-
-function openModifiersModal() {
-    const modal = document.getElementById('modifiers-modal');
-    if (modal) {
-        modal.classList.add('active');
+/* --- TOGGLE MODIFIERS MENU --- */
+function toggleModifiersMenu() {
+    const menu = document.getElementById('modifiers-menu');
+    if (menu) {
+        menu.classList.toggle('active');
+        
+        // Recalculate if closing, just in case user typed but didn't hit Enter
+        if (!menu.classList.contains('active')) {
+            calculate();
+        }
     }
 }
 
-function closeModifiersModal() {
-    const modal = document.getElementById('modifiers-modal');
-    if (modal) {
-        modal.classList.remove('active');
-    }
     // Recalculate one last time just to be sure visual updates are applied
     calculate(); 
 }
@@ -2643,10 +2642,10 @@ document.addEventListener('keydown', function(event) {
             slotModal.classList.remove('active');
         }
 
-        // 4. Close Modifiers Modal (ADD THIS BLOCK)
-        const modModal = document.getElementById('modifiers-modal');
-        if (modModal && modModal.classList.contains('active')) {
-            modModal.classList.remove('active');
+        // 4. Close Modifiers Dropdown (Updated)
+        const modMenu = document.getElementById('modifiers-menu');
+        if (modMenu && modMenu.classList.contains('active')) {
+            modMenu.classList.remove('active');
         }
     }
 });
