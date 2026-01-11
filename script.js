@@ -2475,6 +2475,24 @@ function openCopyModal() {
     document.getElementById('copy-modal').classList.add('active');
 }
 
+/* --- MODIFIERS MODAL FUNCTIONS --- */
+
+function openModifiersModal() {
+    const modal = document.getElementById('modifiers-modal');
+    if (modal) {
+        modal.classList.add('active');
+    }
+}
+
+function closeModifiersModal() {
+    const modal = document.getElementById('modifiers-modal');
+    if (modal) {
+        modal.classList.remove('active');
+    }
+    // Recalculate one last time just to be sure visual updates are applied
+    calculate(); 
+}
+
 function copySummaryText() {
     const el = document.getElementById('copy-text');
     el.select();
@@ -2623,6 +2641,12 @@ document.addEventListener('keydown', function(event) {
         const slotModal = document.getElementById('slot-modal-overlay');
         if (slotModal && slotModal.classList.contains('active')) {
             slotModal.classList.remove('active');
+        }
+
+        // 4. Close Modifiers Modal (ADD THIS BLOCK)
+        const modModal = document.getElementById('modifiers-modal');
+        if (modModal && modModal.classList.contains('active')) {
+            modModal.classList.remove('active');
         }
     }
 });
