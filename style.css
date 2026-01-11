@@ -161,16 +161,27 @@ select option { background-color: #000; color: #0f0; }
     cursor: pointer;
     padding: 0 5px;
     line-height: 1;
-    transition: transform 0.3s ease, text-shadow 0.3s ease;
+    transition: text-shadow 0.3s ease;
     opacity: 0.8;
 }
 
 .gear-btn:hover {
-    transform: rotate(90deg) scale(1.1); /* Spin effect on hover */
+    transform: none; /* STOP the button from spinning */
     text-shadow: 0 0 10px var(--pip-green);
     opacity: 1;
     background: transparent !important; /* Override default button hover */
     box-shadow: none !important;        /* Override default button shadow */
+}
+
+/* Add styles for the new span icon */
+.gear-icon {
+    display: inline-block; /* Necessary for rotation to work */
+    transition: transform 0.3s ease;
+}
+
+/* Rotate ONLY the icon when hovering the button */
+.gear-btn:hover .gear-icon {
+    transform: rotate(90deg) scale(1.1);
 }
 
 /* --- GEAR MENU & TOOLTIP STYLING --- */
