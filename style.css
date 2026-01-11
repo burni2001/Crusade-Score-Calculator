@@ -188,10 +188,11 @@ select option { background-color: #000; color: #0f0; }
 
 /* The row container */
 .config-bar {
-    width: 100%;
-    margin: 0 0 10px 0; /* Spacing between Upload and Dashboard */
+    width: 95%;
+    max-width: 500px;
+    margin: 0 auto 10px auto; /* 0 top, auto (center), 10px bottom, auto (center) */
     display: flex;
-    justify-content: flex-start; /* Align left */
+    justify-content: flex-start; /* Aligns gear to the left edge of the "box" */
     align-items: center;
 }
 
