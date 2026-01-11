@@ -17,7 +17,7 @@
                 <div>
                     <div>REF: SM-2/CRUSADE</div>
                     <div style="font-size: 0.8em; opacity: 0.7">
-                        V 5.0 Alpha4 - ADEPTUS ADMINISTRATUM
+                        V 5.0 Alpha5 - ADEPTUS ADMINISTRATUM
                     </div>
                 </div>
                 <h1>Adeptus Astartes - Mission&nbsp;Debrief</h1>
@@ -72,38 +72,39 @@
                 " />
                 <div id="upload-status" style="margin-top: 5px; font-weight: bold; min-height: 20px;"></div>
                 <div id="upload-progress" style="font-size: 0.85rem; color: var(--pip-dim);"></div>
+            </div> 
+
+            <div class="config-bar">
+                <div class="gear-wrapper">
+                    <button onclick="toggleModifiersMenu()" class="gear-btn">
+                        <span class="gear-icon">⚙️</span>
+                    </button>
+        
+                    <span class="config-label" onclick="toggleModifiersMenu()">Scoring Configuration</span>
+
+                    <div id="modifiers-menu" class="modifiers-dropdown">
+                        <h3 class="menu-title">CONFIGURATION</h3>
+            
+                        <div class="mod-grid-clean" style="grid-template-columns: 1fr; row-gap: 8px;">
+                            <div class="mod-row"><label>Kills</label><input type="number" id="mod-kills" value="1" onchange="calculate(); saveData();"></div>
+                            <div class="mod-row"><label>Special Kills</label><input type="number" id="mod-elite" value="20" onchange="calculate(); saveData();"></div>
+                            <div class="mod-row"><label>Siege Tasks</label><input type="number" id="mod-tasks" value="25" onchange="calculate(); saveData();"></div>
+                            <div class="mod-row"><label>Incapacitations</label><input type="number" id="mod-death" value="-100" onchange="calculate(); saveData();"></div>
+                            <div class="mod-row"><label>Damage Taken</label><input type="number" id="mod-damage" value="-0.1" step="0.1" onchange="calculate(); saveData();"></div>
+                            <div class="mod-row"><label>Gene-Seed</label><input type="number" id="mod-gene" value="100" onchange="calculate(); saveData();"></div>
+                            <div class="mod-row"><label>Armoury Data</label><input type="number" id="mod-armoury" value="25" onchange="calculate(); saveData();"></div>
+                            <div class="mod-row"><label>Objective</label><input type="number" id="mod-obj" value="100" onchange="calculate(); saveData();"></div>
+                            <div class="mod-row"><label>Waves (>15)</label><input type="number" id="mod-waves" value="250" onchange="calculate(); saveData();"></div>
+                        </div>
+                    </div>
+                </div>
             </div>
 
-        <div class="dashboard-wrapper">
+            <div class="dashboard-wrapper">
                 <div class="mission-panel section" style="position: relative;">
                     
                     <div class="section-header" style="display: flex; justify-content: center; align-items: center; position: relative;">
                         <span>MISSION PARAMETERS AND RESULTS</span>
-                        
-                        <div class="gear-wrapper">
-                            <button onclick="toggleModifiersMenu()" class="gear-btn" data-tooltip="Scoring Configuration">
-                                <span class="gear-icon">⚙️</span>
-                            </button>
-
-                            <div id="modifiers-menu" class="modifiers-dropdown">
-                                
-                                <button class="menu-close-x" onclick="toggleModifiersMenu()">✕</button>
-
-                                <h3 class="menu-title">CONFIGURATION</h3>
-                                
-                                <div class="mod-grid-clean" style="grid-template-columns: 1fr; row-gap: 8px;">
-                                    <div class="mod-row"><label>Kills</label><input type="number" id="mod-kills" value="1" onchange="calculate(); saveData();"></div>
-                                    <div class="mod-row"><label>Special Kills</label><input type="number" id="mod-elite" value="20" onchange="calculate(); saveData();"></div>
-                                    <div class="mod-row"><label>Siege Tasks</label><input type="number" id="mod-tasks" value="25" onchange="calculate(); saveData();"></div>
-                                    <div class="mod-row"><label>Incapacitations</label><input type="number" id="mod-death" value="-100" onchange="calculate(); saveData();"></div>
-                                    <div class="mod-row"><label>Damage Taken</label><input type="number" id="mod-damage" value="-0.1" step="0.1" onchange="calculate(); saveData();"></div>
-                                    <div class="mod-row"><label>Gene-Seed</label><input type="number" id="mod-gene" value="100" onchange="calculate(); saveData();"></div>
-                                    <div class="mod-row"><label>Armoury Data</label><input type="number" id="mod-armoury" value="25" onchange="calculate(); saveData();"></div>
-                                    <div class="mod-row"><label>Objective</label><input type="number" id="mod-obj" value="100" onchange="calculate(); saveData();"></div>
-                                    <div class="mod-row"><label>Waves (>15)</label><input type="number" id="mod-waves" value="250" onchange="calculate(); saveData();"></div>
-                                </div>
-                            </div>
-                        </div>
                     </div>
                     
                     <div class="mission-params">
