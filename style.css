@@ -237,7 +237,7 @@ select option { background-color: #000; color: #0f0; }
     top: 130%; /* Just below the button */
     right: -5px; /* Align to right edge */
     width: 280px; /* Compact width */
-    background-color: #0c140c; /* Matches panel bg */
+    background-color: #000000; /* Matches panel bg */
     border: 2px solid var(--pip-green);
     padding: 15px;
     z-index: 1000; /* Float above everything */
