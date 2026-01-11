@@ -75,58 +75,79 @@
             </div>
 
             <div class="mission-panel section" style="position: relative;">
+    
+    <div class="section-header" style="display: flex; justify-content: center; align-items: center; position: relative;">
+        <span>MISSION PARAMETERS AND RESULTS</span>
+        
+        <div class="gear-wrapper">
+            <button onclick="toggleModifiersMenu()" class="gear-btn" data-tooltip="Scoring Configuration">
+                ⚙️
+            </button>
+
+            <div id="modifiers-menu" class="modifiers-dropdown">
                 
-                <div class="section-header" style="display: flex; justify-content: center; align-items: center; position: relative;">
-                    <span>MISSION PARAMETERS AND RESULTS</span>
-                    
-                    <button onclick="openModifiersModal()" class="gear-btn" title="Configure General Modifiers">
-                        ⚙️
-                    </button>
-                </div>
+                <button class="menu-close-x" onclick="toggleModifiersMenu()">✕</button>
+
+                <h3 class="menu-title">CONFIGURATION</h3>
                 
-                <div class="mission-params">
-                    <label for="mission-name">Mission Played</label>
-                    <input type="text" id="mission-name" placeholder="e.g., Inferno" onchange="saveData();" />
-                </div>
-                <div class="mission-params">
-                    <label for="mission-difficulty">Difficulty</label>
-                    <select id="mission-difficulty" onchange="calculate(); saveData();">
-                        <option value="" disabled selected hidden>Select</option>
-                        <option value="Minimal">Minimal</option>
-                        <option value="Average">Average</option>
-                        <option value="Substantial">Substantial</option>
-                        <option value="Ruthless">Ruthless</option>
-                        <option value="Lethal">Lethal</option>
-                        <option value="Absolute">Absolute</option>
-                        <option value="Normal">Normal</option>
-                        <option value="Hard">Hard</option>
-                    </select>
-                </div>
-                <div class="mission-params">
-                    <label>Main Objective Completion</label>
-                    <select id="global-objective" onchange="calculate(); saveData();">
-                        <option value="" disabled selected hidden>Select</option>
-                        <option value="0">No</option>
-                        <option value="1">Yes</option>
-                    </select>
-                </div>
-                <div class="mission-params">
-                    <label>Gene-Seed Retrieved</label>
-                    <select id="global-geneseed" onchange="calculate(); saveData();">
-                        <option value="" disabled selected hidden>Select</option>
-                        <option value="0">No</option>
-                        <option value="1">Yes</option>
-                    </select>
-                </div>
-                <div class="mission-params">
-                    <label>Armoury Data Retrieved</label>
-                    <input type="number" id="global-armoury" value="0" min="0" onchange="calculate(); saveData();">
-                </div>
-                <div class="mission-params">
-                    <label>Total Waves Completed</label>
-                    <input type="number" id="global-waves" value="0" min="0" inputmode="numeric" onchange="calculate(); saveData();" />
+                <div class="mod-grid-clean" style="grid-template-columns: 1fr; row-gap: 8px;">
+                    <div class="mod-row"><label>Kills</label><input type="number" id="mod-kills" value="1" onchange="calculate(); saveData();"></div>
+                    <div class="mod-row"><label>Special Kills</label><input type="number" id="mod-elite" value="20" onchange="calculate(); saveData();"></div>
+                    <div class="mod-row"><label>Siege Tasks</label><input type="number" id="mod-tasks" value="25" onchange="calculate(); saveData();"></div>
+                    <div class="mod-row"><label>Incapacitations</label><input type="number" id="mod-death" value="-100" onchange="calculate(); saveData();"></div>
+                    <div class="mod-row"><label>Damage Taken</label><input type="number" id="mod-damage" value="-0.1" step="0.1" onchange="calculate(); saveData();"></div>
+                    <div class="mod-row"><label>Gene-Seed</label><input type="number" id="mod-gene" value="100" onchange="calculate(); saveData();"></div>
+                    <div class="mod-row"><label>Armoury Data</label><input type="number" id="mod-armoury" value="25" onchange="calculate(); saveData();"></div>
+                    <div class="mod-row"><label>Objective</label><input type="number" id="mod-obj" value="100" onchange="calculate(); saveData();"></div>
+                    <div class="mod-row"><label>Waves (>15)</label><input type="number" id="mod-waves" value="250" onchange="calculate(); saveData();"></div>
                 </div>
             </div>
+        </div>
+    </div>
+    
+    <div class="mission-params">
+        <label for="mission-name">Mission Played</label>
+        <input type="text" id="mission-name" placeholder="e.g., Inferno" onchange="saveData();" />
+    </div>
+    <div class="mission-params">
+        <label for="mission-difficulty">Difficulty</label>
+        <select id="mission-difficulty" onchange="calculate(); saveData();">
+            <option value="" disabled selected hidden>Select</option>
+            <option value="Minimal">Minimal</option>
+            <option value="Average">Average</option>
+            <option value="Substantial">Substantial</option>
+            <option value="Ruthless">Ruthless</option>
+            <option value="Lethal">Lethal</option>
+            <option value="Absolute">Absolute</option>
+            <option value="Normal">Normal</option>
+            <option value="Hard">Hard</option>
+        </select>
+    </div>
+    <div class="mission-params">
+        <label>Main Objective Completion</label>
+        <select id="global-objective" onchange="calculate(); saveData();">
+            <option value="" disabled selected hidden>Select</option>
+            <option value="0">No</option>
+            <option value="1">Yes</option>
+        </select>
+    </div>
+    <div class="mission-params">
+        <label>Gene-Seed Retrieved</label>
+        <select id="global-geneseed" onchange="calculate(); saveData();">
+            <option value="" disabled selected hidden>Select</option>
+            <option value="0">No</option>
+            <option value="1">Yes</option>
+        </select>
+    </div>
+    <div class="mission-params">
+        <label>Armoury Data Retrieved</label>
+        <input type="number" id="global-armoury" value="0" min="0" onchange="calculate(); saveData();">
+    </div>
+    <div class="mission-params">
+        <label>Total Waves Completed</label>
+        <input type="number" id="global-waves" value="0" min="0" inputmode="numeric" onchange="calculate(); saveData();" />
+    </div>
+</div>
 
             </div> <div class="section" style="margin-bottom: 0">
                 <div class="section-header">SQUAD PERFORMANCE MATRIX</div>
@@ -487,38 +508,6 @@
         </div>
     </div>
 </div>
-
-        <div id="modifiers-modal" class="modal-overlay">
-    <div class="modal-content" style="max-width: 500px;">
-        <h3 style="
-            text-align:center; 
-            color: var(--pip-green); 
-            border-bottom: 1px solid var(--pip-dim); 
-            padding-bottom: 10px; 
-            margin-top: 0;
-            text-transform: uppercase;
-            letter-spacing: 2px;
-        ">⚙️ SCORING CONFIGURATION</h3>
-        
-        <p style="text-align: center; font-size: 0.9em; opacity: 0.8; margin-bottom: 20px;">
-            Adjust the multiplier values below to customize the scoring algorithm.
-        </p>
-
-        <div class="mod-grid-clean" style="grid-template-columns: 1fr; row-gap: 10px;">
-            <div class="mod-row"><label>Kills Multiplier</label><input type="number" id="mod-kills" value="1" onchange="calculate(); saveData();"></div>
-            <div class="mod-row"><label>Special Kills Multiplier</label><input type="number" id="mod-elite" value="20" onchange="calculate(); saveData();"></div>
-            <div class="mod-row"><label>Siege Tasks Bonus</label><input type="number" id="mod-tasks" value="25" onchange="calculate(); saveData();"></div>
-            <div class="mod-row"><label>Incapacitations Penalty</label><input type="number" id="mod-death" value="-100" onchange="calculate(); saveData();"></div>
-            <div class="mod-row"><label>Damage Taken Penalty</label><input type="number" id="mod-damage" value="-0.1" step="0.1" onchange="calculate(); saveData();"></div>
-            <div class="mod-row"><label>Gene-Seed Bonus</label><input type="number" id="mod-gene" value="100" onchange="calculate(); saveData();"></div>
-            <div class="mod-row"><label>Armoury Data Bonus</label><input type="number" id="mod-armoury" value="25" onchange="calculate(); saveData();"></div>
-            <div class="mod-row"><label>Objective Completion Bonus</label><input type="number" id="mod-obj" value="100" onchange="calculate(); saveData();"></div>
-            <div class="mod-row"><label>Bonus per Wave (>15)</label><input type="number" id="mod-waves" value="250" onchange="calculate(); saveData();"></div>
-        </div>
-
-        <div style="margin-top: 25px; text-align: center;">
-            <button class="btn-primary" onclick="closeModifiersModal()" style="width: 100%;">APPLY CONFIGURATION</button>
-        </div>
     </div>
 </div>
 
