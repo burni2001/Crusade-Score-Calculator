@@ -150,6 +150,38 @@ select option { background-color: #000; color: #0f0; }
     width: 100%;
 }
 
+/* --- GEAR BUTTON STYLING --- */
+.gear-btn {
+    position: absolute;
+    right: 10px;
+    background: transparent;
+    border: none;
+    color: var(--pip-green);
+    font-size: 1.5rem;
+    cursor: pointer;
+    padding: 0 5px;
+    line-height: 1;
+    transition: transform 0.3s ease, text-shadow 0.3s ease;
+    opacity: 0.8;
+}
+
+.gear-btn:hover {
+    transform: rotate(90deg) scale(1.1); /* Spin effect on hover */
+    text-shadow: 0 0 10px var(--pip-green);
+    opacity: 1;
+    background: transparent !important; /* Override default button hover */
+    box-shadow: none !important;        /* Override default button shadow */
+}
+
+/* Fix Mod row spacing inside the modal */
+#modifiers-modal .mod-row {
+    border-bottom: 1px solid rgba(51, 255, 0, 0.1);
+    padding-bottom: 2px;
+}
+#modifiers-modal .mod-row label {
+    color: #afffa6;
+}
+
 /* --- DASHBOARD LAYOUT --- */
 .dashboard-wrapper {
     display: flex;
@@ -367,7 +399,7 @@ button.btn-primary:hover {
     margin: 0;
 }
 
-/* --- OCR MODAL LAYOUT (CLEAN V3) --- */
+/* --- OCR MODAL LAYOUT --- */
 
 /* Main Container Grid */
 #ocr-detected-grid {
