@@ -173,6 +173,115 @@ select option { background-color: #000; color: #0f0; }
     box-shadow: none !important;        /* Override default button shadow */
 }
 
+/* --- GEAR MENU & TOOLTIP STYLING --- */
+
+/* 1. Wrapper to hold the button and the menu together */
+.gear-wrapper {
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+}
+
+/* 2. The Gear Button */
+.gear-btn {
+    background: transparent;
+    border: none;
+    color: var(--pip-green);
+    font-size: 1.5rem;
+    cursor: pointer;
+    padding: 0;
+    line-height: 1;
+    position: relative; /* For tooltip positioning */
+}
+.gear-btn:hover {
+    text-shadow: 0 0 10px var(--pip-green);
+    background: transparent !important;
+    box-shadow: none !important;
+}
+
+/* 3. THE INFO-POP (Tooltip) */
+.gear-btn[data-tooltip]:hover::after {
+    content: attr(data-tooltip);
+    position: absolute;
+    top: 100%;
+    right: 0;
+    width: max-content;
+    background: #000;
+    border: 1px solid var(--pip-green);
+    color: #afffa6;
+    padding: 4px 8px;
+    font-size: 0.8rem;
+    font-family: "VT323", monospace;
+    z-index: 200;
+    margin-top: 5px;
+    box-shadow: 0 0 10px rgba(51, 255, 0, 0.3);
+    pointer-events: none; /* Let clicks pass through */
+}
+
+/* 4. THE FOLD-OUT MENU (Dropdown) */
+.modifiers-dropdown {
+    display: none; /* Hidden by default */
+    position: absolute;
+    top: 130%; /* Just below the button */
+    right: -5px; /* Align to right edge */
+    width: 280px; /* Compact width */
+    background-color: #0c140c; /* Matches panel bg */
+    border: 2px solid var(--pip-green);
+    padding: 15px;
+    z-index: 1000; /* Float above everything */
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.9), 0 0 15px rgba(51, 255, 0, 0.2);
+}
+
+/* Show menu when active class is added */
+.modifiers-dropdown.active {
+    display: block;
+    animation: menu-unfold 0.2s ease-out;
+}
+
+@keyframes menu-unfold {
+    from { opacity: 0; transform: translateY(-10px) scale(0.95); }
+    to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+/* 5. Menu Internals */
+.menu-title {
+    margin: 0 0 15px 0;
+    font-size: 1.1rem;
+    border-bottom: 1px solid #335533;
+    padding-bottom: 5px;
+    color: #afffa6;
+    text-align: center;
+}
+
+/* 6. The Close 'X' Button */
+.menu-close-x {
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    background: transparent;
+    border: none;
+    color: #ff5555;
+    font-weight: bold;
+    font-size: 1.2rem;
+    cursor: pointer;
+    line-height: 1;
+    padding: 2px 6px;
+    min-width: auto; /* Override global button styles */
+}
+.menu-close-x:hover {
+    color: #ff0000;
+    background: transparent !important;
+    text-shadow: 0 0 5px #ff0000;
+    box-shadow: none !important;
+}
+
+/* Fix Mod row label color inside the dark menu */
+.modifiers-dropdown .mod-row label {
+    color: #afffa6;
+    opacity: 0.9;
+}
+
 /* Fix Mod row spacing inside the modal */
 #modifiers-modal .mod-row {
     border-bottom: 1px solid rgba(51, 255, 0, 0.1);
