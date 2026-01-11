@@ -152,8 +152,8 @@ select option { background-color: #000; color: #0f0; }
 
 /* --- GEAR BUTTON STYLING --- */
 .gear-btn {
-    position: absolute;
-    right: 10px;
+    position: relative !important;
+    right: auto !important;
     background: transparent;
     border: none;
     color: var(--pip-green);
