@@ -375,6 +375,56 @@ select option { background-color: #000; color: #0f0; }
     }
 }
 
+/* --- EVENT LIST STYLING --- */
+
+/* Scrollable container for the events */
+.event-list-scroll {
+    max-height: 300px;
+    overflow-y: auto;
+    padding-right: 5px; /* Space for scrollbar */
+}
+
+/* Custom Scrollbar Styling (Webkit) */
+.event-list-scroll::-webkit-scrollbar {
+    width: 6px;
+}
+.event-list-scroll::-webkit-scrollbar-track {
+    background: #000;
+}
+.event-list-scroll::-webkit-scrollbar-thumb {
+    background: var(--pip-dim);
+    border-radius: 3px;
+}
+
+/* Cycle Headers */
+.cycle-header {
+    color: var(--pip-dim);
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    border-bottom: 1px solid var(--pip-dim);
+    margin: 10px 0 5px 0;
+    padding-bottom: 2px;
+    letter-spacing: 1px;
+}
+
+/* The Clickable Event Items */
+.event-item {
+    padding: 8px 10px;
+    margin-bottom: 4px;
+    cursor: pointer;
+    border: 1px solid transparent; /* Prevents layout jump on hover */
+    transition: all 0.2s ease;
+    font-size: 1.1rem;
+    color: var(--pip-green);
+}
+
+.event-item:hover {
+    background-color: rgba(51, 255, 0, 0.1);
+    border-color: var(--pip-green);
+    text-shadow: 0 0 5px var(--pip-green);
+    padding-left: 15px; /* Slide effect */
+}
+
 /* --- IMPORT & TABLE SECTIONS --- */
 .results-container { display: none; }
 .results-container.visible { display: block; }
