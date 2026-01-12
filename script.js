@@ -2753,7 +2753,7 @@ function applyEventRules() {
         calculate();
         saveData();
 
-        status.innerText = "Rules Acquired. Glory to the Emperor.";
+        status.innerText = "Rules Acquired";
         status.style.color = "#afffa6";
         
         // Optional: Close menu after short delay
