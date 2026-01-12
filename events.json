@@ -1,0 +1,77 @@
+{
+  "events": [
+    {
+      "id": "default",
+      "name": "Standard Rules",
+      "modifiers": {
+        "kills": 1,
+        "elite": 20,
+        "tasks": 25,
+        "death": -100,
+        "damage": -0.1,
+        "gene": 100,
+        "armoury": 25,
+        "obj": 100,
+        "waves": 250
+      }
+    },
+    {
+      "id": "week1",
+      "name": "RECLAMATION",
+      "modifiers": {
+        "kills": 1,
+        "elite": 20,
+        "tasks": 0,
+        "death": -100,
+        "damage": -0.1,
+        "gene": 200,
+        "armoury": 50,
+        "obj": 100,
+        "waves": 0
+      }
+    },
+    {
+      "id": "week2",
+      "name": "EXFILTRATION",
+      "modifiers": {
+        "kills": 1,
+        "elite": 20,
+        "tasks": 0,
+        "death": -100,
+        "damage": -0.1,
+        "gene": 100,
+        "armoury": 75,
+        "obj": 100,
+        "waves": 0
+      },
+    {
+      "id": "week3",
+      "name": "BALLISTIC ENGINE",
+      "modifiers": {
+        "kills": 1,
+        "elite": 20,
+        "tasks": 0,
+        "death": -100,
+        "damage": -0.1,
+        "gene": 100,
+        "armoury": 25,
+        "obj": 100,
+        "waves": 0
+      },
+    {
+      "id": "week4",
+      "name": "SIEGE",
+      "modifiers": {
+        "kills": 1,
+        "elite": 20,
+        "tasks": 0,
+        "death": -100,
+        "damage": -0.1,
+        "gene": 100,
+        "armoury": 25,
+        "obj": 100,
+        "waves": 0
+      }
+    }
+  ]
+}
