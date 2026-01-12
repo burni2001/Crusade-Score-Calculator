@@ -2475,13 +2475,21 @@ function openCopyModal() {
     document.getElementById('copy-modal').classList.add('active');
 }
 
-/* --- TOGGLE MODIFIERS MENU --- */
+/* --- TOGGLE MODIFIERS MENU (Updated) --- */
 function toggleModifiersMenu() {
     const menu = document.getElementById('modifiers-menu');
+    
+    // 1. Force close the Event Menu if it is open
+    const eventMenu = document.getElementById('event-menu');
+    if (eventMenu && eventMenu.classList.contains('active')) {
+        eventMenu.classList.remove('active');
+    }
+
+    // 2. Toggle the Config Menu
     if (menu) {
         menu.classList.toggle('active');
         
-        // Recalculate if closing, just in case user typed but didn't hit Enter
+        // Recalculate if closing, just in case
         if (!menu.classList.contains('active')) {
             calculate();
         }
