@@ -2652,10 +2652,35 @@ document.addEventListener('keydown', function(event) {
 });
 
 /* ========================================================= */
+/* ===  GLOBAL UTILS: CLICK OUTSIDE TO CLOSE MENUS       === */
+/* ========================================================= */
+
+document.addEventListener('click', function(event) {
+    // Check if the clicked element is INSIDE any gear-wrapper
+    // (This includes the buttons, the labels, and the dropdowns themselves)
+    const insideWrapper = event.target.closest('.gear-wrapper');
+
+    // If the click is OUTSIDE the wrappers, close everything
+    if (!insideWrapper) {
+        
+        // Close Event Menu
+        const eventMenu = document.getElementById('event-menu');
+        if (eventMenu && eventMenu.classList.contains('active')) {
+            eventMenu.classList.remove('active');
+        }
+
+        // Close Modifiers Menu
+        const modMenu = document.getElementById('modifiers-menu');
+        if (modMenu && modMenu.classList.contains('active')) {
+            modMenu.classList.remove('active');
+        }
+    }
+});
+
+/* ========================================================= */
 /* ===  EVENT ACQUISITION SYSTEM                         === */
 /* ========================================================= */
 
-// !!! REPLACE THIS WITH YOUR RAW GITHUB URL !!!
 const DB_URL = "https://raw.githubusercontent.com/burni2001/Crusade-Score-Calculator/refs/heads/Version5.5/events.json";
 
 let cachedEvents = [];
