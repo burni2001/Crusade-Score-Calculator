@@ -84,32 +84,16 @@
 
         <div id="event-menu" class="modifiers-dropdown">
             <h3 class="menu-title">EVENT DATABASE</h3>
-            <div style="padding: 5px;">
-                <p style="font-size:0.85em; color:#afffa6; margin-bottom:10px; line-height:1.3;">
-                    Select an event from the database to auto-load official Scoring Rules.
-                </p>
-                
-                <select id="event-selector" style="
-                    width: 100%;
-                    background-color: #050a05;
-                    color: var(--pip-green);
-                    border: 1px solid var(--pip-green);
-                    padding: 8px;
-                    margin-bottom: 15px;
-                    font-family: 'VT323', monospace;
-                    font-size: 1.1rem;
-                ">
-                    <option value="" disabled selected>Select Event...</option>
-                </select>
-
-                <button onclick="applyEventRules()" class="btn-primary" style="width:100%">
-                    ACQUIRE DATA
-                </button>
-                <div id="event-status" style="margin-top:5px; font-size:0.8em; min-height:1.2em;"></div>
+            
+            <div id="event-list-container" class="event-list-scroll">
+                <div style="padding: 10px; color: #7a7; text-align: center;">
+                    Loading Cogitator Data...
+                </div>
             </div>
+
+            <div id="event-status" style="margin-top:5px; font-size:0.8em; min-height:1.2em; text-align: center;"></div>
         </div>
-    </div>
-                <div class="gear-wrapper">
+    <div class="gear-wrapper">
         <button onclick="toggleModifiersMenu()" class="gear-btn">
             <span class="gear-icon">⚙️</span>
         </button>
