@@ -2644,6 +2644,8 @@ document.addEventListener('keydown', function(event) {
             modMenu.classList.remove('active');
         }
     }
+});
+
 /* ========================================================= */
 /* ===  EVENT ACQUISITION SYSTEM                         === */
 /* ========================================================= */
@@ -2745,4 +2747,3 @@ function applyEventRules() {
         }, 1500);
     }
 }
-});
