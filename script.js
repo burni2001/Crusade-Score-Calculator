@@ -2644,4 +2644,105 @@ document.addEventListener('keydown', function(event) {
             modMenu.classList.remove('active');
         }
     }
+/* ========================================================= */
+/* ===  EVENT ACQUISITION SYSTEM                         === */
+/* ========================================================= */
+
+// !!! REPLACE THIS WITH YOUR RAW GITHUB URL !!!
+const DB_URL = "https://raw.githubusercontent.com/burni2001/Crusade-Score-Calculator/refs/heads/Version5.5/events.json";
+
+let cachedEvents = [];
+
+function toggleEventMenu() {
+    const menu = document.getElementById('event-menu');
+    const otherMenu = document.getElementById('modifiers-menu');
+    
+    // Close the other menu if open
+    if (otherMenu && otherMenu.classList.contains('active')) {
+        otherMenu.classList.remove('active');
+    }
+
+    if (menu) {
+        menu.classList.toggle('active');
+        if (menu.classList.contains('active')) {
+            fetchEventList();
+        }
+    }
+}
+
+async function fetchEventList() {
+    const selector = document.getElementById('event-selector');
+    const status = document.getElementById('event-status');
+    
+    // Only fetch if we haven't already populated (or you can remove this check to always refresh)
+    if (selector.options.length > 1) return;
+
+    status.innerText = "Connecting to Cogitator Network...";
+    status.style.color = "#ffff00";
+
+    try {
+        const response = await fetch(DB_URL);
+        if (!response.ok) throw new Error("Network response was not ok");
+        
+        const data = await response.json();
+        cachedEvents = data.events;
+
+        // Clear existing options (keep the first 'Select' option)
+        selector.innerHTML = '<option value="" disabled selected>Select Event...</option>';
+
+        cachedEvents.forEach(event => {
+            const option = document.createElement("option");
+            option.value = event.id;
+            option.innerText = event.name;
+            selector.appendChild(option);
+        });
+
+        status.innerText = "Connection Established.";
+        status.style.color = "#afffa6";
+
+    } catch (error) {
+        console.error("Fetch error:", error);
+        status.innerText = "Connection Failed: Data not found.";
+        status.style.color = "#ff3333";
+    }
+}
+
+function applyEventRules() {
+    const selector = document.getElementById('event-selector');
+    const selectedId = selector.value;
+    const status = document.getElementById('event-status');
+
+    if (!selectedId) {
+        status.innerText = "No event selected.";
+        return;
+    }
+
+    const eventData = cachedEvents.find(e => e.id === selectedId);
+    
+    if (eventData && eventData.modifiers) {
+        // Apply values to inputs
+        document.getElementById('mod-kills').value = eventData.modifiers.kills;
+        document.getElementById('mod-elite').value = eventData.modifiers.elite;
+        document.getElementById('mod-tasks').value = eventData.modifiers.tasks;
+        document.getElementById('mod-death').value = eventData.modifiers.death;
+        document.getElementById('mod-damage').value = eventData.modifiers.damage;
+        document.getElementById('mod-gene').value = eventData.modifiers.gene;
+        document.getElementById('mod-armoury').value = eventData.modifiers.armoury;
+        document.getElementById('mod-obj').value = eventData.modifiers.obj;
+        document.getElementById('mod-waves').value = eventData.modifiers.waves;
+
+        // Recalculate and Save
+        calculate();
+        saveData();
+
+        status.innerText = "Rules Acquired. Glory to the Emperor.";
+        status.style.color = "#afffa6";
+        
+        // Optional: Close menu after short delay
+        setTimeout(() => {
+            document.getElementById('event-menu').classList.remove('active');
+            status.innerText = "";
+        }, 1500);
+    }
+}
 });
