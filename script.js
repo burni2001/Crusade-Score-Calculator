@@ -2676,7 +2676,7 @@ async function fetchEventList() {
     const selector = document.getElementById('event-selector');
     const status = document.getElementById('event-status');
     
-    // Only fetch if we haven't already populated (or you can remove this check to always refresh)
+    // Only fetch if we haven't already populated
     if (selector.options.length > 1) return;
 
     status.innerText = "Connecting to Cogitator Network...";
@@ -2687,16 +2687,32 @@ async function fetchEventList() {
         if (!response.ok) throw new Error("Network response was not ok");
         
         const data = await response.json();
-        cachedEvents = data.events;
+        
+        // We reset the global cache to be a flat list so the lookup function still works later
+        cachedEvents = []; 
 
-        // Clear existing options (keep the first 'Select' option)
-        selector.innerHTML = '<option value="" disabled selected>Select Event...</option>';
+        // Clear existing options
+        selector.innerHTML = '<option value="" disabled selected>Select Cycle & Event...</option>';
 
-        cachedEvents.forEach(event => {
-            const option = document.createElement("option");
-            option.value = event.id;
-            option.innerText = event.name;
-            selector.appendChild(option);
+        // 1. Loop through each CYCLE
+        data.cycles.forEach(cycle => {
+            // Create a Bold Label Group for the Cycle
+            const group = document.createElement('optgroup');
+            group.label = cycle.name;
+
+            // 2. Loop through each EVENT in that cycle
+            cycle.events.forEach(event => {
+                const option = document.createElement("option");
+                option.value = event.id;
+                option.innerText = event.name;
+                group.appendChild(option);
+
+                // Add to our flat cache so we can find the modifiers later
+                cachedEvents.push(event);
+            });
+
+            // Add the group to the dropdown
+            selector.appendChild(group);
         });
 
         status.innerText = "Connection Established.";
