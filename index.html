@@ -82,7 +82,7 @@
         <span class="config-label" onclick="toggleModifiersMenu()">Configuration</span>
 
         <div id="modifiers-menu" class="modifiers-dropdown">
-            <h3 class="menu-title">CONFIGURATION</h3>
+            <h3 class="menu-title">SCORING CONFIGURATION</h3>
             <div class="mod-grid-clean" style="grid-template-columns: 1fr; row-gap: 8px;">
                 <div class="mod-row"><label>Kills</label><input type="number" id="mod-kills" value="1" onchange="calculate(); saveData();"></div>
                 <div class="mod-row"><label>Special Kills</label><input type="number" id="mod-elite" value="20" onchange="calculate(); saveData();"></div>
@@ -101,13 +101,13 @@
         <button onclick="toggleEventMenu()" class="gear-btn">
             <span class="gear-icon">⬇️</span>
         </button>
-        <span class="config-label" onclick="toggleEventMenu()">Event Acquisition</span>
+        <span class="config-label" onclick="toggleEventMenu()">Event Selector</span>
 
         <div id="event-menu" class="modifiers-dropdown">
             <h3 class="menu-title">EVENT DATABASE</h3>
             <div style="padding: 5px;">
                 <p style="font-size:0.85em; color:#afffa6; margin-bottom:10px; line-height:1.3;">
-                    Select an active event from the database to auto-load official scoring rules.
+                    Select an event from the database to auto-load official scoring rules.
                 </p>
                 
                 <select id="event-selector" style="
