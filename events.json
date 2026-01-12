@@ -43,7 +43,8 @@
         "armoury": 75,
         "obj": 100,
         "waves": 0
-      },
+      }
+    }, 
     {
       "id": "week3",
       "name": "BALLISTIC ENGINE",
@@ -57,7 +58,8 @@
         "armoury": 25,
         "obj": 100,
         "waves": 0
-      },
+      }
+    },
     {
       "id": "week4",
       "name": "SIEGE",
