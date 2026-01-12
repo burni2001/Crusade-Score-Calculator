@@ -17,7 +17,7 @@
                 <div>
                     <div>REF: SM-2/CRUSADE</div>
                     <div style="font-size: 0.8em; opacity: 0.7">
-                        V 5.0 Alpha7 - ADEPTUS ADMINISTRATUM
+                        V 5.5 preAlpha1 - ADEPTUS ADMINISTRATUM
                     </div>
                 </div>
                 <h1>Adeptus Astartes - Mission&nbsp;Debrief</h1>
@@ -75,30 +75,62 @@
             </div> 
 
             <div class="config-bar">
-                <div class="gear-wrapper">
-                    <button onclick="toggleModifiersMenu()" class="gear-btn">
-                        <span class="gear-icon">⚙️</span>
-                    </button>
-        
-                    <span class="config-label" onclick="toggleModifiersMenu()">Scoring Configuration</span>
+    <div class="gear-wrapper">
+        <button onclick="toggleModifiersMenu()" class="gear-btn">
+            <span class="gear-icon">⚙️</span>
+        </button>
+        <span class="config-label" onclick="toggleModifiersMenu()">Configuration</span>
 
-                    <div id="modifiers-menu" class="modifiers-dropdown">
-                        <h3 class="menu-title">General Modifiers</h3>
-            
-                        <div class="mod-grid-clean" style="grid-template-columns: 1fr; row-gap: 8px;">
-                            <div class="mod-row"><label>Kills Multiplier</label><input type="number" id="mod-kills" value="1" onchange="calculate(); saveData();"></div>
-                            <div class="mod-row"><label>Special Kills Multiplier</label><input type="number" id="mod-elite" value="20" onchange="calculate(); saveData();"></div>
-                            <div class="mod-row"><label>Siege Tasks Bonus</label><input type="number" id="mod-tasks" value="25" onchange="calculate(); saveData();"></div>
-                            <div class="mod-row"><label>Incapacitations Penalty</label><input type="number" id="mod-death" value="-100" onchange="calculate(); saveData();"></div>
-                            <div class="mod-row"><label>Damage Taken Penalty</label><input type="number" id="mod-damage" value="-0.1" step="0.1" onchange="calculate(); saveData();"></div>
-                            <div class="mod-row"><label>Gene-Seed Bonus</label><input type="number" id="mod-gene" value="100" onchange="calculate(); saveData();"></div>
-                            <div class="mod-row"><label>Armoury Data Bonus</label><input type="number" id="mod-armoury" value="25" onchange="calculate(); saveData();"></div>
-                            <div class="mod-row"><label>Objective Completion Bonus</label><input type="number" id="mod-obj" value="100" onchange="calculate(); saveData();"></div>
-                            <div class="mod-row"><label>Bonus per Wave >15</label><input type="number" id="mod-waves" value="250" onchange="calculate(); saveData();"></div>
-                        </div>
-                    </div>
-                </div>
+        <div id="modifiers-menu" class="modifiers-dropdown">
+            <h3 class="menu-title">CONFIGURATION</h3>
+            <div class="mod-grid-clean" style="grid-template-columns: 1fr; row-gap: 8px;">
+                <div class="mod-row"><label>Kills</label><input type="number" id="mod-kills" value="1" onchange="calculate(); saveData();"></div>
+                <div class="mod-row"><label>Special Kills</label><input type="number" id="mod-elite" value="20" onchange="calculate(); saveData();"></div>
+                <div class="mod-row"><label>Siege Tasks</label><input type="number" id="mod-tasks" value="25" onchange="calculate(); saveData();"></div>
+                <div class="mod-row"><label>Incapacitations</label><input type="number" id="mod-death" value="-100" onchange="calculate(); saveData();"></div>
+                <div class="mod-row"><label>Damage Taken</label><input type="number" id="mod-damage" value="-0.1" step="0.1" onchange="calculate(); saveData();"></div>
+                <div class="mod-row"><label>Gene-Seed</label><input type="number" id="mod-gene" value="100" onchange="calculate(); saveData();"></div>
+                <div class="mod-row"><label>Armoury Data</label><input type="number" id="mod-armoury" value="25" onchange="calculate(); saveData();"></div>
+                <div class="mod-row"><label>Objective</label><input type="number" id="mod-obj" value="100" onchange="calculate(); saveData();"></div>
+                <div class="mod-row"><label>Waves (>15)</label><input type="number" id="mod-waves" value="250" onchange="calculate(); saveData();"></div>
             </div>
+        </div>
+    </div>
+
+    <div class="gear-wrapper">
+        <button onclick="toggleEventMenu()" class="gear-btn">
+            <span class="gear-icon">⬇️</span>
+        </button>
+        <span class="config-label" onclick="toggleEventMenu()">Event Acquisition</span>
+
+        <div id="event-menu" class="modifiers-dropdown">
+            <h3 class="menu-title">EVENT DATABASE</h3>
+            <div style="padding: 5px;">
+                <p style="font-size:0.85em; color:#afffa6; margin-bottom:10px; line-height:1.3;">
+                    Select an active event from the database to auto-load official scoring rules.
+                </p>
+                
+                <select id="event-selector" style="
+                    width: 100%;
+                    background-color: #050a05;
+                    color: var(--pip-green);
+                    border: 1px solid var(--pip-green);
+                    padding: 8px;
+                    margin-bottom: 15px;
+                    font-family: 'VT323', monospace;
+                    font-size: 1.1rem;
+                ">
+                    <option value="" disabled selected>Select Event...</option>
+                </select>
+
+                <button onclick="applyEventRules()" class="btn-primary" style="width:100%">
+                    ACQUIRE DATA
+                </button>
+                <div id="event-status" style="margin-top:5px; font-size:0.8em; min-height:1.2em;"></div>
+            </div>
+        </div>
+    </div>
+</div>
 
         <div class="dashboard-wrapper">
                 <div class="mission-panel section" style="position: relative;">
