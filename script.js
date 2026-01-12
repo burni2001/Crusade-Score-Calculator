@@ -2638,10 +2638,15 @@ document.addEventListener('keydown', function(event) {
             slotModal.classList.remove('active');
         }
 
-        // 4. Close Modifiers Dropdown (Updated)
+        // 4. Close Modifiers Dropdown
         const modMenu = document.getElementById('modifiers-menu');
         if (modMenu && modMenu.classList.contains('active')) {
             modMenu.classList.remove('active');
+        }
+        // 5. Close Event Menu
+        const eventMenu = document.getElementById('event-menu');
+        if (eventMenu && eventMenu.classList.contains('active')) {
+            eventMenu.classList.remove('active');
         }
     }
 });
