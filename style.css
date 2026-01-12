@@ -350,6 +350,31 @@ select option { background-color: #000; color: #0f0; }
     color: var(--pip-green);
 }
 
+/* Specific Alignment for the Two Menus */
+
+/* 1. Event Menu (Left Side) -> Aligns to the left edge */
+#event-menu {
+    left: 0;
+    right: auto;
+    transform-origin: top left;
+}
+
+/* 2. Configuration Menu (Right Side) -> Aligns to the right edge */
+#modifiers-menu {
+    left: auto;       /* Release left anchor */
+    right: 0;         /* Anchor to the right edge of the wrapper */
+    transform-origin: top right;
+}
+
+/* 3. Mobile Safety Fix */
+/* On very small screens, ensure the menu doesn't overflow if it's wider than the screen */
+@media (max-width: 400px) {
+    .modifiers-dropdown {
+        width: 260px; /* Slightly smaller width for mobile */
+        max-width: 90vw; /* Never wider than 90% of screen */
+    }
+}
+
 /* --- IMPORT & TABLE SECTIONS --- */
 .results-container { display: none; }
 .results-container.visible { display: block; }
