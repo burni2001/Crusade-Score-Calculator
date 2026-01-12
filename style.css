@@ -192,7 +192,7 @@ select option { background-color: #000; color: #0f0; }
     max-width: 500px;
     margin: 0 auto 10px auto; /* 0 top, auto (center), 10px bottom, auto (center) */
     display: flex;
-    justify-content: flex-start; /* Aligns gear to the left edge of the "box" */
+    justify-content: center; /* Aligns gear to the left edge of the "box" */
     align-items: center;
 }
 
