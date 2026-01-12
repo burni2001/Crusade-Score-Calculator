@@ -2785,6 +2785,11 @@ function applyEventRules() {
 
         status.innerText = "Rules Acquired";
         status.style.color = "#afffa6";
+
+        // Close the other menu if open
+    if (otherMenu && otherMenu.classList.contains('active')) {
+        otherMenu.classList.remove('active');
+    }
         
         // Optional: Close menu after short delay
         setTimeout(() => {
