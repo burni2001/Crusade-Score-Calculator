@@ -2686,9 +2686,10 @@ document.addEventListener('click', function(event) {
 });
 
 /* ========================================================= */
-/* ===  EVENT ACQUISITION SYSTEM                         === */
+/* ===  EVENT ACQUISITION SYSTEM (Direct Select)         === */
 /* ========================================================= */
 
+// !!! REPLACE THIS WITH YOUR RAW GITHUB URL !!!
 const DB_URL = "https://raw.githubusercontent.com/burni2001/Crusade-Score-Calculator/refs/heads/Version5.5/events.json";
 
 let cachedEvents = [];
@@ -2711,13 +2712,13 @@ function toggleEventMenu() {
 }
 
 async function fetchEventList() {
-    const selector = document.getElementById('event-selector');
+    const container = document.getElementById('event-list-container');
     const status = document.getElementById('event-status');
     
-    // Only fetch if we haven't already populated
-    if (selector.options.length > 1) return;
+    // If we already have data, don't re-fetch, just ensure it's displayed
+    if (cachedEvents.length > 0 && container.children.length > 1) return;
 
-    status.innerText = "Connecting to Cogitator Network...";
+    status.innerText = "Connecting...";
     status.style.color = "#ffff00";
 
     try {
@@ -2726,53 +2727,49 @@ async function fetchEventList() {
         
         const data = await response.json();
         
-        // We reset the global cache to be a flat list so the lookup function still works later
+        // Reset cache
         cachedEvents = []; 
-
-        // Clear existing options
-        selector.innerHTML = '<option value="" disabled selected>Select Cycle & Event...</option>';
+        container.innerHTML = ""; // Clear loading text
 
         // 1. Loop through each CYCLE
         data.cycles.forEach(cycle => {
-            // Create a Bold Label Group for the Cycle
-            const group = document.createElement('optgroup');
-            group.label = cycle.name;
+            
+            // Create Cycle Header
+            const header = document.createElement('div');
+            header.className = 'cycle-header';
+            header.innerText = cycle.name;
+            container.appendChild(header);
 
-            // 2. Loop through each EVENT in that cycle
+            // 2. Loop through each EVENT
             cycle.events.forEach(event => {
-                const option = document.createElement("option");
-                option.value = event.id;
-                option.innerText = event.name;
-                group.appendChild(option);
-
-                // Add to our flat cache so we can find the modifiers later
+                // Add to cache for easy lookup
                 cachedEvents.push(event);
-            });
 
-            // Add the group to the dropdown
-            selector.appendChild(group);
+                // Create Clickable Item
+                const item = document.createElement('div');
+                item.className = 'event-item';
+                item.innerText = event.name;
+                
+                // Add Click Handler
+                item.onclick = function() {
+                    selectEvent(event.id);
+                };
+
+                container.appendChild(item);
+            });
         });
 
-        status.innerText = "Connection Established.";
-        status.style.color = "#afffa6";
+        status.innerText = ""; // Clear status on success
 
     } catch (error) {
         console.error("Fetch error:", error);
-        status.innerText = "Connection Failed: Data not found.";
-        status.style.color = "#ff3333";
+        container.innerHTML = `<div style="color:#f55; padding:10px;">Connection Failed.<br>Data not found.</div>`;
+        status.innerText = "";
     }
 }
 
-function applyEventRules() {
-    const selector = document.getElementById('event-selector');
-    const selectedId = selector.value;
+function selectEvent(selectedId) {
     const status = document.getElementById('event-status');
-
-    if (!selectedId) {
-        status.innerText = "No event selected.";
-        return;
-    }
-
     const eventData = cachedEvents.find(e => e.id === selectedId);
     
     if (eventData && eventData.modifiers) {
@@ -2791,13 +2788,14 @@ function applyEventRules() {
         calculate();
         saveData();
 
-        status.innerText = "Rules Acquired";
+        // Feedback
+        status.innerText = "Protocol Loaded.";
         status.style.color = "#afffa6";
         
-        // Optional: Close menu after short delay
+        // Close menu quickly after selection
         setTimeout(() => {
             document.getElementById('event-menu').classList.remove('active');
             status.innerText = "";
-        }, 1500);
+        }, 300);
     }
 }
