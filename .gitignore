@@ -1,0 +1,42 @@
+# ============================================================================
+# SECURITY: OCR API Key Protection
+# ============================================================================
+
+# Prevent committing files with API keys
+*api-key*.js
+*secret*.js
+.env
+.env.local
+
+# Auto-generated files (will be built by GitHub Actions)
+# Uncomment this if you want ocr-api.js to be generated fresh every time
+# ocr-api.js
+
+# ============================================================================
+# Development & Testing
+# ============================================================================
+
+# Editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Node modules (if you ever add npm packages)
+node_modules/
+
+# Logs
+*.log
+npm-debug.log*
+
+# Testing
+test-results/
+coverage/
+
+# Temporary files
+tmp/
