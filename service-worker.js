@@ -1,12 +1,20 @@
-const CACHE_NAME = "mission-debrief-v5.5"; // Increment this version number when you make changes to cached assets
+const CACHE_NAME = "mission-debrief-v6.0"; // Increment this version number when you make changes to cached assets
 const urlsToCache = [
     "./", // Caches the root, i.e., index.html
     "./index.html",
-    "./style.css",
-    "./script.js",
+    "./css/style.css",
+    "./js/script.js",
+    "./js/imperialDate.js",
+    "./js/ocr-parser.js",
+    "./js/ocr-api-cloudflare.js",
+    "./js/input-validator.js",
+    "./js/csv-handler.js",
+    "./js/calculation-engine.js",
+    "./js/png-exporter.js",
+    "./data/events.json",
+    "./data/crusade_modifiers.csv",
     "./manifest.json",
     "./attached_assets/FFFvLV2Ld6_crt_frei.png",
-    "./service-worker.js", // It's good practice to cache the service worker itself
     "https://fonts.googleapis.com/css2?family=VT323&display=swap", // Cache the Google Font CSS
     // --- Add your PWA icons here ---
     "icons/icon-192x192.png",
@@ -28,6 +36,10 @@ self.addEventListener("install", (event) => {
 });
 
 self.addEventListener("fetch", (event) => {
+    // Skip chrome-extension and non-http(s) requests
+    if (!event.request.url.startsWith('http')) {
+        return; // ← Make sure this line is there
+    }
     event.respondWith(
         caches.match(event.request).then((response) => {
             // Cache hit - return response
