@@ -810,7 +810,6 @@ select option {
 
 .update-btn {
     background: none;
-    border: 1px solid var(--pip-green);
     color: var(--pip-green);
     font-size: 0.9em;
     font-family: 'VT323', monospace;
