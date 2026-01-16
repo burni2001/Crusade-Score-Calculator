@@ -957,8 +957,11 @@ function clearSavedData() {
  * Bypasses cache to ensure latest version is loaded
  */
 function hardRefresh() {
-    // Force a hard refresh by reloading from server (bypasses cache)
-    window.location.href = window.location.href;
+    // Force a hard refresh by adding a cache-busting timestamp
+    // This ensures the browser loads fresh content from the server
+    const url = new URL(window.location.href);
+    url.searchParams.set('refresh', Date.now());
+    window.location.href = url.toString();
 }
 
 // Expose helpers
