@@ -5,7 +5,7 @@ on:
     paths:
       - 'VERSION'
     branches:
-      - Version6.0
+      - Version6
 
 jobs:
   update-versions:
