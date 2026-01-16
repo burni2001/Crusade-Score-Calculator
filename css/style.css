@@ -810,21 +810,24 @@ select option {
 
 .update-btn {
     background: none;
-    border: none;
+    border: 1px solid var(--pip-green);
     color: var(--pip-green);
-    font-size: 1.2em;
+    font-size: 0.9em;
+    font-family: 'VT323', monospace;
     cursor: pointer;
-    padding: 0 5px;
+    padding: 2px 6px;
     margin-left: 8px;
     transition: all 0.2s ease-in-out;
     vertical-align: middle;
     opacity: 0.7;
+    letter-spacing: 1px;
 }
 
 .update-btn:hover {
     opacity: 1;
-    transform: rotate(180deg);
-    text-shadow: 0 0 8px var(--pip-green);
+    background: var(--pip-green);
+    color: var(--bg-color);
+    box-shadow: 0 0 8px var(--pip-green);
 }
 
 .export-buttons-container {
