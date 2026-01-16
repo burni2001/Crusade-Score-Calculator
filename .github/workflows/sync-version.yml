@@ -1,0 +1,88 @@
+name: Update Version Numbers
+
+on:
+  push:
+    paths:
+      - 'VERSION'
+    branches:
+      - main
+
+jobs:
+  update-versions:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Read VERSION file
+        id: version
+        run: |
+          VERSION=$(cat VERSION | tr -d '\n\r')
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "Version read from file: $VERSION"
+
+      - name: Update service-worker.js
+        run: |
+          VERSION="${{ steps.version.outputs.version }}"
+          echo "Updating service-worker.js with version: $VERSION"
+          
+          # Update CACHE_NAME line
+          sed -i "s/const CACHE_NAME = \"mission-debrief-v[^\"]*\"/const CACHE_NAME = \"mission-debrief-v${VERSION}\"/" service-worker.js
+          
+          echo "✓ Updated service-worker.js"
+          grep "CACHE_NAME" service-worker.js
+
+      - name: Update index.html
+        run: |
+          VERSION="${{ steps.version.outputs.version }}"
+          echo "Updating index.html with version: $VERSION"
+          
+          # Update version in header-version div (optimized version)
+          sed -i "s/<div class=\"text-xs opacity-70\">V [^<]*<\/div>/<div class=\"text-xs opacity-70\">V ${VERSION} - ADEPTUS ADMINISTRATUM<\/div>/" index.html
+          
+          # Fallback: Update old style attribute version if it exists
+          sed -i "s/<div style=\"font-size: 0\.8em; opacity: 0\.7\">V [^<]*<\/div>/<div style=\"font-size: 0.8em; opacity: 0.7\">V ${VERSION} - ADEPTUS ADMINISTRATUM<\/div>/" index.html
+          
+          echo "✓ Updated index.html"
+          grep -A 1 "header-version\|ADEPTUS ADMINISTRATUM" index.html | head -5
+
+      - name: Update script.js
+        run: |
+          VERSION="${{ steps.version.outputs.version }}"
+          echo "Updating js/script.js with version: $VERSION"
+          
+          # Update version comment at top of file
+          sed -i "s|^// Version: .*|// Version: ${VERSION}|" js/script.js
+          
+          echo "✓ Updated js/script.js"
+          head -5 js/script.js | grep -i "version" || echo "Warning: Version line not found"
+
+      - name: Check for changes
+        id: check_changes
+        run: |
+          git diff --exit-code || echo "has_changes=true" >> $GITHUB_OUTPUT
+
+      - name: Commit and push changes
+        if: steps.check_changes.outputs.has_changes == 'true'
+        run: |
+          VERSION="${{ steps.version.outputs.version }}"
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add service-worker.js index.html js/script.js
+          git commit -m "🤖 Auto-update version to ${VERSION}"
+          git push
+
+      - name: Summary
+        run: |
+          VERSION="${{ steps.version.outputs.version }}"
+          echo "✅ Version synchronization complete!"
+          echo "📦 Updated to version: $VERSION"
+          echo ""
+          echo "Files updated:"
+          echo "  • service-worker.js (cache name)"
+          echo "  • index.html (header display)"
+          echo "  • js/script.js (version comment)"
