@@ -1,0 +1,173 @@
+name: Convert CSV to Events JSON
+
+on:
+  push:
+    paths:
+      - 'crusade_modifiers.csv'
+    branches:
+      - main
+
+jobs:
+  convert-csv:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+
+      - name: Convert CSV to JSON
+        run: |
+          node << 'EOF'
+          const fs = require('fs');
+          
+          // Read CSV file
+          const csvContent = fs.readFileSync('data/crusade_modifiers.csv', 'utf-8');
+          
+          // Parse CSV
+          const lines = csvContent.split(/\r\n|\n|\r/).filter(line => line.trim());
+          
+          if (lines.length === 0) {
+            console.error('ERROR: CSV file is empty');
+            process.exit(1);
+          }
+          
+          // Get headers
+          const headers = lines[0].split(',').map(h => h.trim().toLowerCase());
+          
+          // Helper to find column index
+          const getIdx = (key) => headers.findIndex(h => h.includes(key));
+          
+          // Column mappings
+          const idx = {
+            cycle: getIdx('cycle'),
+            name: getIdx('event name'),
+            id: getIdx('id'),
+            kills: getIdx('kills'),
+            elite: getIdx('elite'),
+            tasks: getIdx('tasks'),
+            death: getIdx('death'),
+            damage: getIdx('damage'),
+            gene: getIdx('gene'),
+            armoury: getIdx('armoury'),
+            obj: getIdx('obj'),
+            waves: getIdx('waves')
+          };
+          
+          // Validate headers
+          if (idx.cycle === -1 || idx.id === -1) {
+            console.error('ERROR: Missing required columns (Cycle or ID)');
+            console.error('Found headers:', headers);
+            process.exit(1);
+          }
+          
+          // Initialize with Standard Defaults
+          const dbStructure = { 
+            cycles: [
+              {
+                name: "Global Rules",
+                events: [
+                  {
+                    id: "standard_v1",
+                    name: "Standard Rules (Default)",
+                    modifiers: {
+                      kills: 1, 
+                      elite: 20, 
+                      tasks: 25, 
+                      death: -100, 
+                      damage: -0.1, 
+                      gene: 100, 
+                      armoury: 25, 
+                      obj: 100, 
+                      waves: 250
+                    }
+                  }
+                ]
+              }
+            ] 
+          };
+          
+          // Process data rows
+          for (let i = 1; i < lines.length; i++) {
+            const line = lines[i].trim();
+            if (!line) continue;
+            
+            const row = line.split(',').map(c => c.trim());
+            
+            const cycleName = row[idx.cycle];
+            if (!cycleName || row.length < 5) continue;
+            
+            const eventObj = {
+              id: row[idx.id],
+              name: row[idx.name],
+              modifiers: {
+                kills: parseFloat(row[idx.kills] || 1),
+                elite: parseFloat(row[idx.elite] || 20),
+                tasks: parseFloat(row[idx.tasks] || 25),
+                death: parseFloat(row[idx.death] || -100),
+                damage: parseFloat(row[idx.damage] || -0.1),
+                gene: parseFloat(row[idx.gene] || 100),
+                armoury: parseFloat(row[idx.armoury] || 25),
+                obj: parseFloat(row[idx.obj] || 100),
+                waves: parseFloat(row[idx.waves] || 250)
+              }
+            };
+            
+            // Find or create cycle group
+            let cycleGroup = dbStructure.cycles.find(c => c.name === cycleName);
+            if (!cycleGroup) {
+              cycleGroup = { name: cycleName, events: [] };
+              dbStructure.cycles.push(cycleGroup);
+            }
+            
+            // Add event to cycle
+            cycleGroup.events.push(eventObj);
+          }
+          
+          // Write JSON file
+          const finalJson = JSON.stringify(dbStructure, null, 2);
+          fs.writeFileSync('data/events.json', finalJson);
+          
+          console.log('✅ Successfully converted CSV to JSON');
+          console.log(`📊 Processed ${dbStructure.cycles.length} cycles`);
+          
+          // Count total events
+          const totalEvents = dbStructure.cycles.reduce((sum, cycle) => sum + cycle.events.length, 0);
+          console.log(`📋 Total events: ${totalEvents}`);
+          
+          EOF
+
+      - name: Check for changes
+        id: check_changes
+        run: |
+          git diff --exit-code data/events.json || echo "has_changes=true" >> $GITHUB_OUTPUT
+
+      - name: Commit and push changes
+        if: steps.check_changes.outputs.has_changes == 'true'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add data/events.json
+          git commit -m "🤖 Auto-update events.json from CSV"
+          git push
+
+      - name: Summary
+        run: |
+          echo "✅ CSV to JSON conversion complete!"
+          echo ""
+          echo "📁 Files processed:"
+          echo "  • Input: data/crusade_modifiers.csv"
+          echo "  • Output: data/events.json"
+          echo ""
+          if [ "${{ steps.check_changes.outputs.has_changes }}" == "true" ]; then
+            echo "✨ Changes detected and committed"
+          else
+            echo "ℹ️  No changes detected"
+          fi
