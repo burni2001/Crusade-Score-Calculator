@@ -1547,7 +1547,7 @@ async function saveAsPNG() {
 // SECTION 12: EVENT SYSTEM (Mission Protocols)
 // ============================================================================
 
-const DB_URL = "https://raw.githubusercontent.com/burni2001/Crusade-Score-Calculator-AlphaTest/refs/heads/main/data/events.json";
+const DB_URL = "https://raw.githubusercontent.com/burni2001/Crusade-Score-Calculator/refs/heads/Version6/data/events.json";
 let cachedEvents = [];
 
 function toggleEventMenu() {
