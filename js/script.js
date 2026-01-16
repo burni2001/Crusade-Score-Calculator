@@ -948,11 +948,26 @@ function clearSavedData() {
     }
 }
 
+// ============================================================================
+// SECTION 7B: HARD REFRESH FUNCTION
+// ============================================================================
+
+/**
+ * Hard refreshes the page to load new content from the server
+ * Bypasses cache to ensure latest version is loaded
+ */
+function hardRefresh() {
+    // Use location.reload(true) for hard refresh (bypasses cache)
+    // In modern browsers, this forces a reload from the server
+    location.reload(true);
+}
+
 // Expose helpers
 window.debugStorage = debugStorage;
 window.forceSave = forceSave;
 window.forceLoad = forceLoad;
 window.clearSavedData = clearSavedData;
+window.hardRefresh = hardRefresh;
 
 // ============================================================================
 // SECTION 8: INTERNAL DATA BANK (Mission Slots)
