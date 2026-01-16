@@ -957,9 +957,8 @@ function clearSavedData() {
  * Bypasses cache to ensure latest version is loaded
  */
 function hardRefresh() {
-    // Use location.reload(true) for hard refresh (bypasses cache)
-    // In modern browsers, this forces a reload from the server
-    location.reload(true);
+    // Force a hard refresh by reloading from server (bypasses cache)
+    window.location.href = window.location.href;
 }
 
 // Expose helpers
