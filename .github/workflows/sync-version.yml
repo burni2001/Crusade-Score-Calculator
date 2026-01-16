@@ -41,10 +41,11 @@ jobs:
           VERSION="${{ steps.version.outputs.version }}"
           echo "Updating index.html with version: $VERSION"
           
-          # Update version in header-version div (optimized version)
-          sed -i "s/<div class=\"text-xs opacity-70\">V [^<]*<\/div>/<div class=\"text-xs opacity-70\">V ${VERSION} - ADEPTUS ADMINISTRATUM<\/div>/" index.html
+          # Update version in header-version div (handles button inside div)
+          sed -i "s/<div class=\"text-xs opacity-70\">V [^<]*<button/<div class=\"text-xs opacity-70\">V ${VERSION} - ADEPTUS ADMINISTRATUM<button/" index.html
           
-          # Fallback: Update old style attribute version if it exists
+          # Fallback: Update old style attribute version if it exists (without button)
+          sed -i "s/<div class=\"text-xs opacity-70\">V [^<]*<\/div>/<div class=\"text-xs opacity-70\">V ${VERSION} - ADEPTUS ADMINISTRATUM<\/div>/" index.html
           sed -i "s/<div style=\"font-size: 0\.8em; opacity: 0\.7\">V [^<]*<\/div>/<div style=\"font-size: 0.8em; opacity: 0.7\">V ${VERSION} - ADEPTUS ADMINISTRATUM<\/div>/" index.html
           
           echo "✓ Updated index.html"
