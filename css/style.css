@@ -821,11 +821,11 @@ select option {
     vertical-align: middle;
     opacity: 1;
     letter-spacing: 1px;
-    transition: transform var(--transition-speed) ease;
 }
 
 .update-btn:hover {
     color: var(--pip-light);
+    transition: transform var(--transition-speed) ease;
 }
 
 .update-btn:hover,
