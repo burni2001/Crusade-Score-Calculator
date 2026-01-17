@@ -827,7 +827,6 @@ select option {
     color: var(--pip-light);
 }
 
-.update-btn:hover,
 .update-btn:active {
     transform: rotate(-90deg);
     transition: transform var(--transition-speed) ease;
