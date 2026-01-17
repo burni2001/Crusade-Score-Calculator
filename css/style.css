@@ -812,7 +812,7 @@ select option {
     background: none;
     border: none;
     color: var(--pip-dim);
-    font-size: 1.6em;
+    font-size: 1.5rem;
     font-family: 'VT323', monospace;
     cursor: pointer;
     padding: 0;
