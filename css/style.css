@@ -825,10 +825,14 @@ select option {
 
 .update-btn:hover {
     color: var(--pip-light);
+    transform: rotate(90deg);
 }
 
 .update-btn:active {
-    transform: rotate(-90deg);
+    transform: rotate(180deg);
+}
+
+.update-icon {
     transition: transform var(--transition-speed) ease;
 }
 
