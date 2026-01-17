@@ -823,7 +823,7 @@ select option {
     letter-spacing: 1px;
 }
 
-.update-btn:hover,
+.update-btn:hover {
     color: var(--pip-light);
 }
 
