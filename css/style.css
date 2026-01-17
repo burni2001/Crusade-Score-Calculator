@@ -821,6 +821,7 @@ select option {
     vertical-align: middle;
     opacity: 1;
     letter-spacing: 1px;
+    transition: transform var(--transition-speed) ease;
 }
 
 .update-btn:hover {
@@ -829,7 +830,7 @@ select option {
 
 .update-btn:hover,
 .update-btn:active {
-    transform: rotate(90deg);
+    transform: rotate(-90deg);
     transition: transform var(--transition-speed) ease;
 }
 
