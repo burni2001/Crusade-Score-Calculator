@@ -825,7 +825,6 @@ select option {
 
 .update-btn:hover {
     color: var(--pip-light);
-    transition: transform var(--transition-speed) ease;
 }
 
 .update-btn:hover,
