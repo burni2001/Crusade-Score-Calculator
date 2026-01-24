@@ -825,15 +825,19 @@ select option {
 
 .update-btn:hover {
     color: var(--pip-light);
-    transform: rotate(90deg);
-}
-
-.update-btn:active {
-    transform: rotate(180deg);
 }
 
 .update-icon {
+    display: inline-block;
     transition: transform var(--transition-speed) ease;
+}
+
+.update-btn:hover .update-icon {
+    transform: rotate(180deg);
+}
+
+.update-btn:active .update-icon {
+    transform: rotate(360deg);
 }
 
 .export-buttons-container {
