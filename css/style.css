@@ -829,7 +829,8 @@ select option {
 
 .update-icon {
     display: inline-block;
-    transition: transform var(--transition-speed) ease;
+    transition: transform var(--transition-speed) ease, 
+                text-shadow var(--transition-speed) ease;
 }
 
 .update-btn:hover .update-icon {
@@ -837,7 +838,9 @@ select option {
 }
 
 .update-btn:active .update-icon {
-    transform: rotate(360deg);
+    transform: rotate(180deg) scale(1.3);
+    text-shadow: 0 0 15px var(--pip-light), 
+                 0 0 25px var(--pip-green);
 }
 
 .export-buttons-container {
