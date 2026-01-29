@@ -1895,6 +1895,9 @@ window.addEventListener('DOMContentLoaded', function() {
         console.warn('⚠️ ImperialDate module not loaded - check that imperialDate.js is included before script.js');
     }
     
+    // Initialize swipe navigation for mobile
+    SwipeHandler.init();
+    
     // Set initial page to Page 1
     navigateToPage(1);
     
@@ -1934,6 +1937,144 @@ function closeCreditsOnBackdrop(event) {
         toggleCreditsModal();
     }
 }
+
+// ============================================================================
+// SECTION 16: SWIPE NAVIGATION FOR MOBILE
+// ============================================================================
+
+/**
+ * Touch swipe handler for mobile page navigation
+ * Detects horizontal swipes to navigate between pages
+ */
+const SwipeHandler = {
+    startX: 0,
+    startY: 0,
+    startTarget: null,  // Store the element where touch started
+    minSwipeDistance: 50,  // Minimum horizontal distance for a swipe
+    maxVerticalDistance: 100, // Maximum vertical movement allowed during swipe
+    
+    /**
+     * Initialize touch event listeners on the document
+     */
+    init() {
+        document.addEventListener('touchstart', this.handleTouchStart.bind(this), { passive: true });
+        document.addEventListener('touchend', this.handleTouchEnd.bind(this), { passive: true });
+        console.log('📱 Swipe navigation initialized');
+    },
+    
+    /**
+     * Handle touch start event - record starting position and target
+     */
+    handleTouchStart(event) {
+        if (event.touches.length !== 1) return; // Only handle single touch
+        
+        this.startX = event.touches[0].clientX;
+        this.startY = event.touches[0].clientY;
+        this.startTarget = event.target; // Store the target where touch started
+    },
+    
+    /**
+     * Handle touch end event - detect swipe direction and navigate
+     */
+    handleTouchEnd(event) {
+        if (event.changedTouches.length !== 1) return;
+        
+        const endX = event.changedTouches[0].clientX;
+        const endY = event.changedTouches[0].clientY;
+        
+        const deltaX = endX - this.startX;
+        const deltaY = Math.abs(endY - this.startY);
+        
+        // Ignore if vertical movement is too large (likely scrolling)
+        if (deltaY > this.maxVerticalDistance) return;
+        
+        // Check if horizontal swipe distance is sufficient
+        if (Math.abs(deltaX) < this.minSwipeDistance) return;
+        
+        // Ignore if touch started on an interactive form element
+        if (this.isInteractiveElement(this.startTarget)) return;
+        
+        // Ignore if a modal is currently active
+        if (this.isModalActive()) return;
+        
+        // Check if touch started inside a scrollable container
+        if (this.isInsideScrollableElement(this.startTarget)) return;
+        
+        // Determine swipe direction
+        if (deltaX > 0) {
+            // Swipe right - go to previous page
+            this.navigatePrevious();
+        } else {
+            // Swipe left - go to next page
+            this.navigateNext();
+        }
+    },
+    
+    /**
+     * Check if element is an interactive form element
+     */
+    isInteractiveElement(element) {
+        if (!element || !(element instanceof Element)) {
+            return false;
+        }
+        const tagName = element.tagName.toLowerCase();
+        return ['input', 'textarea', 'select'].includes(tagName);
+    },
+    
+    /**
+     * Check if any modal overlay is currently active
+     */
+    isModalActive() {
+        const activeModal = document.querySelector('.modal-overlay.active');
+        return activeModal !== null;
+    },
+    
+    /**
+     * Check if element is inside a horizontally scrollable container
+     */
+    isInsideScrollableElement(element) {
+        // Skip check if element is not a valid Element (e.g., Document)
+        if (!element || !(element instanceof Element)) {
+            return false;
+        }
+        
+        let current = element;
+        while (current && current !== document.body) {
+            const style = window.getComputedStyle(current);
+            const overflowX = style.getPropertyValue('overflow-x');
+            
+            // If element has horizontal scroll and content overflows
+            if ((overflowX === 'auto' || overflowX === 'scroll') && 
+                current.scrollWidth > current.clientWidth) {
+                return true;
+            }
+            current = current.parentElement;
+        }
+        return false;
+    },
+    
+    /**
+     * Navigate to previous page
+     */
+    navigatePrevious() {
+        const prevPage = currentPage - 1;
+        if (prevPage >= 1) {
+            navigateToPage(prevPage);
+            console.log('👈 Swipe right - navigating to page', prevPage);
+        }
+    },
+    
+    /**
+     * Navigate to next page
+     */
+    navigateNext() {
+        const nextPage = currentPage + 1;
+        if (nextPage <= 3) {
+            navigateToPage(nextPage);
+            console.log('👉 Swipe left - navigating to page', nextPage);
+        }
+    }
+};
 
 // ============================================================================
 // END OF SCRIPT
