@@ -1650,3 +1650,82 @@ select.validation-error {
         animation: menu-unfold 0.2s ease-out;
     }
 }
+
+/* === 34. CREDITS BUTTON AND MODAL === */
+.credits-button-container {
+    position: fixed;
+    bottom: var(--space-lg);
+    right: var(--space-lg);
+    z-index: 100;
+}
+
+.btn-credits {
+    background-color: var(--panel-bg);
+    color: var(--pip-dim);
+    border: 1px solid var(--border-color);
+    padding: var(--space-xs) var(--space-md);
+    font-size: var(--font-sm);
+    opacity: 0.7;
+    transition: opacity 0.2s ease, color 0.2s ease;
+}
+
+.btn-credits:hover {
+    opacity: 1;
+    color: var(--pip-green);
+    background-color: var(--panel-bg);
+    border-color: var(--pip-green);
+}
+
+.credits-modal-content {
+    max-width: 500px;
+    text-align: center;
+}
+
+.credits-modal-title {
+    font-size: var(--font-lg);
+    font-weight: bold;
+    color: var(--pip-green);
+    margin-bottom: var(--space-lg);
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    border-bottom: 1px solid var(--pip-green);
+    padding-bottom: var(--space-md);
+}
+
+.credits-modal-content .credit-row {
+    margin: 8px 0;
+    font-size: 0.95rem;
+}
+
+.credits-modal-content .role {
+    color: var(--pip-dim);
+}
+
+.credits-modal-content .name {
+    color: var(--pip-green);
+}
+
+.credits-modal-content .copyright {
+    margin-top: var(--space-md);
+    padding-top: var(--space-md);
+    border-top: 1px solid var(--border-color);
+    font-size: var(--font-sm);
+    opacity: 0.7;
+}
+
+.credits-modal-content a {
+    color: var(--pip-light);
+    text-decoration: none;
+}
+
+.credits-modal-content a:hover {
+    color: var(--pip-green);
+    text-shadow: 0 0 5px var(--pip-green);
+}
+
+@media (max-width: 768px) {
+    .credits-button-container {
+        bottom: var(--space-md);
+        right: var(--space-md);
+    }
+}
