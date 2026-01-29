@@ -1638,16 +1638,28 @@ select.validation-error {
     }
 
     .dropdown-centered {
-        left: 0;
-        right: 0;
+        position: fixed;
+        left: 20px;
+        right: 20px;
+        top: auto;
         transform: none;
-        width: calc(100vw - 40px);
-        max-width: 300px;
-        margin: 0 auto;
+        width: auto;
+        max-width: none;
     }
 
     .dropdown-centered.active {
-        animation: menu-unfold 0.2s ease-out;
+        animation: menu-unfold-mobile 0.2s ease-out;
+    }
+}
+
+@keyframes menu-unfold-mobile {
+    from {
+        opacity: 0;
+        transform: translateY(-10px) scale(0.95);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
     }
 }
 
