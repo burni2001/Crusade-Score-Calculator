@@ -5,7 +5,7 @@ on:
     paths:
       - 'crusade_modifiers.csv'
     branches:
-      - Version6
+      - Version7
 
 jobs:
   convert-csv:
