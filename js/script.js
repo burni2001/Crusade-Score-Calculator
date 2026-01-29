@@ -948,10 +948,6 @@ function clearSavedData() {
     }
 }
 
-// ============================================================================
-// SECTION 7B: HARD REFRESH FUNCTION
-// ============================================================================
-
 // Expose helpers
 window.debugStorage = debugStorage;
 window.forceSave = forceSave;
