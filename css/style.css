@@ -1060,6 +1060,7 @@ select option {
     flex-wrap: wrap;
     width: 100%;
     margin-top: var(--space-lg);
+    margin-bottom: var(--space-lg);
     padding-top: var(--space-lg);
     border-top: 1px solid rgba(51, 255, 0, 0.3);
 }
