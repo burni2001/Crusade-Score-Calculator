@@ -1882,6 +1882,9 @@ window.addEventListener('DOMContentLoaded', function() {
         console.warn('⚠️ ImperialDate module not loaded - check that imperialDate.js is included before script.js');
     }
     
+    // Initialize swipe navigation for mobile
+    SwipeHandler.init();
+    
     // Set initial page to Page 1
     navigateToPage(1);
     
@@ -1911,6 +1914,7 @@ console.log('💡 Debug Commands: debugStorage(), forceSave(), forceLoad(), clea
 const SwipeHandler = {
     startX: 0,
     startY: 0,
+    startTarget: null,  // Store the element where touch started
     minSwipeDistance: 50,  // Minimum horizontal distance for a swipe
     maxVerticalDistance: 100, // Maximum vertical movement allowed during swipe
     
@@ -1924,13 +1928,14 @@ const SwipeHandler = {
     },
     
     /**
-     * Handle touch start event - record starting position
+     * Handle touch start event - record starting position and target
      */
     handleTouchStart(event) {
         if (event.touches.length !== 1) return; // Only handle single touch
         
         this.startX = event.touches[0].clientX;
         this.startY = event.touches[0].clientY;
+        this.startTarget = event.target; // Store the target where touch started
     },
     
     /**
@@ -1951,9 +1956,14 @@ const SwipeHandler = {
         // Check if horizontal swipe distance is sufficient
         if (Math.abs(deltaX) < this.minSwipeDistance) return;
         
+        // Ignore if touch started on an interactive form element
+        if (this.isInteractiveElement(this.startTarget)) return;
+        
+        // Ignore if a modal is currently active
+        if (this.isModalActive()) return;
+        
         // Check if touch started inside a scrollable container
-        const target = event.target;
-        if (this.isInsideScrollableElement(target)) return;
+        if (this.isInsideScrollableElement(this.startTarget)) return;
         
         // Determine swipe direction
         if (deltaX > 0) {
@@ -1963,6 +1973,25 @@ const SwipeHandler = {
             // Swipe left - go to next page
             this.navigateNext();
         }
+    },
+    
+    /**
+     * Check if element is an interactive form element
+     */
+    isInteractiveElement(element) {
+        if (!element || !(element instanceof Element)) {
+            return false;
+        }
+        const tagName = element.tagName.toLowerCase();
+        return ['input', 'textarea', 'select'].includes(tagName);
+    },
+    
+    /**
+     * Check if any modal overlay is currently active
+     */
+    isModalActive() {
+        const activeModal = document.querySelector('.modal-overlay.active');
+        return activeModal !== null;
     },
     
     /**
@@ -2011,11 +2040,6 @@ const SwipeHandler = {
         }
     }
 };
-
-// Initialize swipe handler when DOM is ready
-window.addEventListener('DOMContentLoaded', function() {
-    SwipeHandler.init();
-});
 
 // ============================================================================
 // END OF SCRIPT
