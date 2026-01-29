@@ -421,7 +421,9 @@ select option {
     display: none;
     position: absolute;
     top: 100%;
-    width: 280px;
+    width: 350px;
+    max-height: 70vh;
+    overflow-y: auto;
     background-color: #000;
     border: 2px solid var(--pip-green);
     padding: var(--space-md);
@@ -435,6 +437,19 @@ select option {
 .dropdown.active {
     display: block;
     animation: menu-unfold 0.2s ease-out;
+}
+
+.dropdown::-webkit-scrollbar {
+    width: 6px;
+}
+
+.dropdown::-webkit-scrollbar-track {
+    background: #000;
+}
+
+.dropdown::-webkit-scrollbar-thumb {
+    background: var(--pip-dim);
+    border-radius: 3px;
 }
 
 @keyframes menu-unfold {
@@ -1594,7 +1609,7 @@ select.validation-error {
 
 .custom-rules-content {
     display: none;
-    overflow: hidden;
+    overflow: visible;
     padding: 0;
 }
 
