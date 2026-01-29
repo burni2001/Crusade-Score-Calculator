@@ -1823,7 +1823,10 @@ async function recordAllDataScreens() {
             statusEl.style.color = 'var(--pip-green)';
         }
         
-        // Export aggregated data (Squad Matrix + Aggregated Statistics)
+        // Export mission data from page 2 (Squad Performance Matrix + Additional Statistics)
+        await PNGExporter.exportMissionScreen('button[onclick="recordAllDataScreens()"]');
+        
+        // Export aggregated data from page 3 (Aggregated Squad Matrix + Aggregated Statistics)
         await PNGExporter.exportAggregatedScreen();
         
         if (statusEl) {
