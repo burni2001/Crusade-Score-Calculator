@@ -1567,15 +1567,8 @@ let cachedEvents = [];
 
 function toggleEventMenu() {
     const menu = document.getElementById('event-menu');
-    const otherMenu = document.getElementById('modifiers-menu');
-    const wrapper = document.querySelector('.gear-wrapper:first-child'); // Event selector wrapper
+    const wrapper = document.querySelector('.gear-wrapper'); // Event selector wrapper
     
-    if (otherMenu && otherMenu.classList.contains('active')) {
-        otherMenu.classList.remove('active');
-        const otherWrapper = document.querySelector('.gear-wrapper:last-child');
-        if (otherWrapper) otherWrapper.classList.remove('active');
-    }
-
     if (menu) {
         menu.classList.toggle('active');
         if (wrapper) wrapper.classList.toggle('active');
@@ -1710,27 +1703,6 @@ function selectEvent(selectedId) {
     }
 }
 
-function toggleModifiersMenu() {
-    const menu = document.getElementById('modifiers-menu');
-    const eventMenu = document.getElementById('event-menu');
-    const wrapper = document.querySelector('.gear-wrapper:last-child'); // Modifiers wrapper
-    
-    if (eventMenu && eventMenu.classList.contains('active')) {
-        eventMenu.classList.remove('active');
-        const eventWrapper = document.querySelector('.gear-wrapper:first-child');
-        if (eventWrapper) eventWrapper.classList.remove('active');
-    }
-
-    if (menu) {
-        menu.classList.toggle('active');
-        if (wrapper) wrapper.classList.toggle('active');
-        
-        if (!menu.classList.contains('active')) {
-            calculate();
-        }
-    }
-}
-
 // ============================================================================
 // SECTION 13: KEYBOARD & GLOBAL EVENT HANDLERS
 // ============================================================================
@@ -1752,15 +1724,8 @@ document.addEventListener('keydown', function(event) {
             slotModal.classList.remove('active');
         }
 
-        const modMenu = document.getElementById('modifiers-menu');
-        const modWrapper = document.querySelector('.gear-wrapper:last-child');
-        if (modMenu && modMenu.classList.contains('active')) {
-            modMenu.classList.remove('active');
-            if (modWrapper) modWrapper.classList.remove('active');
-        }
-
         const eventMenu = document.getElementById('event-menu');
-        const eventWrapper = document.querySelector('.gear-wrapper:first-child');
+        const eventWrapper = document.querySelector('.gear-wrapper');
         if (eventMenu && eventMenu.classList.contains('active')) {
             eventMenu.classList.remove('active');
             if (eventWrapper) eventWrapper.classList.remove('active');
@@ -1773,17 +1738,10 @@ document.addEventListener('click', function(event) {
 
     if (!insideWrapper) {
         const eventMenu = document.getElementById('event-menu');
-        const eventWrapper = document.querySelector('.gear-wrapper:first-child');
+        const eventWrapper = document.querySelector('.gear-wrapper');
         if (eventMenu && eventMenu.classList.contains('active')) {
             eventMenu.classList.remove('active');
             if (eventWrapper) eventWrapper.classList.remove('active');
-        }
-
-        const modMenu = document.getElementById('modifiers-menu');
-        const modWrapper = document.querySelector('.gear-wrapper:last-child');
-        if (modMenu && modMenu.classList.contains('active')) {
-            modMenu.classList.remove('active');
-            if (modWrapper) modWrapper.classList.remove('active');
         }
     }
 });
@@ -1792,7 +1750,16 @@ document.addEventListener('click', function(event) {
 // SECTION 14: MULTI-PAGE NAVIGATION SYSTEM
 // ============================================================================
 
+// Tracks the current active page (1, 2, or 3) - exposed for debugging via getCurrentPage()
 let currentPage = 1;
+
+/**
+ * Get the current active page number
+ * @returns {number} The current page number (1, 2, or 3)
+ */
+function getCurrentPage() {
+    return currentPage;
+}
 
 /**
  * Navigate to a specific page (1, 2, or 3)
@@ -1845,14 +1812,14 @@ function toggleCustomRules() {
 }
 
 /**
- * Record all data screens as PNGs (for Page 3)
- * Captures: Mission data for each saved mission, aggregated squad matrix, aggregated statistics
+ * Record data screens as PNG (for Page 3)
+ * Captures the Aggregated Squad Matrix and Aggregated Statistics
  */
 async function recordAllDataScreens() {
     try {
         const statusEl = document.getElementById('import-status');
         if (statusEl) {
-            statusEl.textContent = 'Capturing all data screens...';
+            statusEl.textContent = 'Capturing data screens...';
             statusEl.style.color = 'var(--pip-green)';
         }
         
