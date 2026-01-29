@@ -427,7 +427,8 @@ select option {
     position: absolute;
     top: 100%;
     width: 350px;
-    max-height: 70vh;
+    min-width: 350px;
+    max-height: 80vh;
     overflow-y: auto;
     background-color: #000;
     border: 2px solid var(--pip-green);
@@ -437,6 +438,7 @@ select option {
         0 10px 30px rgba(0, 0, 0, 0.9), 
         0 0 15px rgba(51, 255, 0, 0.2);
     margin-top: var(--space-xs);
+    box-sizing: border-box;
 }
 
 .dropdown.active {
@@ -684,7 +686,7 @@ select option {
     font-size: 1rem;
     opacity: 0.9;
     flex: 1;
-    white-space: nowrap;
+    white-space: normal;
 }
 
 .mod-row input {
@@ -1614,7 +1616,7 @@ select.validation-error {
 
 .custom-rules-content {
     display: none;
-    overflow: visible;
+    overflow: hidden;
     padding: 0;
 }
 
