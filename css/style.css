@@ -1297,6 +1297,13 @@ select.validation-error {
         white-space: normal;
         overflow: visible;
     }
+    
+    /* Keep header-nav horizontal at all screen sizes */
+    .header-nav {
+        flex-direction: row;
+        justify-content: space-between;
+        width: 100%;
+    }
 }
 
 /* Mobile-specific styles (≤ 768px) */
