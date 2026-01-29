@@ -242,6 +242,22 @@ h1, h2, h3 {
     99% { opacity: 1; }
 }
 
+/* Header Navigation variant for pages 2 and 3 */
+.header-nav {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.btn-nav {
+    min-width: 100px;
+}
+
+.btn-nav-placeholder {
+    min-width: 100px;
+    visibility: hidden;
+}
+
 /* === 6. CUSTOM LISTS === */
 .cogitator-list {
     list-style: none;
