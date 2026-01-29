@@ -35,11 +35,11 @@ const PNGExporter = {
         return this._exportScreen({
             sectionSelectors: [
                 { 
-                    containerSelector: '#top-wrapper .section',
+                    containerSelector: '#page-2 .section',
                     titleMatch: 'SQUAD PERFORMANCE MATRIX'
                 },
                 { 
-                    containerSelector: '#top-wrapper .section',
+                    containerSelector: '#page-2 .section',
                     titleMatch: 'ADDITIONAL STATISTICS'
                 }
             ],
@@ -64,11 +64,11 @@ const PNGExporter = {
         return this._exportScreen({
             sectionSelectors: [
                 { 
-                    containerSelector: '#import-wrapper .section',
+                    containerSelector: '#page-3 .section',
                     titleMatch: 'AGGREGATED SQUAD MATRIX'
                 },
                 { 
-                    containerSelector: '#import-wrapper .section',
+                    containerSelector: '#page-3 .section',
                     titleMatch: 'AGGREGATED STATISTICS'
                 }
             ],
