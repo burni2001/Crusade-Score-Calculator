@@ -1575,6 +1575,14 @@ function toggleEventMenu() {
         
         if (menu.classList.contains('active')) {
             fetchEventList();
+            // Position dropdown below trigger on narrow screens
+            if (window.innerWidth <= 768 && wrapper) {
+                const rect = wrapper.getBoundingClientRect();
+                menu.style.top = (rect.bottom + 5) + 'px';
+            }
+        } else {
+            // Reset inline style when closing
+            menu.style.top = '';
         }
     }
 }

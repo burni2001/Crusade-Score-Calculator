@@ -1638,15 +1638,17 @@ select.validation-error {
     }
 
     .dropdown-centered {
-        left: 0;
-        right: 0;
+        position: fixed;
+        left: 20px;
+        right: 20px;
+        top: auto;
         transform: none;
-        width: calc(100vw - 40px);
-        max-width: 300px;
-        margin: 0 auto;
+        width: auto;
+        max-width: none;
+        margin-top: 5px;
     }
 
     .dropdown-centered.active {
-        animation: menu-unfold 0.2s ease-out;
+        animation: menu-unfold-centered 0.2s ease-out;
     }
 }
