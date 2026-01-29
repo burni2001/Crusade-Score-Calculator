@@ -13,8 +13,8 @@
 <body>
     <div class="cogitator-frame">
         
-        <!-- ========== TOP SECTION: MISSION DATA ========== -->
-        <div id="top-wrapper">
+        <!-- ========== PAGE 1: UPLOAD ========== -->
+        <div id="page-1" class="page active">
             
             <!-- Header -->
             <div class="header-decor">
@@ -35,55 +35,97 @@
                 <span class="font-bold letter-spacing-1 glow">* Glory to the Imperium! *</span>
             </div>
 
-            <!-- Configuration Bar (MOVED HERE) -->
-            <div class="config-bar">
-                <!-- Event Selector -->
+            <!-- Event Selector (Centered) -->
+            <div class="config-bar config-bar-centered">
                 <div class="gear-wrapper">
                     <button onclick="toggleEventMenu()" class="gear-btn">
                         <span class="gear-icon">▶️</span>
                     </button>
                     <span class="config-label" onclick="toggleEventMenu()">Event Selector</span>
-                    <div id="event-menu" class="dropdown">
+                    <div id="event-menu" class="dropdown dropdown-centered">
                         <h3 class="menu-title">EVENT DATABASE</h3>
                         <div id="event-list-container" class="event-list-scroll">
                             <div class="p-10 text-dim text-center">Loading Cogitator Data...</div>
                         </div>
                         <div id="event-status" class="mt-5 text-sm text-center" style="min-height:1.2em;"></div>
-                    </div>
-                </div>
-
-                <!-- Scoring Configuration -->
-                <div class="gear-wrapper">
-                    <button onclick="toggleModifiersMenu()" class="gear-btn">
-                        <span class="gear-icon">⚙️</span>
-                    </button>
-                    <span class="config-label" onclick="toggleModifiersMenu()">Custom Configuration</span>
-                    <div id="modifiers-menu" class="dropdown">
-                        <h3 class="menu-title">GENERAL MODIFIERS</h3>
-                        <p class="text-xs text-dim text-center m-0 mb-10 opacity-70">Customize scoring values for each metric</p>
-                        <div class="mod-grid mod-grid-single">
-                            <div class="mod-row"><label>Kills Multiplier</label><input type="number" id="mod-kills" value="1" onchange="calculate(); saveData();"></div>
-                            <div class="mod-row"><label>Special Kills Multiplier</label><input type="number" id="mod-elite" value="20" onchange="calculate(); saveData();"></div>
-                            <div class="mod-row"><label>Siege Tasks Bonus</label><input type="number" id="mod-tasks" value="25" onchange="calculate(); saveData();"></div>
-                            <div class="mod-row"><label>Incapacitations Penalty</label><input type="number" id="mod-death" value="-100" onchange="calculate(); saveData();"></div>
-                            <div class="mod-row"><label>Damage Taken Penalty</label><input type="number" id="mod-damage" value="-0.1" step="0.1" onchange="calculate(); saveData();"></div>
-                            <div class="mod-row"><label>Gene-Seed Bonus</label><input type="number" id="mod-gene" value="100" onchange="calculate(); saveData();"></div>
-                            <div class="mod-row"><label>Armoury Data Bonus</label><input type="number" id="mod-armoury" value="25" onchange="calculate(); saveData();"></div>
-                            <div class="mod-row"><label>Objective Completion Bonus</label><input type="number" id="mod-obj" value="100" onchange="calculate(); saveData();"></div>
-                            <div class="mod-row"><label>Bonus per Wave >15</label><input type="number" id="mod-waves" value="250" onchange="calculate(); saveData();"></div>
+                        
+                        <!-- Custom Rules integrated into Event Selector -->
+                        <div class="custom-rules-section">
+                            <div class="custom-rules-toggle" onclick="toggleCustomRules()">
+                                <span class="gear-icon">⚙️</span>
+                                <span>Custom Rules</span>
+                                <span class="collapse-indicator" id="custom-rules-indicator">&#9664;</span>
+                            </div>
+                            <div id="custom-rules-content" class="custom-rules-content">
+                                <p class="text-xs text-dim text-center m-0 mb-10 opacity-70">Customize scoring values for each metric</p>
+                                <div class="mod-grid mod-grid-single">
+                                    <div class="mod-row"><label>Kills Multiplier</label><input type="number" id="mod-kills" value="1" onchange="calculate(); saveData();"></div>
+                                    <div class="mod-row"><label>Special Kills Multiplier</label><input type="number" id="mod-elite" value="20" onchange="calculate(); saveData();"></div>
+                                    <div class="mod-row"><label>Siege Tasks Bonus</label><input type="number" id="mod-tasks" value="25" onchange="calculate(); saveData();"></div>
+                                    <div class="mod-row"><label>Incapacitations Penalty</label><input type="number" id="mod-death" value="-100" onchange="calculate(); saveData();"></div>
+                                    <div class="mod-row"><label>Damage Taken Penalty</label><input type="number" id="mod-damage" value="-0.1" step="0.1" onchange="calculate(); saveData();"></div>
+                                    <div class="mod-row"><label>Gene-Seed Bonus</label><input type="number" id="mod-gene" value="100" onchange="calculate(); saveData();"></div>
+                                    <div class="mod-row"><label>Armoury Data Bonus</label><input type="number" id="mod-armoury" value="25" onchange="calculate(); saveData();"></div>
+                                    <div class="mod-row"><label>Objective Completion Bonus</label><input type="number" id="mod-obj" value="100" onchange="calculate(); saveData();"></div>
+                                    <div class="mod-row"><label>Bonus per Wave >15</label><input type="number" id="mod-waves" value="250" onchange="calculate(); saveData();"></div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <!-- Screenshot Upload (MOVED BELOW CONFIG BAR) -->
+            <!-- Screenshot Upload -->
             <div class="content-box mt-20 mb-25 text-center">
                 <div class="font-bold mt-5 mb-0">UPLOAD SCREENSHOTS</div>
-                <p class="text-sm text-dim m-0 mb-5">Upload post-mission screenshots to auto-fill mission parameters and squad statistics below.</p>
+                <p class="text-sm text-dim m-0 mb-5">Upload post-mission screenshots to auto-fill mission parameters and squad statistics.</p>
                 <input type="file" id="screenshot-upload" accept="image/png,image/jpeg,image/jpg" multiple 
                        style="display: block; margin: 0 auto; padding: 8px; background-color: var(--panel-bg); cursor: pointer; color: var(--pip-green); border: 1px solid var(--pip-green); width: 95%; max-width: 500px; font-family: 'VT323', monospace; font-size: 1.2rem;">
                 <div id="upload-status" class="mt-5 font-bold" style="min-height: 20px;"></div>
                 <div id="upload-progress" class="text-sm text-dim"></div>
+            </div>
+
+            <!-- Skip Upload Button -->
+            <div class="text-center mb-30">
+                <button onclick="navigateToPage(2)" class="btn btn-primary btn-lg">Skip Upload &rarr; Enter Data Manually</button>
+            </div>
+
+            <!-- Page 1 Credits -->
+            <div class="credits-inline">
+                <div class="title">Credits</div>
+                <div class="credit-row">
+                    <span class="role">Development & Implementation:</span>
+                    <span class="name">burni2001 (Börni)</span>
+                </div>
+                <div class="credit-row">
+                    <span class="role">Development Tools:</span>
+                    <span class="name">Replit AI, Gemini, Claude</span>
+                </div>
+                <div class="credit-row">
+                    <span class="role">Scoring System & Event Concept:</span>
+                    <span class="name">gilzvit (Gideon)</span>
+                </div>
+                <div class="copyright">
+                    Join us on Discord: <a href="https://Discord.gg/KtJDBvpBRR">Lightning Fist</a> • For the Emperor!
+                </div>
+            </div>
+
+        </div><!-- End Page 1 -->
+
+        <!-- ========== PAGE 2: MISSION DATA ========== -->
+        <div id="page-2" class="page">
+            
+            <!-- Header -->
+            <div class="header-decor">
+                <div>
+                    <div>REF: SM-2/CRUSADE</div>
+                    <div class="text-xs opacity-70">V 6.2 - ADEPTUS ADMINISTRATUM</div>
+                </div>
+                <h1>Adeptus Astartes - Mission&nbsp;Debrief</h1>
+                <div class="flex-center gap-15">
+                    <span id="imperial-date-2">DAT: X.959.025.M42</span>
+                    <img src="attached_assets/FFFvLV2Ld6_crt_frei.png" alt="Logo" class="header-logo">
+                </div>
             </div>
 
             <!-- Mission Parameters Dashboard -->
@@ -325,23 +367,60 @@
                 </div>
             </div>
 
-            <!-- Action Buttons -->
+            <!-- Action Buttons (No Record PNG Button on Page 2) -->
             <div class="export-buttons-container">
                 <button onclick="saveMissionInternal()" class="btn btn-primary">Save Mission Data</button>
-                <button onclick="exportTopSectionPNG()" class="btn">Record Mission Data Screen (PNG)</button>
                 <button onclick="clearData()" class="btn btn-danger">Purge Mission Data</button>
             </div>
 
             <!-- Data Bank UI -->
             <div id="data-bank-ui" class="data-bank-display"></div>
 
-        </div><!-- End top-wrapper -->
+            <!-- Navigation to Page 3 -->
+            <div class="page-navigation mt-20">
+                <button onclick="navigateToPage(1)" class="btn">&larr; Back to Upload</button>
+                <button onclick="navigateToPage(3)" class="btn btn-primary">Proceed to Aggregation &rarr;</button>
+            </div>
 
-        <!-- ========== BOTTOM SECTION: AGGREGATED DATA ========== -->
-        <div id="import-wrapper">
-            <div class="divider-line"></div>
+            <!-- Page 2 Credits -->
+            <div class="credits-inline">
+                <div class="title">Credits</div>
+                <div class="credit-row">
+                    <span class="role">Development & Implementation:</span>
+                    <span class="name">burni2001 (Börni)</span>
+                </div>
+                <div class="credit-row">
+                    <span class="role">Development Tools:</span>
+                    <span class="name">Replit AI, Gemini, Claude</span>
+                </div>
+                <div class="credit-row">
+                    <span class="role">Scoring System & Event Concept:</span>
+                    <span class="name">gilzvit (Gideon)</span>
+                </div>
+                <div class="copyright">
+                    Join us on Discord: <a href="https://Discord.gg/KtJDBvpBRR">Lightning Fist</a> • For the Emperor!
+                </div>
+            </div>
 
-            <h2 class="mt-30 mb-15 text-xl text-primary text-center glow">AGGREGATE DATA IMPORT</h2>
+        </div><!-- End Page 2 -->
+
+        <!-- ========== PAGE 3: AGGREGATION ========== -->
+        <div id="page-3" class="page">
+            
+            <!-- Header -->
+            <div class="header-decor">
+                <div>
+                    <div>REF: SM-2/CRUSADE</div>
+                    <div class="text-xs opacity-70">V 6.2 - ADEPTUS ADMINISTRATUM</div>
+                </div>
+                <h1>Adeptus Astartes - Mission&nbsp;Debrief</h1>
+                <div class="flex-center gap-15">
+                    <span id="imperial-date-3">DAT: X.959.025.M42</span>
+                    <img src="attached_assets/FFFvLV2Ld6_crt_frei.png" alt="Logo" class="header-logo">
+                </div>
+            </div>
+
+            <h2 class="mt-10 mb-15 text-xl text-primary text-center glow">AGGREGATE DATA IMPORT</h2>
 
             <!-- Internal Data Aggregation -->
             <div class="content-box-subtle mb-15 text-center">
@@ -356,6 +435,9 @@
                 </button>
                 <div id="import-status" class="mt-10 font-bold"></div>
             </div>
+
+            <!-- Saved Missions (Data Bank) on Page 3 -->
+            <div id="data-bank-ui-page3" class="data-bank-display"></div>
 
             <!-- Results Container -->
             <div class="results-container" id="results-container">
@@ -378,34 +460,39 @@
                 <!-- Export Buttons -->
                 <div class="export-buttons-container mt-20 border-top pt-20">
                     <button onclick="openCopyModal()" class="btn btn-primary">Create Astropathic Message</button>
-                    <button onclick="saveAsPNG()" class="btn">Record Aggregated Data Screen (PNG)</button>
+                    <button onclick="recordAllDataScreens()" class="btn">Record Data Screens (PNG)</button>
                     <button onclick="resetImport()" class="btn btn-danger">Purge Aggregated Data</button>
                 </div>
             </div>
 
-        </div><!-- End import-wrapper -->
+            <!-- Navigation back to Page 2 -->
+            <div class="page-navigation mt-20">
+                <button onclick="navigateToPage(2)" class="btn">&larr; Back to Mission Data</button>
+            </div>
+
+            <!-- Page 3 Credits -->
+            <div class="credits-inline">
+                <div class="title">Credits</div>
+                <div class="credit-row">
+                    <span class="role">Development & Implementation:</span>
+                    <span class="name">burni2001 (Börni)</span>
+                </div>
+                <div class="credit-row">
+                    <span class="role">Development Tools:</span>
+                    <span class="name">Replit AI, Gemini, Claude</span>
+                </div>
+                <div class="credit-row">
+                    <span class="role">Scoring System & Event Concept:</span>
+                    <span class="name">gilzvit (Gideon)</span>
+                </div>
+                <div class="copyright">
+                    Join us on Discord: <a href="https://Discord.gg/KtJDBvpBRR">Lightning Fist</a> • For the Emperor!
+                </div>
+            </div>
+
+        </div><!-- End Page 3 -->
 
     </div><!-- End cogitator-frame -->
-
-    <!-- ========== CREDITS ========== -->
-    <div class="credits-full">
-        <div class="title">Credits</div>
-        <div class="credit-row">
-            <span class="role">Development & Implementation:</span>
-            <span class="name">burni2001 (Börni)</span>
-        </div>
-        <div class="credit-row">
-            <span class="role">Development Tools:</span>
-            <span class="name">Replit AI, Gemini, Claude</span>
-        </div>
-        <div class="credit-row">
-            <span class="role">Scoring System & Event Concept:</span>
-            <span class="name">gilzvit (Gideon)</span>
-        </div>
-        <div class="copyright">
-            Join us on Discord: <a href="https://Discord.gg/KtJDBvpBRR">Lightning Fist</a> • For the Emperor!
-        </div>
-    </div>
 
     <!-- ========== MODALS ========== -->
     

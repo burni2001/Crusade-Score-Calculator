@@ -359,6 +359,11 @@ function applyOCRResults() {
             ErrorHandler.handle(calcError, 'Calculation after OCR apply', false);
         }
 
+        // Navigate to Page 2 after applying OCR results
+        if (typeof navigateToPage === 'function') {
+            navigateToPage(2);
+        }
+
     } catch (e) {
         ErrorHandler.handle(e, 'Apply OCR Results', true);
     } finally {
@@ -997,18 +1002,28 @@ function saveMissionInternal() {
 
 function renderDataBankUI() {
     const container = document.getElementById("data-bank-ui");
-    if (!container) {
-        console.warn('renderDataBankUI: data-bank-ui element not found');
-        return;
-    }
+    const containerPage3 = document.getElementById("data-bank-ui-page3");
     
     const savedSlots = JSON.parse(localStorage.getItem("cogitator_saved_missions") || "[]");
     
+    // Update counter in all places
     const counterEl = document.getElementById("slots-count-display");
     if (counterEl) counterEl.textContent = `${savedSlots.length}/4`;
+    
+    // Render data bank for Page 2
+    if (container) {
+        container.innerHTML = "";
+        renderSlotsToContainer(container, savedSlots);
+    }
+    
+    // Render data bank for Page 3
+    if (containerPage3) {
+        containerPage3.innerHTML = "";
+        renderSlotsToContainer(containerPage3, savedSlots);
+    }
+}
 
-    container.innerHTML = "";
-
+function renderSlotsToContainer(container, savedSlots) {
     for (let i = 0; i < 4; i++) {
         const slotData = savedSlots[i];
         const slotEl = document.createElement("div");
@@ -1774,11 +1789,102 @@ document.addEventListener('click', function(event) {
 });
 
 // ============================================================================
-// SECTION 14: PAGE INITIALIZATION
+// SECTION 14: MULTI-PAGE NAVIGATION SYSTEM
+// ============================================================================
+
+let currentPage = 1;
+
+/**
+ * Navigate to a specific page (1, 2, or 3)
+ * @param {number} pageNum - The page number to navigate to
+ */
+function navigateToPage(pageNum) {
+    if (pageNum < 1 || pageNum > 3) return;
+    
+    // Hide all pages
+    document.querySelectorAll('.page').forEach(page => {
+        page.classList.remove('active');
+    });
+    
+    // Show the target page
+    const targetPage = document.getElementById(`page-${pageNum}`);
+    if (targetPage) {
+        targetPage.classList.add('active');
+        currentPage = pageNum;
+        
+        // Scroll to top of the page
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+        
+        // Update the data bank UI on both Page 2 and Page 3
+        if (pageNum === 2 || pageNum === 3) {
+            renderDataBankUI();
+        }
+        
+        console.log(`📄 Navigated to Page ${pageNum}`);
+    }
+}
+
+/**
+ * Toggle Custom Rules section in Event Selector dropdown
+ */
+function toggleCustomRules() {
+    const content = document.getElementById('custom-rules-content');
+    const indicator = document.getElementById('custom-rules-indicator');
+    
+    if (content && indicator) {
+        content.classList.toggle('expanded');
+        
+        if (content.classList.contains('expanded')) {
+            indicator.innerHTML = '&#9660;'; // Down-pointing triangle
+            indicator.classList.add('expanded');
+        } else {
+            indicator.innerHTML = '&#9664;'; // Left-pointing triangle
+            indicator.classList.remove('expanded');
+        }
+    }
+}
+
+/**
+ * Record all data screens as PNGs (for Page 3)
+ * Captures: Mission data for each saved mission, aggregated squad matrix, aggregated statistics
+ */
+async function recordAllDataScreens() {
+    try {
+        const statusEl = document.getElementById('import-status');
+        if (statusEl) {
+            statusEl.textContent = 'Capturing all data screens...';
+            statusEl.style.color = 'var(--pip-green)';
+        }
+        
+        // Export aggregated data (Squad Matrix + Aggregated Statistics)
+        await PNGExporter.exportAggregatedScreen();
+        
+        if (statusEl) {
+            statusEl.textContent = 'Data screens captured successfully!';
+            statusEl.style.color = '#afffa6';
+            setTimeout(() => {
+                statusEl.textContent = '';
+            }, 3000);
+        }
+        
+    } catch (error) {
+        console.error('Error recording data screens:', error);
+        const statusEl = document.getElementById('import-status');
+        if (statusEl) {
+            statusEl.textContent = 'Error capturing screens. Please try again.';
+            statusEl.style.color = '#ff5555';
+        }
+    }
+}
+
+// ============================================================================
+// SECTION 15: PAGE INITIALIZATION
 // ============================================================================
 
 // Global variable to store Imperial Date interval ID
 let imperialDateIntervalId = null;
+let imperialDateIntervalId2 = null;
+let imperialDateIntervalId3 = null;
 
 window.addEventListener('DOMContentLoaded', function() {
     console.log('🚀 Initializing Crusade Score Calculator...');
@@ -1797,22 +1903,28 @@ window.addEventListener('DOMContentLoaded', function() {
         initializeDifficultySelector();
     }
     
-    // Initialize Imperial Date display
+    // Initialize Imperial Date display for all pages
     if (typeof ImperialDate !== 'undefined') {
         imperialDateIntervalId = ImperialDate.startUpdating('imperial-date');
+        imperialDateIntervalId2 = ImperialDate.startUpdating('imperial-date-2');
+        imperialDateIntervalId3 = ImperialDate.startUpdating('imperial-date-3');
     } else {
         console.warn('⚠️ ImperialDate module not loaded - check that imperialDate.js is included before script.js');
     }
+    
+    // Set initial page to Page 1
+    navigateToPage(1);
     
     console.log('✅ Ready');
 });
 
 window.addEventListener('beforeunload', function() {
     saveData();
-    // Clean up Imperial Date interval to prevent memory leaks
-    // Only clean up if ImperialDate was successfully initialized
-    if (imperialDateIntervalId && typeof ImperialDate !== 'undefined') {
-        ImperialDate.stopUpdating(imperialDateIntervalId);
+    // Clean up Imperial Date intervals to prevent memory leaks
+    if (typeof ImperialDate !== 'undefined') {
+        if (imperialDateIntervalId) ImperialDate.stopUpdating(imperialDateIntervalId);
+        if (imperialDateIntervalId2) ImperialDate.stopUpdating(imperialDateIntervalId2);
+        if (imperialDateIntervalId3) ImperialDate.stopUpdating(imperialDateIntervalId3);
     }
 });
 
@@ -1831,5 +1943,6 @@ console.log('💡 Debug Commands: debugStorage(), forceSave(), forceLoad(), clea
 // forceSave()         - Manually trigger save
 // forceLoad()         - Manually trigger load
 // clearSavedData()    - Clear all saved data (with confirmation)
+// navigateToPage(n)   - Navigate to page n (1, 2, or 3)
 //
 // ============================================================================

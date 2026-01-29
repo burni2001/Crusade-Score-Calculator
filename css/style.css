@@ -1486,3 +1486,167 @@ select.validation-error {
         width: 100% !important;
     }
 }
+
+/* === 29. MULTI-PAGE NAVIGATION === */
+.page {
+    display: none;
+}
+
+.page.active {
+    display: block;
+}
+
+.page-navigation {
+    display: flex;
+    justify-content: center;
+    gap: var(--space-lg);
+    padding: var(--space-lg) 0;
+    border-top: 1px solid var(--border-color);
+    margin-top: var(--space-lg);
+}
+
+.page-navigation .btn {
+    min-width: 200px;
+}
+
+/* === 30. CENTERED CONFIG BAR (for Page 1) === */
+.config-bar-centered {
+    justify-content: center;
+    margin-bottom: var(--space-lg);
+}
+
+.dropdown-centered {
+    left: 50%;
+    transform: translateX(-50%);
+    transform-origin: top center;
+}
+
+.dropdown-centered.active {
+    animation: menu-unfold-centered 0.2s ease-out;
+}
+
+@keyframes menu-unfold-centered {
+    from {
+        opacity: 0;
+        transform: translateX(-50%) translateY(-10px) scale(0.95);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(-50%) translateY(0) scale(1);
+    }
+}
+
+/* === 31. CUSTOM RULES SECTION (integrated in Event Selector) === */
+.custom-rules-section {
+    margin-top: var(--space-md);
+    padding-top: var(--space-md);
+    border-top: 1px solid var(--pip-dim);
+}
+
+.custom-rules-toggle {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    cursor: pointer;
+    padding: 8px 10px;
+    color: var(--pip-green);
+    font-family: "VT323", monospace;
+    font-size: var(--font-md);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    transition: background-color 0.2s ease;
+    gap: var(--space-sm);
+}
+
+.custom-rules-toggle:hover {
+    background-color: rgba(51, 255, 0, 0.1);
+}
+
+.custom-rules-toggle .gear-icon {
+    font-size: 1.2rem;
+}
+
+.custom-rules-content {
+    display: none;
+    overflow: hidden;
+    padding: 0;
+}
+
+.custom-rules-content.expanded {
+    display: block;
+    padding: var(--space-md) var(--space-sm);
+}
+
+/* === 32. INLINE CREDITS (for each page) === */
+.credits-inline {
+    padding: var(--space-lg);
+    margin-top: var(--space-lg);
+    text-align: center;
+    border-top: 1px solid var(--border-color);
+}
+
+.credits-inline .title {
+    font-size: var(--font-md);
+    font-weight: bold;
+    color: var(--pip-light);
+    margin-bottom: var(--space-md);
+    text-transform: uppercase;
+    letter-spacing: 2px;
+}
+
+.credits-inline .credit-row {
+    margin: 8px 0;
+    font-size: 0.95rem;
+}
+
+.credits-inline .role {
+    color: var(--pip-dim);
+}
+
+.credits-inline .name {
+    color: var(--pip-green);
+}
+
+.credits-inline .copyright {
+    margin-top: var(--space-md);
+    padding-top: var(--space-md);
+    border-top: 1px solid var(--border-color);
+    font-size: var(--font-sm);
+    opacity: 0.7;
+}
+
+.credits-inline a {
+    color: var(--pip-light);
+    text-decoration: none;
+}
+
+.credits-inline a:hover {
+    color: var(--pip-green);
+    text-shadow: 0 0 5px var(--pip-green);
+}
+
+/* === 33. RESPONSIVE ADJUSTMENTS FOR MULTI-PAGE === */
+@media (max-width: 768px) {
+    .page-navigation {
+        flex-direction: column;
+        gap: var(--space-sm);
+    }
+
+    .page-navigation .btn {
+        width: 100%;
+        min-width: auto;
+    }
+
+    .dropdown-centered {
+        left: 0;
+        right: 0;
+        transform: none;
+        width: calc(100vw - 40px);
+        max-width: 300px;
+        margin: 0 auto;
+    }
+
+    .dropdown-centered.active {
+        animation: menu-unfold 0.2s ease-out;
+    }
+}
