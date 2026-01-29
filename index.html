@@ -90,25 +90,6 @@
                 <button onclick="navigateToPage(2)" class="btn btn-primary btn-lg">Skip to: Enter Data Manually &rarr;</button>
             </div>
 
-            <!-- Page 1 Credits -->
-            <div class="credits-inline">
-                <div class="title">Credits</div>
-                <div class="credit-row">
-                    <span class="role">Development & Implementation:</span>
-                    <span class="name">burni2001 (Börni)</span>
-                </div>
-                <div class="credit-row">
-                    <span class="role">Development Tools:</span>
-                    <span class="name">Replit AI, Gemini, Claude</span>
-                </div>
-                <div class="credit-row">
-                    <span class="role">Scoring System & Event Concept:</span>
-                    <span class="name">gilzvit (Gideon)</span>
-                </div>
-                <div class="copyright">
-                    Join us on Discord: <a href="https://Discord.gg/KtJDBvpBRR">Lightning Fist</a> • For the Emperor!
-                </div>
-            </div>
 
         </div><!-- End Page 1 -->
 
@@ -384,25 +365,6 @@
                 <button onclick="navigateToPage(3)" class="btn btn-primary">Next: Aggregation &rarr;</button>
             </div>
 
-            <!-- Page 2 Credits -->
-            <div class="credits-inline">
-                <div class="title">Credits</div>
-                <div class="credit-row">
-                    <span class="role">Development & Implementation:</span>
-                    <span class="name">burni2001 (Börni)</span>
-                </div>
-                <div class="credit-row">
-                    <span class="role">Development Tools:</span>
-                    <span class="name">Replit AI, Gemini, Claude</span>
-                </div>
-                <div class="credit-row">
-                    <span class="role">Scoring System & Event Concept:</span>
-                    <span class="name">gilzvit (Gideon)</span>
-                </div>
-                <div class="copyright">
-                    Join us on Discord: <a href="https://Discord.gg/KtJDBvpBRR">Lightning Fist</a> • For the Emperor!
-                </div>
-            </div>
 
         </div><!-- End Page 2 -->
 
@@ -472,29 +434,40 @@
                 <button onclick="navigateToPage(2)" class="btn">&larr; Previous: Mission Data</button>
             </div>
 
-            <!-- Page 3 Credits -->
-            <div class="credits-inline">
-                <div class="title">Credits</div>
-                <div class="credit-row">
-                    <span class="role">Development & Implementation:</span>
-                    <span class="name">burni2001 (Börni)</span>
-                </div>
-                <div class="credit-row">
-                    <span class="role">Development Tools:</span>
-                    <span class="name">Replit AI, Gemini, Claude</span>
-                </div>
-                <div class="credit-row">
-                    <span class="role">Scoring System & Event Concept:</span>
-                    <span class="name">gilzvit (Gideon)</span>
-                </div>
-                <div class="copyright">
-                    Join us on Discord: <a href="https://Discord.gg/KtJDBvpBRR">Lightning Fist</a> • For the Emperor!
-                </div>
-            </div>
 
         </div><!-- End Page 3 -->
 
     </div><!-- End cogitator-frame -->
+
+    <!-- Credits Button (outside main frame) -->
+    <div class="credits-button-container">
+        <button onclick="toggleCreditsModal()" class="btn btn-credits" aria-label="Open credits modal">Credits</button>
+    </div>
+
+    <!-- Credits Modal -->
+    <div id="credits-modal" class="modal-overlay" onclick="closeCreditsOnBackdrop(event)" role="dialog" aria-modal="true" aria-labelledby="credits-modal-title">
+        <div class="modal-content credits-modal-content">
+            <h2 id="credits-modal-title" class="credits-modal-title">Credits</h2>
+            <div class="credit-row">
+                <span class="role">Development & Implementation:</span>
+                <span class="name">burni2001 (Börni)</span>
+            </div>
+            <div class="credit-row">
+                <span class="role">Development Tools:</span>
+                <span class="name">Replit AI, Gemini, Claude</span>
+            </div>
+            <div class="credit-row">
+                <span class="role">Scoring System & Event Concept:</span>
+                <span class="name">gilzvit (Gideon)</span>
+            </div>
+            <div class="copyright">
+                Join us on Discord: <a href="https://Discord.gg/KtJDBvpBRR">Lightning Fist</a> • For the Emperor!
+            </div>
+            <div class="modal-buttons">
+                <button onclick="toggleCreditsModal()" class="btn btn-danger">Close</button>
+            </div>
+        </div>
+    </div>
 
     <!-- ========== MODALS ========== -->
     

@@ -1724,6 +1724,11 @@ document.addEventListener('keydown', function(event) {
             slotModal.classList.remove('active');
         }
 
+        const creditsModal = document.getElementById('credits-modal');
+        if (creditsModal && creditsModal.classList.contains('active')) {
+            creditsModal.classList.remove('active');
+        }
+
         const eventMenu = document.getElementById('event-menu');
         const eventWrapper = document.querySelector('.gear-wrapper');
         if (eventMenu && eventMenu.classList.contains('active')) {
@@ -1899,6 +1904,28 @@ window.addEventListener('beforeunload', function() {
 });
 
 console.log('💡 Debug Commands: debugStorage(), forceSave(), forceLoad(), clearSavedData()');
+
+// ============================================================================
+// SECTION 15: CREDITS MODAL
+// ============================================================================
+/**
+ * Toggle the visibility of the credits modal
+ */
+function toggleCreditsModal() {
+    const modal = document.getElementById('credits-modal');
+    if (modal) {
+        modal.classList.toggle('active');
+    }
+}
+
+/**
+ * Close credits modal when clicking on the backdrop (outside modal content)
+ */
+function closeCreditsOnBackdrop(event) {
+    if (event.target.id === 'credits-modal') {
+        toggleCreditsModal();
+    }
+}
 
 // ============================================================================
 // END OF SCRIPT
