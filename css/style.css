@@ -1364,11 +1364,9 @@ select.validation-error {
 
     .cogitator-frame {
         width: calc(100% - 2 * var(--space-xs));
-        max-height: calc(100vh - 2 * var(--space-xs));
-        max-height: calc(100dvh - 2 * var(--space-xs));
-        height: auto;
         top: var(--space-xs);
         bottom: var(--space-xs);
+        height: auto;
         padding: var(--space-sm);
         border-width: 2px;
     }
