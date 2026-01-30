@@ -430,6 +430,7 @@ select option {
     min-width: 350px;
     max-height: 80vh;
     overflow-y: auto;
+    overscroll-behavior: contain;
     background-color: #000;
     border: 2px solid var(--pip-green);
     padding: var(--space-md);
@@ -495,6 +496,7 @@ select option {
 .event-list-scroll {
     max-height: 300px;
     overflow-y: auto;
+    overscroll-behavior: contain;
     padding-right: var(--space-xs);
 }
 
