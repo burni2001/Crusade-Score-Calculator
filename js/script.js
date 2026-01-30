@@ -1713,7 +1713,9 @@ function selectEvent(selectedId) {
         setTimeout(() => {
             document.getElementById('event-menu').classList.remove('active');
             // Restore body scroll on mobile
-            document.body.style.overflow = '';
+            if (window.innerWidth <= 768) {
+                document.body.style.overflow = '';
+            }
             status.innerText = "";
         }, 300);
     }
@@ -1751,7 +1753,9 @@ document.addEventListener('keydown', function(event) {
             eventMenu.classList.remove('active');
             if (eventWrapper) eventWrapper.classList.remove('active');
             // Restore body scroll on mobile
-            document.body.style.overflow = '';
+            if (window.innerWidth <= 768) {
+                document.body.style.overflow = '';
+            }
         }
     }
 });
@@ -1766,7 +1770,9 @@ document.addEventListener('click', function(event) {
             eventMenu.classList.remove('active');
             if (eventWrapper) eventWrapper.classList.remove('active');
             // Restore body scroll on mobile
-            document.body.style.overflow = '';
+            if (window.innerWidth <= 768) {
+                document.body.style.overflow = '';
+            }
         }
     }
 });
