@@ -132,6 +132,10 @@
 .glow { text-shadow: 0 0 5px var(--pip-green); }
 
 /* === 3. GLOBAL LAYOUT === */
+html {
+    overflow-x: auto;
+}
+
 body {
     background-color: #000;
     background-image: repeating-linear-gradient(
@@ -150,6 +154,7 @@ body {
     flex-direction: column;
     align-items: center;
     min-height: 100vh;
+    min-width: 320px;
 }
 
 .cogitator-frame {
