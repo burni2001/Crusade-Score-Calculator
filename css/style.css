@@ -1632,6 +1632,7 @@ select.validation-error {
     transform: none;
     transform-origin: top left;
     max-height: calc(100vh - 100px);
+    overflow-y: auto;
 }
 
 .dropdown-centered.active {
@@ -1740,19 +1741,8 @@ select.validation-error {
     }
 
     .dropdown-centered {
-        position: fixed;
-        left: 20px;
-        right: 20px;
-        top: 20px;
-        bottom: 20px;
-        transform: none;
-        width: auto;
-        max-width: none;
-        max-height: none;
-    }
-
-    .dropdown-centered.active {
-        animation: menu-unfold-mobile 0.2s ease-out;
+        width: calc(100vw - 40px);
+        min-width: 0;
     }
 }
 
