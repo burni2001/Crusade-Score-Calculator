@@ -1626,27 +1626,17 @@ select.validation-error {
 }
 
 .dropdown-centered {
-    position: fixed;
-    left: 50%;
-    transform: translateX(-50%);
-    transform-origin: top center;
-    top: 80px;
+    position: absolute;
+    left: 0;
+    top: 100%;
+    transform: none;
+    transform-origin: top left;
     max-height: calc(100vh - 100px);
+    overflow-y: auto;
 }
 
 .dropdown-centered.active {
-    animation: menu-unfold-centered 0.2s ease-out;
-}
-
-@keyframes menu-unfold-centered {
-    from {
-        opacity: 0;
-        transform: translateX(-50%) translateY(-10px) scale(0.95);
-    }
-    to {
-        opacity: 1;
-        transform: translateX(-50%) translateY(0) scale(1);
-    }
+    animation: menu-unfold 0.2s ease-out;
 }
 
 /* === 31. CUSTOM RULES SECTION (integrated in Event Selector) === */
@@ -1751,19 +1741,8 @@ select.validation-error {
     }
 
     .dropdown-centered {
-        position: fixed;
-        left: 20px;
-        right: 20px;
-        top: 20px;
-        bottom: 20px;
-        transform: none;
-        width: auto;
-        max-width: none;
-        max-height: none;
-    }
-
-    .dropdown-centered.active {
-        animation: menu-unfold-mobile 0.2s ease-out;
+        width: calc(100vw - 40px);
+        min-width: 0;
     }
 }
 
