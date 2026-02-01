@@ -2118,12 +2118,32 @@ const SwipeHandler = {
             if (this.activePage) {
                 this.activePage.style.transform = `translateX(${rubberDelta}px)`;
             }
+            // Hide stale peek page if direction changed to an edge
+            if (this.peekPage) {
+                this.peekPage.classList.remove('swiping');
+                this.peekPage.style.transform = '';
+                this.peekPage.style.opacity = '';
+                this.peekPage = null;
+            }
             return;
         }
 
+        // Set or update peek page (handles mid-swipe direction change)
+        const newPeekPage = document.getElementById(`page-${targetPageNum}`);
         if (!this.isSwiping) {
             this.isSwiping = true;
-            this.peekPage = document.getElementById(`page-${targetPageNum}`);
+            this.peekPage = newPeekPage;
+            if (this.peekPage) {
+                this.peekPage.classList.add('swiping');
+            }
+        } else if (newPeekPage !== this.peekPage) {
+            // Direction changed mid-swipe: swap peek page
+            if (this.peekPage) {
+                this.peekPage.classList.remove('swiping');
+                this.peekPage.style.transform = '';
+                this.peekPage.style.opacity = '';
+            }
+            this.peekPage = newPeekPage;
             if (this.peekPage) {
                 this.peekPage.classList.add('swiping');
             }
