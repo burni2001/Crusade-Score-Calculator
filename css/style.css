@@ -280,6 +280,10 @@ h1, h2, h3 {
     background-color: var(--bg-color);
     z-index: 100;
     padding-top: var(--space-md);
+    margin-left: calc(-1 * var(--space-lg));
+    margin-right: calc(-1 * var(--space-lg));
+    padding-left: var(--space-lg);
+    padding-right: var(--space-lg);
 }
 
 .btn-nav {
@@ -1369,6 +1373,13 @@ select.validation-error {
         height: auto;
         padding: var(--space-sm);
         border-width: 2px;
+    }
+
+    .header-nav {
+        margin-left: calc(-1 * var(--space-sm));
+        margin-right: calc(-1 * var(--space-sm));
+        padding-left: var(--space-sm);
+        padding-right: var(--space-sm);
     }
 
     h1 {
