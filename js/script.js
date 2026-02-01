@@ -1579,20 +1579,11 @@ function toggleEventMenu() {
         
         if (menu.classList.contains('active')) {
             fetchEventList();
-            // Position dropdown below trigger on narrow screens
-            if (window.innerWidth <= 768 && wrapper) {
-                const rect = wrapper.getBoundingClientRect();
-                menu.style.top = (rect.bottom + 5) + 'px';
-                // Prevent background scrolling on mobile when overlay is open
-                document.querySelector('.cogitator-frame').style.overflow = 'hidden';
-            }
+            // Prevent background scrolling when overlay is open
+            document.querySelector('.cogitator-frame').style.overflow = 'hidden';
         } else {
-            // Reset inline style when closing
-            menu.style.top = '';
-            // Restore scroll when closing on mobile
-            if (window.innerWidth <= 768) {
-                document.querySelector('.cogitator-frame').style.overflow = '';
-            }
+            // Restore scroll when closing
+            document.querySelector('.cogitator-frame').style.overflow = '';
         }
     }
 }
@@ -1716,10 +1707,7 @@ function selectEvent(selectedId) {
         
         setTimeout(() => {
             document.getElementById('event-menu').classList.remove('active');
-            // Restore scroll on mobile
-            if (window.innerWidth <= 768) {
-                document.querySelector('.cogitator-frame').style.overflow = '';
-            }
+            document.querySelector('.cogitator-frame').style.overflow = '';
             status.innerText = "";
         }, 300);
     }
@@ -1756,10 +1744,7 @@ document.addEventListener('keydown', function(event) {
         if (eventMenu && eventMenu.classList.contains('active')) {
             eventMenu.classList.remove('active');
             if (eventWrapper) eventWrapper.classList.remove('active');
-            // Restore scroll on mobile
-            if (window.innerWidth <= 768) {
-                document.querySelector('.cogitator-frame').style.overflow = '';
-            }
+            document.querySelector('.cogitator-frame').style.overflow = '';
         }
     }
 });
@@ -1773,10 +1758,7 @@ document.addEventListener('click', function(event) {
         if (eventMenu && eventMenu.classList.contains('active')) {
             eventMenu.classList.remove('active');
             if (eventWrapper) eventWrapper.classList.remove('active');
-            // Restore scroll on mobile
-            if (window.innerWidth <= 768) {
-                document.querySelector('.cogitator-frame').style.overflow = '';
-            }
+            document.querySelector('.cogitator-frame').style.overflow = '';
         }
     }
 });
