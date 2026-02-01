@@ -1581,8 +1581,9 @@ select.validation-error {
 .page-container {
     position: relative;
     /* Use clip-path instead of overflow:clip so the header-nav negative margin
-       isn't clipped at the top while horizontal slide overflow is still hidden */
-    clip-path: inset(calc(-1 * var(--space-lg)) 0 0 0);
+       isn't clipped at the top while horizontal slide overflow is still hidden.
+       Expand sides & bottom by 25px so button box-shadow glows aren't cut off. */
+    clip-path: inset(calc(-1 * var(--space-lg)) -25px -25px -25px);
     z-index: 3; /* Above the cogitator-frame::before scanline overlay (z-index: 2) */
     touch-action: pan-y; /* Let browser handle vertical scroll; JS handles horizontal swipe */
 }
