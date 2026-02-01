@@ -154,11 +154,12 @@ body {
     flex-direction: column;
     align-items: center;
     min-height: 100vh;
-    min-width: 320px;
+    min-width: 360px;
 }
 
 .cogitator-frame {
     width: calc(100% - 2 * var(--space-lg));
+    min-width: calc(360px - 2 * var(--space-lg));
     max-width: 1100px;
     height: calc(100vh - 2 * var(--space-lg));
     height: calc(100dvh - 2 * var(--space-lg));
@@ -1368,6 +1369,7 @@ select.validation-error {
 
     .cogitator-frame {
         width: calc(100% - 2 * var(--space-xs));
+        min-width: calc(360px - 2 * var(--space-xs));
         top: var(--space-xs);
         bottom: calc(var(--space-xs) + env(safe-area-inset-bottom, 0px));
         height: auto;
