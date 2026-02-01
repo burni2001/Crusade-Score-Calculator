@@ -1612,22 +1612,36 @@ function positionEventMenu() {
     menu.style.maxHeight = (window.innerHeight - rect.bottom - gap - margin) + 'px';
 }
 
+function closeEventMenu() {
+    const menu = document.getElementById('event-menu');
+    const wrapper = document.querySelector('.gear-wrapper');
+    if (menu && menu.classList.contains('active')) {
+        menu.classList.remove('active');
+        if (wrapper) {
+            wrapper.classList.remove('active');
+            // Move menu back into the gear-wrapper
+            wrapper.appendChild(menu);
+        }
+        document.querySelector('.cogitator-frame').style.overflow = '';
+    }
+}
+
 function toggleEventMenu() {
     const menu = document.getElementById('event-menu');
-    const wrapper = document.querySelector('.gear-wrapper'); // Event selector wrapper
-    
+    const wrapper = document.querySelector('.gear-wrapper');
+
     if (menu) {
-        menu.classList.toggle('active');
-        if (wrapper) wrapper.classList.toggle('active');
-        
         if (menu.classList.contains('active')) {
+            closeEventMenu();
+        } else {
+            menu.classList.add('active');
+            if (wrapper) wrapper.classList.add('active');
+            // Move menu to body so it escapes overflow:clip and will-change containing blocks
+            document.body.appendChild(menu);
             fetchEventList();
             positionEventMenu();
             // Prevent background scrolling when overlay is open
             document.querySelector('.cogitator-frame').style.overflow = 'hidden';
-        } else {
-            // Restore scroll when closing
-            document.querySelector('.cogitator-frame').style.overflow = '';
         }
     }
 }
@@ -1750,8 +1764,7 @@ function selectEvent(selectedId) {
         status.style.color = "#afffa6";
         
         setTimeout(() => {
-            document.getElementById('event-menu').classList.remove('active');
-            document.querySelector('.cogitator-frame').style.overflow = '';
+            closeEventMenu();
             status.innerText = "";
         }, 300);
     }
@@ -1783,27 +1796,16 @@ document.addEventListener('keydown', function(event) {
             creditsModal.classList.remove('active');
         }
 
-        const eventMenu = document.getElementById('event-menu');
-        const eventWrapper = document.querySelector('.gear-wrapper');
-        if (eventMenu && eventMenu.classList.contains('active')) {
-            eventMenu.classList.remove('active');
-            if (eventWrapper) eventWrapper.classList.remove('active');
-            document.querySelector('.cogitator-frame').style.overflow = '';
-        }
+        closeEventMenu();
     }
 });
 
 document.addEventListener('click', function(event) {
     const insideWrapper = event.target.closest('.gear-wrapper');
+    const insideMenu = event.target.closest('#event-menu');
 
-    if (!insideWrapper) {
-        const eventMenu = document.getElementById('event-menu');
-        const eventWrapper = document.querySelector('.gear-wrapper');
-        if (eventMenu && eventMenu.classList.contains('active')) {
-            eventMenu.classList.remove('active');
-            if (eventWrapper) eventWrapper.classList.remove('active');
-            document.querySelector('.cogitator-frame').style.overflow = '';
-        }
+    if (!insideWrapper && !insideMenu) {
+        closeEventMenu();
     }
 });
 
@@ -2323,7 +2325,8 @@ const SwipeHandler = {
     },
 
     isModalActive() {
-        return document.querySelector('.modal-overlay.active') !== null;
+        return document.querySelector('.modal-overlay.active') !== null ||
+               document.querySelector('#event-menu.active') !== null;
     },
 
     isInsideScrollableElement(element) {
