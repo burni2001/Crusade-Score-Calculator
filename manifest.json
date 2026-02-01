@@ -4,8 +4,8 @@
     "description": "A calculator for Adeptus Astartes mission debriefing scores.",
     "start_url": "./",
     "display": "standalone",
-    "background_color": "#000000",
-    "theme_color": "#050a05",
+    "background_color": "#050d05",
+    "theme_color": "#0a150a",
     "icons": [
         {
             "src": "icons/icon-192x192.png",

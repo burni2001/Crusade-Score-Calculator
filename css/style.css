@@ -11,8 +11,8 @@
     --pip-green: #20c020;
     --pip-dim: #157015;
     --pip-light: #80cc80;
-    --bg-color: #060a06;
-    --panel-bg: #0b120b;
+    --bg-color: #0a150a;
+    --panel-bg: #0f1e0f;
     --border-color: #1a331a;
     --error-color: #cc4444;
     --warning-color: #cc5500;
@@ -138,7 +138,7 @@ html {
 }
 
 body {
-    background-color: #000;
+    background-color: #050d05;
     background-image: repeating-linear-gradient(
         0deg,
         rgba(0, 0, 0, 0.15),
@@ -167,7 +167,7 @@ body {
     height: calc(100vh - 2 * var(--space-lg));
     height: calc(100dvh - 2 * var(--space-lg));
     background-color: var(--bg-color);
-    border: 4px solid #334033;
+    border: 4px solid #2a4a2a;
     border-radius: 15px;
     box-sizing: border-box;
     box-shadow:
@@ -191,7 +191,7 @@ body {
 }
 
 .cogitator-frame::-webkit-scrollbar-track {
-    background: #000;
+    background: #050d05;
 }
 
 .cogitator-frame::-webkit-scrollbar-thumb {
@@ -357,14 +357,14 @@ select option {
 
 /* === 8. SECTIONS & CONTAINERS === */
 .section {
-    background-color: rgba(20, 40, 20, 0.3);
+    background-color: rgba(20, 40, 20, 0.45);
     border: 1px solid var(--border-color);
     padding: var(--space-md);
     margin-bottom: var(--space-lg);
 }
 
 .section-header {
-    background-color: #000;
+    background-color: #040a04;
     color: var(--pip-green);
     padding: var(--space-xs);
     font-weight: bold;
@@ -1200,7 +1200,7 @@ select option {
 }
 
 .stat-panel {
-    background-color: rgba(20, 40, 20, 0.3);
+    background-color: rgba(20, 40, 20, 0.45);
     border: 1px solid var(--border-color);
     padding: var(--space-md);
 }
