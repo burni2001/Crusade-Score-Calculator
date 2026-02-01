@@ -1878,6 +1878,10 @@ function navigateToPage(pageNum) {
     targetPage.style.transform = '';
     targetPage.style.opacity = '';
 
+    // Lock container height so it doesn't collapse when both pages are absolute-positioned
+    const pageContainer = document.querySelector('.page-container');
+    pageContainer.style.minHeight = pageContainer.offsetHeight + 'px';
+
     // Animate old page out
     oldPage.classList.remove('active');
     oldPage.classList.add(direction === 'left' ? 'slide-out-left' : 'slide-out-right');
@@ -1897,6 +1901,7 @@ function navigateToPage(pageNum) {
         oldPage.classList.remove('slide-out-left', 'slide-out-right');
         targetPage.classList.remove('slide-in-left', 'slide-in-right');
         targetPage.classList.add('active');
+        pageContainer.style.minHeight = '';
         isPageTransitioning = false;
         console.log(`📄 Navigated to Page ${pageNum}`);
     }, animDuration);
@@ -2037,12 +2042,12 @@ function closeCreditsOnBackdrop(event) {
 }
 
 // ============================================================================
-// SECTION 16: SWIPE NAVIGATION FOR MOBILE
+// SECTION 16: SWIPE NAVIGATION FOR MOBILE & TRACKPAD
 // ============================================================================
 
 /**
- * Touch swipe handler for mobile page navigation
- * Detects horizontal swipes to navigate between pages
+ * Touch/trackpad swipe handler for page navigation
+ * Detects horizontal swipes (touch) and trackpad gestures (wheel) to navigate between pages
  */
 const SwipeHandler = {
     startX: 0,
@@ -2057,12 +2062,21 @@ const SwipeHandler = {
     maxVerticalDistance: 100,
     dragDamping: 0.55,        // how much the finger drag translates to page movement
 
+    // Trackpad wheel gesture state
+    wheelDeltaX: 0,
+    wheelTimeout: null,
+    wheelThreshold: 80,       // accumulated deltaX needed to trigger navigation
+    wheelCooldown: false,
+
     init() {
+        // Touch events for mobile
         document.addEventListener('touchstart', this.handleTouchStart.bind(this), { passive: true });
         document.addEventListener('touchmove', this.handleTouchMove.bind(this), { passive: false });
         document.addEventListener('touchend', this.handleTouchEnd.bind(this), { passive: true });
         document.addEventListener('touchcancel', this.handleTouchCancel.bind(this), { passive: true });
-        console.log('📱 Swipe navigation initialized');
+        // Wheel events for trackpad horizontal gestures
+        document.querySelector('.cogitator-frame').addEventListener('wheel', this.handleWheel.bind(this), { passive: false });
+        console.log('📱 Swipe & trackpad navigation initialized');
     },
 
     handleTouchStart(event) {
@@ -2247,6 +2261,10 @@ const SwipeHandler = {
         const goingLeft = deltaX < 0;
         const transitionStyle = 'transform 0.25s ease-out, opacity 0.25s ease-out';
 
+        // Lock container height so it doesn't collapse during transition
+        const pageContainer = document.querySelector('.page-container');
+        pageContainer.style.minHeight = pageContainer.offsetHeight + 'px';
+
         // Scroll to top instantly
         document.querySelector('.cogitator-frame').scrollTo({ top: 0, behavior: 'instant' });
 
@@ -2288,6 +2306,7 @@ const SwipeHandler = {
                 newPage.style.transform = '';
                 newPage.style.opacity = '';
             }
+            pageContainer.style.minHeight = '';
             isPageTransitioning = false;
             console.log(`📄 Navigated to Page ${targetPageNum}`);
         }, 260);
@@ -2296,6 +2315,46 @@ const SwipeHandler = {
         this.swipeLocked = false;
         this.scrollLocked = false;
         this.peekPage = null;
+    },
+
+    /**
+     * Handle trackpad horizontal wheel gestures (e.g. MacBook two-finger swipe)
+     */
+    handleWheel(event) {
+        if (isPageTransitioning) return;
+        if (this.wheelCooldown) return;
+        if (this.isModalActive()) return;
+
+        // Only respond to horizontal scroll (trackpad gestures produce deltaX)
+        // Ignore mouse wheel events (mostly vertical with deltaY dominant)
+        if (Math.abs(event.deltaX) < 2 || Math.abs(event.deltaY) > Math.abs(event.deltaX)) return;
+
+        // Check if target is inside a horizontally scrollable element
+        if (this.isInsideScrollableElement(event.target)) return;
+
+        this.wheelDeltaX += event.deltaX;
+
+        // Reset accumulated delta after a pause in gesture
+        clearTimeout(this.wheelTimeout);
+        this.wheelTimeout = setTimeout(() => {
+            this.wheelDeltaX = 0;
+        }, 200);
+
+        // Check if threshold reached
+        if (Math.abs(this.wheelDeltaX) >= this.wheelThreshold) {
+            const direction = this.wheelDeltaX > 0 ? 1 : -1; // positive deltaX = swipe left = next page
+            const targetPage = currentPage + direction;
+
+            this.wheelDeltaX = 0;
+            clearTimeout(this.wheelTimeout);
+
+            if (targetPage >= 1 && targetPage <= 3) {
+                this.wheelCooldown = true;
+                navigateToPage(targetPage);
+                // Cooldown prevents rapid repeated navigation
+                setTimeout(() => { this.wheelCooldown = false; }, 500);
+            }
+        }
     },
 
     handleTouchCancel() {

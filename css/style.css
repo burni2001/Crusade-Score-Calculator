@@ -1588,7 +1588,6 @@ select.validation-error {
 .page {
     display: none;
     position: relative;
-    will-change: transform, opacity;
 }
 
 .page.active {
@@ -1602,6 +1601,7 @@ select.validation-error {
     top: 0;
     left: 0;
     width: 100%;
+    will-change: transform, opacity;
     animation: slideOutLeft 0.35s ease-in-out forwards;
 }
 
@@ -1611,16 +1611,27 @@ select.validation-error {
     top: 0;
     left: 0;
     width: 100%;
+    will-change: transform, opacity;
     animation: slideOutRight 0.35s ease-in-out forwards;
 }
 
 .page.slide-in-left {
     display: block;
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    will-change: transform, opacity;
     animation: slideInLeft 0.35s ease-in-out forwards;
 }
 
 .page.slide-in-right {
     display: block;
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    will-change: transform, opacity;
     animation: slideInRight 0.35s ease-in-out forwards;
 }
 
