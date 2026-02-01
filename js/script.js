@@ -1835,34 +1835,69 @@ function getCurrentPage() {
     return currentPage;
 }
 
+/** Flag to prevent overlapping page transitions */
+let isPageTransitioning = false;
+
 /**
- * Navigate to a specific page (1, 2, or 3)
+ * Navigate to a specific page (1, 2, or 3) with slide animation
  * @param {number} pageNum - The page number to navigate to
  */
 function navigateToPage(pageNum) {
     if (pageNum < 1 || pageNum > 3) return;
-    
-    // Hide all pages
-    document.querySelectorAll('.page').forEach(page => {
-        page.classList.remove('active');
-    });
-    
-    // Show the target page
+    if (pageNum === currentPage) return;
+    if (isPageTransitioning) return;
+
+    const oldPage = document.getElementById(`page-${currentPage}`);
     const targetPage = document.getElementById(`page-${pageNum}`);
-    if (targetPage) {
+    if (!targetPage) return;
+
+    const direction = pageNum > currentPage ? 'left' : 'right';
+    const animDuration = 350; // matches CSS 0.35s
+
+    // If there's no old page visible (initial load), just show directly
+    if (!oldPage || !oldPage.classList.contains('active')) {
+        document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
         targetPage.classList.add('active');
         currentPage = pageNum;
-        
-        // Scroll to top of the page
         document.querySelector('.cogitator-frame').scrollTo({ top: 0, behavior: 'smooth' });
-        
-        // Update the data bank UI on both Page 2 and Page 3
-        if (pageNum === 2 || pageNum === 3) {
-            renderDataBankUI();
-        }
-        
+        if (pageNum === 2 || pageNum === 3) renderDataBankUI();
         console.log(`📄 Navigated to Page ${pageNum}`);
+        return;
     }
+
+    isPageTransitioning = true;
+
+    // Scroll to top instantly before animation starts
+    document.querySelector('.cogitator-frame').scrollTo({ top: 0, behavior: 'instant' });
+
+    // Clean any leftover swipe transforms
+    oldPage.style.transform = '';
+    oldPage.style.opacity = '';
+    targetPage.style.transform = '';
+    targetPage.style.opacity = '';
+
+    // Animate old page out
+    oldPage.classList.remove('active');
+    oldPage.classList.add(direction === 'left' ? 'slide-out-left' : 'slide-out-right');
+
+    // Animate new page in
+    targetPage.classList.add(direction === 'left' ? 'slide-in-right' : 'slide-in-left');
+
+    currentPage = pageNum;
+
+    // Update data bank UI during animation so it's ready when visible
+    if (pageNum === 2 || pageNum === 3) {
+        renderDataBankUI();
+    }
+
+    // Clean up after animation completes
+    setTimeout(() => {
+        oldPage.classList.remove('slide-out-left', 'slide-out-right');
+        targetPage.classList.remove('slide-in-left', 'slide-in-right');
+        targetPage.classList.add('active');
+        isPageTransitioning = false;
+        console.log(`📄 Navigated to Page ${pageNum}`);
+    }, animDuration);
 }
 
 /**
@@ -2010,102 +2045,166 @@ function closeCreditsOnBackdrop(event) {
 const SwipeHandler = {
     startX: 0,
     startY: 0,
-    startTarget: null,  // Store the element where touch started
-    minSwipeDistance: 50,  // Minimum horizontal distance for a swipe
-    maxVerticalDistance: 100, // Maximum vertical movement allowed during swipe
-    
-    /**
-     * Initialize touch event listeners on the document
-     */
+    startTarget: null,
+    isSwiping: false,
+    swipeLocked: false,       // true once we commit to horizontal swipe
+    scrollLocked: false,      // true once we commit to vertical scroll
+    activePage: null,         // the current page element being dragged
+    peekPage: null,           // the adjacent page peeking in
+    minSwipeDistance: 50,
+    maxVerticalDistance: 100,
+    dragDamping: 0.55,        // how much the finger drag translates to page movement
+
     init() {
         document.addEventListener('touchstart', this.handleTouchStart.bind(this), { passive: true });
+        document.addEventListener('touchmove', this.handleTouchMove.bind(this), { passive: false });
         document.addEventListener('touchend', this.handleTouchEnd.bind(this), { passive: true });
+        document.addEventListener('touchcancel', this.handleTouchCancel.bind(this), { passive: true });
         console.log('📱 Swipe navigation initialized');
     },
-    
-    /**
-     * Handle touch start event - record starting position and target
-     */
+
     handleTouchStart(event) {
-        if (event.touches.length !== 1) return; // Only handle single touch
-        
+        if (event.touches.length !== 1) return;
+        if (isPageTransitioning) return;
+
         this.startX = event.touches[0].clientX;
         this.startY = event.touches[0].clientY;
-        this.startTarget = event.target; // Store the target where touch started
+        this.startTarget = event.target;
+        this.isSwiping = false;
+        this.swipeLocked = false;
+        this.scrollLocked = false;
+        this.activePage = document.getElementById(`page-${currentPage}`);
+        this.peekPage = null;
     },
-    
-    /**
-     * Handle touch end event - detect swipe direction and navigate
-     */
+
+    handleTouchMove(event) {
+        if (event.touches.length !== 1) return;
+        if (isPageTransitioning) return;
+        if (this.scrollLocked) return;
+
+        const touchX = event.touches[0].clientX;
+        const touchY = event.touches[0].clientY;
+        const deltaX = touchX - this.startX;
+        const deltaY = touchY - this.startY;
+
+        // Decide direction lock on first significant movement
+        if (!this.swipeLocked && !this.scrollLocked) {
+            if (Math.abs(deltaY) > 10 && Math.abs(deltaY) > Math.abs(deltaX)) {
+                this.scrollLocked = true;
+                return;
+            }
+            if (Math.abs(deltaX) > 10 && Math.abs(deltaX) > Math.abs(deltaY)) {
+                // Check if swipe should be ignored
+                if (this.isInteractiveElement(this.startTarget)) { this.scrollLocked = true; return; }
+                if (this.isModalActive()) { this.scrollLocked = true; return; }
+                if (this.isInsideScrollableElement(this.startTarget)) { this.scrollLocked = true; return; }
+                this.swipeLocked = true;
+            } else {
+                return;
+            }
+        }
+
+        // Prevent vertical scroll while swiping horizontally
+        event.preventDefault();
+
+        // Determine which adjacent page would peek in
+        const goingLeft = deltaX < 0; // finger moves left = next page
+        const targetPageNum = goingLeft ? currentPage + 1 : currentPage - 1;
+
+        // Don't drag if there's no page in that direction
+        if (targetPageNum < 1 || targetPageNum > 3) {
+            // Rubber-band: allow tiny movement but heavily damped
+            const rubberDelta = deltaX * 0.15;
+            if (this.activePage) {
+                this.activePage.style.transform = `translateX(${rubberDelta}px)`;
+            }
+            return;
+        }
+
+        if (!this.isSwiping) {
+            this.isSwiping = true;
+            this.peekPage = document.getElementById(`page-${targetPageNum}`);
+            if (this.peekPage) {
+                this.peekPage.classList.add('swiping');
+            }
+        }
+
+        const dragX = deltaX * this.dragDamping;
+        const containerWidth = this.activePage ? this.activePage.offsetWidth : window.innerWidth;
+
+        // Move active page with finger
+        if (this.activePage) {
+            this.activePage.style.transform = `translateX(${dragX}px)`;
+            this.activePage.style.opacity = Math.max(0.3, 1 - Math.abs(dragX) / containerWidth);
+        }
+
+        // Position peek page coming from the side
+        if (this.peekPage) {
+            const peekOffset = goingLeft
+                ? containerWidth + dragX   // comes from right
+                : -containerWidth + dragX; // comes from left
+            this.peekPage.style.transform = `translateX(${peekOffset}px)`;
+            this.peekPage.style.opacity = Math.min(1, Math.abs(dragX) / containerWidth + 0.3);
+        }
+    },
+
     handleTouchEnd(event) {
         if (event.changedTouches.length !== 1) return;
-        
+
         const endX = event.changedTouches[0].clientX;
-        const endY = event.changedTouches[0].clientY;
-        
         const deltaX = endX - this.startX;
-        const deltaY = Math.abs(endY - this.startY);
-        
-        // Ignore if vertical movement is too large (likely scrolling)
-        if (deltaY > this.maxVerticalDistance) return;
-        
-        // Check if horizontal swipe distance is sufficient
+
+        // Clean up drag styles
+        this.cleanupDrag();
+
+        if (!this.swipeLocked) return;
+        if (isPageTransitioning) return;
         if (Math.abs(deltaX) < this.minSwipeDistance) return;
-        
-        // Ignore if touch started on an interactive form element
-        if (this.isInteractiveElement(this.startTarget)) return;
-        
-        // Ignore if a modal is currently active
-        if (this.isModalActive()) return;
-        
-        // Check if touch started inside a scrollable container
-        if (this.isInsideScrollableElement(this.startTarget)) return;
-        
-        // Determine swipe direction
+
         if (deltaX > 0) {
-            // Swipe right - go to previous page
             this.navigatePrevious();
         } else {
-            // Swipe left - go to next page
             this.navigateNext();
         }
     },
-    
-    /**
-     * Check if element is an interactive form element
-     */
-    isInteractiveElement(element) {
-        if (!element || !(element instanceof Element)) {
-            return false;
+
+    handleTouchCancel() {
+        this.cleanupDrag();
+    },
+
+    cleanupDrag() {
+        if (this.activePage) {
+            this.activePage.style.transform = '';
+            this.activePage.style.opacity = '';
         }
+        if (this.peekPage) {
+            this.peekPage.classList.remove('swiping');
+            this.peekPage.style.transform = '';
+            this.peekPage.style.opacity = '';
+            this.peekPage = null;
+        }
+        this.isSwiping = false;
+        this.swipeLocked = false;
+        this.scrollLocked = false;
+    },
+
+    isInteractiveElement(element) {
+        if (!element || !(element instanceof Element)) return false;
         const tagName = element.tagName.toLowerCase();
         return ['input', 'textarea', 'select'].includes(tagName);
     },
-    
-    /**
-     * Check if any modal overlay is currently active
-     */
+
     isModalActive() {
-        const activeModal = document.querySelector('.modal-overlay.active');
-        return activeModal !== null;
+        return document.querySelector('.modal-overlay.active') !== null;
     },
-    
-    /**
-     * Check if element is inside a horizontally scrollable container
-     */
+
     isInsideScrollableElement(element) {
-        // Skip check if element is not a valid Element (e.g., Document)
-        if (!element || !(element instanceof Element)) {
-            return false;
-        }
-        
+        if (!element || !(element instanceof Element)) return false;
         let current = element;
         while (current && current !== document.body) {
             const style = window.getComputedStyle(current);
             const overflowX = style.getPropertyValue('overflow-x');
-            
-            // If element has horizontal scroll and content overflows
-            if ((overflowX === 'auto' || overflowX === 'scroll') && 
+            if ((overflowX === 'auto' || overflowX === 'scroll') &&
                 current.scrollWidth > current.clientWidth) {
                 return true;
             }
@@ -2113,10 +2212,7 @@ const SwipeHandler = {
         }
         return false;
     },
-    
-    /**
-     * Navigate to previous page
-     */
+
     navigatePrevious() {
         const prevPage = currentPage - 1;
         if (prevPage >= 1) {
@@ -2124,10 +2220,7 @@ const SwipeHandler = {
             console.log('👈 Swipe right - navigating to page', prevPage);
         }
     },
-    
-    /**
-     * Navigate to next page
-     */
+
     navigateNext() {
         const nextPage = currentPage + 1;
         if (nextPage <= 3) {
