@@ -1626,13 +1626,10 @@ select.validation-error {
 }
 
 .dropdown-centered {
-    position: absolute;
-    left: 0;
-    top: 100%;
-    transform: none;
+    position: fixed;
     transform-origin: top left;
-    max-height: calc(100vh - 100px);
     overflow-y: auto;
+    overscroll-behavior: contain;
 }
 
 .dropdown-centered.active {
@@ -1741,7 +1738,6 @@ select.validation-error {
     }
 
     .dropdown-centered {
-        width: calc(100vw - 40px);
         min-width: 0;
     }
 }
