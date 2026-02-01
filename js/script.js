@@ -88,7 +88,7 @@ const ErrorHandler = {
         const statusEl = document.getElementById('upload-status');
         if (statusEl) {
             statusEl.textContent = `Error in ${context}. Please try again.`;
-            statusEl.style.color = '#ff5555';
+            statusEl.style.color = '#cc4444';
             setTimeout(() => statusEl.textContent = '', 5000);
         }
     },
@@ -159,7 +159,7 @@ document.getElementById("screenshot-upload")?.addEventListener("change", async f
         pendingOCRResults = parseOCRText(rawOCRText);
 
         statusDiv.textContent = "OCR complete - review results below";
-        statusDiv.style.color = "#afffa6";
+        statusDiv.style.color = "#80cc80";
         progressDiv.textContent = "";
 
         showOCRModal();
@@ -167,7 +167,7 @@ document.getElementById("screenshot-upload")?.addEventListener("change", async f
     } catch (error) {
         ErrorHandler.handle(error, 'Screenshot Upload', true);
         statusDiv.textContent = `Error: ${error.message}`;
-        statusDiv.style.color = "#ff3300";
+        statusDiv.style.color = "#cc2a00";
         progressDiv.textContent = "";
         
     } finally {
@@ -346,7 +346,7 @@ function applyOCRResults() {
             } else {
                 statusDiv.textContent = `Successfully applied ${appliedCount} values.`;
             }
-            statusDiv.style.color = "#afffa6";
+            statusDiv.style.color = "#80cc80";
         }
 
         try {
@@ -1186,13 +1186,13 @@ function aggregateInternalData() {
     } catch (e) {
         localStorage.removeItem("cogitator_saved_missions");
         statusEl.textContent = "MEMORY CORRUPTION DETECTED. BANKS PURGED.";
-        statusEl.style.color = "#ff5555";
+        statusEl.style.color = "#cc4444";
         return;
     }
 
     if (savedSlots.length === 0) {
         statusEl.textContent = "NO DATA SLATES FOUND IN MEMORY";
-        statusEl.style.color = "#ff5555";
+        statusEl.style.color = "#cc4444";
         return;
     }
 
@@ -1247,7 +1247,7 @@ function aggregateInternalData() {
         }
     } else {
         statusEl.textContent = "ALL SLATES WERE CORRUPTED AND PURGED.";
-        statusEl.style.color = "#ff5555";
+        statusEl.style.color = "#cc4444";
     }
 }
 
@@ -1299,7 +1299,7 @@ if (csvUploadInput) {
             console.error(err);
             const statusEl = document.getElementById('import-status');
             statusEl.textContent = "ERROR READING FILES";
-            statusEl.style.color = "#ff5555";
+            statusEl.style.color = "#cc4444";
         }
     });
 }
@@ -1425,7 +1425,7 @@ function buildImportTable(tableId, rowKeys) {
                 td.textContent = String(revs) + ' ';
                 const span = document.createElement('span');
                 span.style.fontSize = '0.8em';
-                span.style.color = diff >= 0 ? '#afffa6' : '#ff6600';
+                span.style.color = diff >= 0 ? '#80cc80' : '#cc5500';
                 span.textContent = `(${diff >= 0 ? '+' : ''}${diff})`;
                 td.appendChild(span);
                 
@@ -1452,7 +1452,7 @@ function buildImportTable(tableId, rowKeys) {
             tdTotal.textContent = String(totalRevs) + ' ';
             const span = document.createElement('span');
             span.style.fontSize = '0.8em';
-            span.style.color = totalDiff >= 0 ? '#afffa6' : '#ff6600';
+            span.style.color = totalDiff >= 0 ? '#80cc80' : '#cc5500';
             span.textContent = `(${totalDiff >= 0 ? '+' : ''}${totalDiff})`;
             tdTotal.appendChild(span);
         } else {
@@ -1653,7 +1653,7 @@ async function fetchEventList() {
     if (cachedEvents.length > 0 && container.children.length > 1) return;
 
     status.innerText = "Connecting...";
-    status.style.color = "#ffff00";
+    status.style.color = "#cccc00";
 
     try {
         const response = await fetch(DB_URL);
@@ -1737,7 +1737,7 @@ async function fetchEventList() {
 
     } catch (error) {
         console.error("Fetch error:", error);
-        container.innerHTML = `<div class="p-10 text-dim text-center" style="color:#f55;">Connection Failed.<br>Data not found.</div>`;
+        container.innerHTML = `<div class="p-10 text-dim text-center" style="color:#cc4444;">Connection Failed.<br>Data not found.</div>`;
         status.innerText = "";
     }
 }
@@ -1761,7 +1761,7 @@ function selectEvent(selectedId) {
         saveData();
 
         status.innerText = "Protocol Loaded.";
-        status.style.color = "#afffa6";
+        status.style.color = "#80cc80";
         
         setTimeout(() => {
             closeEventMenu();
@@ -1947,7 +1947,7 @@ async function recordAllDataScreens() {
         
         if (statusEl) {
             statusEl.textContent = 'Data screens captured successfully!';
-            statusEl.style.color = '#afffa6';
+            statusEl.style.color = '#80cc80';
             setTimeout(() => {
                 statusEl.textContent = '';
             }, 3000);
@@ -1958,7 +1958,7 @@ async function recordAllDataScreens() {
         const statusEl = document.getElementById('import-status');
         if (statusEl) {
             statusEl.textContent = 'Error capturing screens. Please try again.';
-            statusEl.style.color = '#ff5555';
+            statusEl.style.color = '#cc4444';
         }
     }
 }

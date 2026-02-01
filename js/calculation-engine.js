@@ -278,7 +278,7 @@ const CalculationEngine = {
      * Calculate color for diff display
      */
     getDiffColor(diff) {
-        return diff >= 0 ? '#afffa6' : '#ff6600';
+        return diff >= 0 ? '#80cc80' : '#cc5500';
     }
 };
 

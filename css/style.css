@@ -8,14 +8,14 @@
 
 :root {
     /* Colors */
-    --pip-green: #33ff00;
-    --pip-dim: #1a8000;
-    --pip-light: #afffa6;
-    --bg-color: #050a05;
-    --panel-bg: #0c140c;
-    --border-color: #1f3a1f;
-    --error-color: #ff5555;
-    --warning-color: #ff6600;
+    --pip-green: #20c020;
+    --pip-dim: #157015;
+    --pip-light: #80cc80;
+    --bg-color: #060a06;
+    --panel-bg: #0b120b;
+    --border-color: #1a331a;
+    --error-color: #cc4444;
+    --warning-color: #cc5500;
     
     /* Spacing */
     --space-xs: 5px;
@@ -34,9 +34,9 @@
     /* Effects */
     --transition-speed: 0.3s;
     --border-radius: 4px;
-    --shadow-sm: 0 0 5px rgba(51, 255, 0, 0.2);
-    --shadow-md: 0 0 15px rgba(51, 255, 0, 0.3);
-    --shadow-lg: 0 0 30px rgba(51, 255, 0, 0.3);
+    --shadow-sm: 0 0 5px rgba(32, 192, 32, 0.2);
+    --shadow-md: 0 0 15px rgba(32, 192, 32, 0.3);
+    --shadow-lg: 0 0 30px rgba(32, 192, 32, 0.3);
 }
 
 /* === 2. UTILITY CLASSES === */
@@ -167,11 +167,11 @@ body {
     height: calc(100vh - 2 * var(--space-lg));
     height: calc(100dvh - 2 * var(--space-lg));
     background-color: var(--bg-color);
-    border: 4px solid #3d4c3d;
+    border: 4px solid #334033;
     border-radius: 15px;
     box-sizing: border-box;
     box-shadow:
-        0 0 20px rgba(51, 255, 0, 0.2),
+        0 0 20px rgba(32, 192, 32, 0.2),
         inset 0 0 50px rgba(0, 0, 0, 0.8);
     padding: var(--space-lg);
     position: fixed;
@@ -382,13 +382,13 @@ select option {
 /* === 9. CONTENT SECTIONS === */
 .content-box {
     padding: var(--space-sm);
-    background-color: rgba(51, 255, 0, 0.1);
+    background-color: rgba(32, 192, 32, 0.1);
     border: 1px solid var(--pip-green);
 }
 
 .content-box-subtle {
     padding: var(--space-md);
-    background-color: rgba(51, 255, 0, 0.05);
+    background-color: rgba(32, 192, 32, 0.05);
     border: 1px solid var(--pip-green);
 }
 
@@ -471,7 +471,7 @@ select option {
     z-index: 1000;
     box-shadow:
         0 10px 30px rgba(0, 0, 0, 0.9),
-        0 0 15px rgba(51, 255, 0, 0.2);
+        0 0 15px rgba(32, 192, 32, 0.2);
     margin-top: var(--space-xs);
     box-sizing: border-box;
     scrollbar-color: var(--pip-dim) #000;
@@ -521,7 +521,7 @@ select option {
 .menu-title {
     margin: 0 0 var(--space-md) 0;
     font-size: var(--font-md);
-    border-bottom: 1px solid #335533;
+    border-bottom: 1px solid #2a442a;
     padding-bottom: var(--space-xs);
     color: var(--pip-light);
     text-align: center;
@@ -553,7 +553,7 @@ select option {
 }
 
 .event-item:hover {
-    background-color: rgba(51, 255, 0, 0.1);
+    background-color: rgba(32, 192, 32, 0.1);
     border-color: var(--pip-green);
     text-shadow: 0 0 5px var(--pip-green);
     padding-left: var(--space-md);
@@ -576,7 +576,7 @@ select option {
 }
 
 .cycle-header.collapsible:hover {
-    background-color: rgba(51, 255, 0, 0.1);
+    background-color: rgba(32, 192, 32, 0.1);
 }
 
 /* === Collapse Indicator === */
@@ -618,7 +618,7 @@ select option {
 }
 
 .cycle-events .event-item:hover {
-    background-color: rgba(51, 255, 0, 0.1);
+    background-color: rgba(32, 192, 32, 0.1);
     border-color: var(--pip-green);
     text-shadow: 0 0 5px var(--pip-green);
     padding-left: 25px;
@@ -799,7 +799,7 @@ select option {
 }
 
 .final-score-label {
-    color: #afffa6 !important;
+    color: #80cc80 !important;
 }
 
 .table-spacer {
@@ -819,7 +819,7 @@ select option {
     letter-spacing: 1px;
     transition: all 0.2s ease-in-out;
     border-radius: 3px;
-    box-shadow: var(--shadow-sm), inset 0 1px 0 rgba(51, 255, 0, 0.15), 0 2px 0 rgba(0, 0, 0, 0.4);
+    box-shadow: var(--shadow-sm), inset 0 1px 0 rgba(32, 192, 32, 0.15), 0 2px 0 rgba(0, 0, 0, 0.4);
 }
 
 .btn:hover {
@@ -839,14 +839,14 @@ select option {
     border: 1px solid var(--pip-green) !important;
     font-weight: 900 !important;
     text-shadow: none !important;
-    box-shadow: 0 0 15px rgba(51, 255, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.15), 0 2px 0 rgba(0, 0, 0, 0.4);
+    box-shadow: 0 0 15px rgba(32, 192, 32, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.15), 0 2px 0 rgba(0, 0, 0, 0.4);
     opacity: 1 !important;
 }
 
 .btn-primary:hover {
     background-color: #000 !important;
     color: var(--pip-green) !important;
-    box-shadow: 0 0 20px var(--pip-green), inset 0 0 10px rgba(51, 255, 0, 0.3), 0 2px 0 rgba(0, 0, 0, 0.4);
+    box-shadow: 0 0 20px var(--pip-green), inset 0 0 10px rgba(32, 192, 32, 0.3), 0 2px 0 rgba(0, 0, 0, 0.4);
 }
 
 .btn-danger {
@@ -872,7 +872,7 @@ select option {
 }
 
 .btn-special {
-    background: #335533;
+    background: #2a442a;
 }
 
 .export-buttons-container {
@@ -987,7 +987,7 @@ select option {
 
 .ocr-section-title {
     color: var(--pip-green);
-    border-bottom: 1px solid #335533;
+    border-bottom: 1px solid #2a442a;
     padding-bottom: var(--space-xs);
     margin-bottom: var(--space-md);
     font-weight: bold;
@@ -1002,7 +1002,7 @@ select option {
     align-items: center;
     margin-bottom: 6px;
     padding-bottom: 6px;
-    border-bottom: 1px solid rgba(51, 255, 0, 0.1);
+    border-bottom: 1px solid rgba(32, 192, 32, 0.1);
 }
 
 .ocr-input-row label {
@@ -1016,7 +1016,7 @@ select option {
 .ocr-input-row select {
     width: 80px;
     background: #050a05;
-    border: 1px solid #335533;
+    border: 1px solid #2a442a;
     color: var(--pip-green);
     padding: 4px;
     text-align: center;
@@ -1054,7 +1054,7 @@ select option {
     display: flex;
     flex-direction: row;
     width: 100%;
-    border-bottom: 1px solid rgba(51, 255, 0, 0.1);
+    border-bottom: 1px solid rgba(32, 192, 32, 0.1);
     padding: 8px 0;
 }
 
@@ -1133,7 +1133,7 @@ select option {
     margin-top: var(--space-lg);
     margin-bottom: var(--space-lg);
     padding-top: var(--space-lg);
-    border-top: 1px solid rgba(51, 255, 0, 0.3);
+    border-top: 1px solid rgba(32, 192, 32, 0.3);
 }
 
 .data-slot {
@@ -1154,7 +1154,7 @@ select option {
 
 .data-slot.occupied {
     border-color: var(--pip-green);
-    background-color: rgba(51, 255, 0, 0.15);
+    background-color: rgba(32, 192, 32, 0.15);
     color: var(--pip-light);
     box-shadow: var(--shadow-sm);
     cursor: pointer;
@@ -1180,7 +1180,7 @@ select option {
 
 .delete-slot-btn:hover {
     opacity: 1;
-    text-shadow: 0 0 5px #ff0000;
+    text-shadow: 0 0 5px #cc0000;
 }
 
 /* === 21. RESULTS DISPLAY === */
@@ -1301,7 +1301,7 @@ select option {
 .validation-tooltip {
     display: none;
     position: absolute;
-    background-color: rgba(255, 85, 85, 0.95);
+    background-color: rgba(204, 68, 68, 0.95);
     color: #fff;
     padding: 5px 10px;
     border-radius: 3px;
@@ -1318,13 +1318,13 @@ select option {
     bottom: 100%;
     left: 10px;
     border: 5px solid transparent;
-    border-bottom-color: rgba(255, 85, 85, 0.95);
+    border-bottom-color: rgba(204, 68, 68, 0.95);
 }
 
 input.validation-error,
 select.validation-error {
-    border-color: #ff5555 !important;
-    box-shadow: 0 0 5px #ff5555 !important;
+    border-color: #cc4444 !important;
+    box-shadow: 0 0 5px #cc4444 !important;
     animation: shake 0.3s;
 }
 
@@ -1731,7 +1731,7 @@ select.validation-error {
 }
 
 .custom-rules-toggle:hover {
-    background-color: rgba(51, 255, 0, 0.1);
+    background-color: rgba(32, 192, 32, 0.1);
 }
 
 .custom-rules-toggle .gear-icon {
