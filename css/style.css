@@ -1373,6 +1373,11 @@ select.validation-error {
         height: auto;
         padding: var(--space-sm);
         border-width: 2px;
+        border-radius: 8px;
+    }
+
+    .cogitator-frame::before {
+        border-radius: 8px;
     }
 
     .header-nav {
