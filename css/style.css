@@ -276,10 +276,10 @@ h1, h2, h3 {
     justify-content: space-between;
     align-items: center;
     position: sticky;
-    top: 0;
+    top: calc(-1 * var(--space-lg));
     background-color: var(--bg-color);
     z-index: 100;
-    padding-top: var(--space-md);
+    padding-top: calc(var(--space-lg) + var(--space-md));
     margin-left: calc(-1 * var(--space-lg));
     margin-right: calc(-1 * var(--space-lg));
     padding-left: var(--space-lg);
@@ -1376,6 +1376,8 @@ select.validation-error {
     }
 
     .header-nav {
+        top: calc(-1 * var(--space-sm));
+        padding-top: calc(var(--space-sm) + var(--space-md));
         margin-left: calc(-1 * var(--space-sm));
         margin-right: calc(-1 * var(--space-sm));
         padding-left: var(--space-sm);
