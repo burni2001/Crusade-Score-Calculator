@@ -1381,6 +1381,10 @@ select.validation-error {
         padding-top: var(--space-xs);
     }
 
+    .page-container {
+        clip-path: inset(calc(-1 * var(--space-sm)) -25px -25px -25px);
+    }
+
     h1 {
         font-size: 1.4rem;
     }
@@ -1594,7 +1598,11 @@ select.validation-error {
 }
 
 .page.active {
-    display: block;
+    /* flow-root creates a block formatting context so the header-nav's negative
+       margin-top doesn't collapse through .page into .page-container.  Without
+       this, pages with header-nav shift page-container's position, causing the
+       incoming page's header to visually jump during swipe transitions. */
+    display: flow-root;
 }
 
 /* Slide transition states */

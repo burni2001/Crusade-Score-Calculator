@@ -2268,6 +2268,13 @@ const SwipeHandler = {
         // Scroll to top instantly
         document.querySelector('.cogitator-frame').scrollTo({ top: 0, behavior: 'instant' });
 
+        // Take old page out of normal flow to prevent margin collapse
+        // (its negative-margin header-nav can shift page-container position)
+        if (this.activePage) {
+            this.activePage.classList.remove('active');
+            this.activePage.classList.add('swiping');
+        }
+
         // Animate active page off-screen from its current drag position
         if (this.activePage) {
             this.activePage.style.transition = transitionStyle;
@@ -2294,7 +2301,7 @@ const SwipeHandler = {
         // Clean up after transition completes
         setTimeout(() => {
             if (oldPage) {
-                oldPage.classList.remove('active');
+                oldPage.classList.remove('active', 'swiping');
                 oldPage.style.transition = '';
                 oldPage.style.transform = '';
                 oldPage.style.opacity = '';
