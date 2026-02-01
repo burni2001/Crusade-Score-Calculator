@@ -1577,14 +1577,75 @@ select.validation-error {
 }
 
 /* === 29. MULTI-PAGE NAVIGATION === */
+.page-container {
+    position: relative;
+    overflow: hidden;
+    z-index: 3; /* Above the cogitator-frame::before scanline overlay (z-index: 2) */
+}
+
 .page {
     display: none;
     position: relative;
-    z-index: 3; /* Above the cogitator-frame::before scanline overlay (z-index: 2) */
+    will-change: transform, opacity;
 }
 
 .page.active {
     display: block;
+}
+
+/* Slide transition states */
+.page.slide-out-left {
+    display: block;
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    animation: slideOutLeft 0.35s ease-in-out forwards;
+}
+
+.page.slide-out-right {
+    display: block;
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    animation: slideOutRight 0.35s ease-in-out forwards;
+}
+
+.page.slide-in-left {
+    display: block;
+    animation: slideInLeft 0.35s ease-in-out forwards;
+}
+
+.page.slide-in-right {
+    display: block;
+    animation: slideInRight 0.35s ease-in-out forwards;
+}
+
+/* Swipe drag: applied during touchmove for real-time follow */
+.page.swiping {
+    display: block;
+    transition: none;
+}
+
+@keyframes slideOutLeft {
+    from { transform: translateX(0); opacity: 1; }
+    to   { transform: translateX(-100%); opacity: 0; }
+}
+
+@keyframes slideOutRight {
+    from { transform: translateX(0); opacity: 1; }
+    to   { transform: translateX(100%); opacity: 0; }
+}
+
+@keyframes slideInLeft {
+    from { transform: translateX(-100%); opacity: 0; }
+    to   { transform: translateX(0); opacity: 1; }
+}
+
+@keyframes slideInRight {
+    from { transform: translateX(100%); opacity: 0; }
+    to   { transform: translateX(0); opacity: 1; }
 }
 
 .page-navigation {
