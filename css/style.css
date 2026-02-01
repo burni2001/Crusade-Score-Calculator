@@ -1381,6 +1381,10 @@ select.validation-error {
         padding-top: var(--space-xs);
     }
 
+    .page-container {
+        clip-path: inset(calc(-1 * var(--space-sm)) -25px -25px -25px);
+    }
+
     h1 {
         font-size: 1.4rem;
     }
