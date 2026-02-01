@@ -249,8 +249,8 @@ const InputValidator = {
         if (!element) return;
 
         // Visual feedback
-        element.style.borderColor = '#ff5555';
-        element.style.boxShadow = '0 0 5px #ff5555';
+        element.style.borderColor = '#cc4444';
+        element.style.boxShadow = '0 0 5px #cc4444';
 
         // Create tooltip if it doesn't exist
         let tooltip = element.nextElementSibling;
