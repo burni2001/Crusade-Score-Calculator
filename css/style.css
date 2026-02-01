@@ -509,7 +509,6 @@ select option {
 #event-menu {
     left: 0;
     right: auto;
-    transform-origin: top left;
 }
 
 #modifiers-menu {
@@ -529,25 +528,7 @@ select option {
 
 /* === 12. EVENT LIST === */
 .event-list-scroll {
-    max-height: 300px;
-    overflow-y: auto;
-    overscroll-behavior: contain;
     padding-right: var(--space-xs);
-    scrollbar-color: var(--pip-dim) #000;
-    scrollbar-width: thin;
-}
-
-.event-list-scroll::-webkit-scrollbar {
-    width: 6px;
-}
-
-.event-list-scroll::-webkit-scrollbar-track {
-    background: #000;
-}
-
-.event-list-scroll::-webkit-scrollbar-thumb {
-    background: var(--pip-dim);
-    border-radius: 3px;
 }
 
 .cycle-header {
@@ -1621,13 +1602,23 @@ select.validation-error {
 
 .dropdown-centered {
     position: fixed;
-    transform-origin: top left;
     overflow-y: auto;
     overscroll-behavior: contain;
+    min-width: 0; /* Override .dropdown min-width; JS controls width */
 }
 
 .dropdown-centered.active {
     animation: menu-unfold 0.2s ease-out;
+}
+
+/* In vertical layout, animate from top center */
+.dropdown-centered.layout-vertical {
+    transform-origin: top center;
+}
+
+/* In horizontal layout, animate from top left (anchored to button) */
+.dropdown-centered.layout-horizontal {
+    transform-origin: top left;
 }
 
 /* === 31. CUSTOM RULES SECTION (integrated in Event Selector) === */

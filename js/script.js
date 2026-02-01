@@ -1573,27 +1573,43 @@ function positionEventMenu() {
     const menu = document.getElementById('event-menu');
     const wrapper = document.querySelector('.gear-wrapper');
     if (!menu || !wrapper) return;
- 
+
     const rect = wrapper.getBoundingClientRect();
-    const isMobile = window.innerWidth <= 768;
-    const margin = 10;
- 
+    const margin = 12;
+    const gap = 4;
+    // Vertical layout: portrait-like aspect ratio or narrow viewport
+    const isVertical = window.innerHeight > window.innerWidth || window.innerWidth <= 500;
+
     // Place below the button
-    menu.style.top = rect.bottom + 4 + 'px';
- 
-    if (isMobile) {
-        // Center horizontally, constrained to viewport
+    menu.style.top = (rect.bottom + gap) + 'px';
+
+    // Update layout class for CSS transform-origin
+    menu.classList.remove('layout-vertical', 'layout-horizontal');
+    menu.classList.add(isVertical ? 'layout-vertical' : 'layout-horizontal');
+
+    if (isVertical) {
+        // Vertical layout: center on screen, below the button
         const menuWidth = Math.min(350, window.innerWidth - margin * 2);
         menu.style.width = menuWidth + 'px';
-        menu.style.left = Math.max(margin, (window.innerWidth - menuWidth) / 2) + 'px';
+        menu.style.left = ((window.innerWidth - menuWidth) / 2) + 'px';
     } else {
-        // Left-align to the button
-        menu.style.width = '';
-        menu.style.left = rect.left + 'px';
+        // Horizontal layout: anchor to button position
+        const menuWidth = 350;
+        menu.style.width = menuWidth + 'px';
+        let left = rect.left;
+        // Ensure it doesn't overflow the right edge
+        if (left + menuWidth > window.innerWidth - margin) {
+            left = window.innerWidth - margin - menuWidth;
+        }
+        // Ensure it doesn't overflow the left edge
+        if (left < margin) {
+            left = margin;
+        }
+        menu.style.left = left + 'px';
     }
- 
-    // Max-height: fill from top of menu to bottom of viewport with some padding
-    menu.style.maxHeight = (window.innerHeight - rect.bottom - 4 - margin) + 'px';
+
+    // Max-height: fill from menu top to bottom of viewport with breathing room
+    menu.style.maxHeight = (window.innerHeight - rect.bottom - gap - margin) + 'px';
 }
 
 function toggleEventMenu() {
@@ -1791,12 +1807,17 @@ document.addEventListener('click', function(event) {
     }
 });
 
-// Reposition event menu on resize so it stays anchored to the button
-window.addEventListener('resize', function() {
+// Reposition event menu on resize/orientation change so it stays anchored
+function repositionEventMenuIfOpen() {
     const menu = document.getElementById('event-menu');
     if (menu && menu.classList.contains('active')) {
         positionEventMenu();
     }
+}
+window.addEventListener('resize', repositionEventMenuIfOpen);
+window.addEventListener('orientationchange', function() {
+    // Delay slightly since dimensions update after the event fires
+    setTimeout(repositionEventMenuIfOpen, 150);
 });
 
 // ============================================================================
