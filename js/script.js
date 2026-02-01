@@ -2174,22 +2174,130 @@ const SwipeHandler = {
         const endX = event.changedTouches[0].clientX;
         const deltaX = endX - this.startX;
 
-        // Clean up drag styles
-        this.cleanupDrag();
+        // Capture state before cleanup resets it
+        const wasSwipeLocked = this.swipeLocked;
 
-        if (!this.swipeLocked) return;
-        if (isPageTransitioning) return;
-        if (Math.abs(deltaX) < this.minSwipeDistance) return;
-
-        if (deltaX > 0) {
-            this.navigatePrevious();
-        } else {
-            this.navigateNext();
+        if (!wasSwipeLocked || isPageTransitioning || Math.abs(deltaX) < this.minSwipeDistance) {
+            // Below threshold or not a valid swipe — smooth snap-back
+            this.snapBack();
+            return;
         }
+
+        const targetPageNum = deltaX > 0 ? currentPage - 1 : currentPage + 1;
+        if (targetPageNum < 1 || targetPageNum > 3) {
+            this.snapBack();
+            return;
+        }
+
+        // Complete the page transition from current drag position
+        this.completeSwipeNavigation(targetPageNum, deltaX);
+    },
+
+    /**
+     * Smoothly animate pages back to original position when swipe is cancelled
+     */
+    snapBack() {
+        const transitionStyle = 'transform 0.25s ease-out, opacity 0.25s ease-out';
+        if (this.activePage) {
+            this.activePage.style.transition = transitionStyle;
+            this.activePage.style.transform = 'translateX(0)';
+            this.activePage.style.opacity = '1';
+        }
+        if (this.peekPage) {
+            const containerWidth = this.activePage ? this.activePage.offsetWidth : window.innerWidth;
+            // Determine which side the peek page came from
+            const peekIsNext = this.peekPage.id > `page-${currentPage}`;
+            this.peekPage.style.transition = transitionStyle;
+            this.peekPage.style.transform = `translateX(${peekIsNext ? containerWidth : -containerWidth}px)`;
+            this.peekPage.style.opacity = '0';
+        }
+
+        // Clean up after snap-back animation
+        const activePage = this.activePage;
+        const peekPage = this.peekPage;
+        setTimeout(() => {
+            if (activePage) {
+                activePage.style.transition = '';
+                activePage.style.transform = '';
+                activePage.style.opacity = '';
+            }
+            if (peekPage) {
+                peekPage.classList.remove('swiping');
+                peekPage.style.transition = '';
+                peekPage.style.transform = '';
+                peekPage.style.opacity = '';
+            }
+        }, 260);
+
+        this.isSwiping = false;
+        this.swipeLocked = false;
+        this.scrollLocked = false;
+        this.peekPage = null;
+    },
+
+    /**
+     * Complete page navigation from current drag position with a smooth finish
+     */
+    completeSwipeNavigation(targetPageNum, deltaX) {
+        isPageTransitioning = true;
+
+        const containerWidth = this.activePage ? this.activePage.offsetWidth : window.innerWidth;
+        const goingLeft = deltaX < 0;
+        const transitionStyle = 'transform 0.25s ease-out, opacity 0.25s ease-out';
+
+        // Scroll to top instantly
+        document.querySelector('.cogitator-frame').scrollTo({ top: 0, behavior: 'instant' });
+
+        // Animate active page off-screen from its current drag position
+        if (this.activePage) {
+            this.activePage.style.transition = transitionStyle;
+            this.activePage.style.transform = `translateX(${goingLeft ? -containerWidth : containerWidth}px)`;
+            this.activePage.style.opacity = '0';
+        }
+
+        // Animate peek page to center from its current position
+        if (this.peekPage) {
+            this.peekPage.style.transition = transitionStyle;
+            this.peekPage.style.transform = 'translateX(0)';
+            this.peekPage.style.opacity = '1';
+        }
+
+        const oldPage = this.activePage;
+        const newPage = this.peekPage;
+        currentPage = targetPageNum;
+
+        // Update data bank UI during animation so it's ready when visible
+        if (targetPageNum === 2 || targetPageNum === 3) {
+            renderDataBankUI();
+        }
+
+        // Clean up after transition completes
+        setTimeout(() => {
+            if (oldPage) {
+                oldPage.classList.remove('active');
+                oldPage.style.transition = '';
+                oldPage.style.transform = '';
+                oldPage.style.opacity = '';
+            }
+            if (newPage) {
+                newPage.classList.remove('swiping');
+                newPage.classList.add('active');
+                newPage.style.transition = '';
+                newPage.style.transform = '';
+                newPage.style.opacity = '';
+            }
+            isPageTransitioning = false;
+            console.log(`📄 Navigated to Page ${targetPageNum}`);
+        }, 260);
+
+        this.isSwiping = false;
+        this.swipeLocked = false;
+        this.scrollLocked = false;
+        this.peekPage = null;
     },
 
     handleTouchCancel() {
-        this.cleanupDrag();
+        this.snapBack();
     },
 
     cleanupDrag() {
