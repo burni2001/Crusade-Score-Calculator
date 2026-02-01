@@ -1569,16 +1569,44 @@ async function saveAsPNG() {
 const DB_URL = "https://raw.githubusercontent.com/burni2001/Crusade-Score-Calculator/refs/heads/Version6/data/events.json";
 let cachedEvents = [];
 
+function positionEventMenu() {
+    const menu = document.getElementById('event-menu');
+    const wrapper = document.querySelector('.gear-wrapper');
+    if (!menu || !wrapper) return;
+
+    const rect = wrapper.getBoundingClientRect();
+    const isMobile = window.innerWidth <= 768;
+    const margin = 10;
+
+    // Place below the button
+    menu.style.top = rect.bottom + 4 + 'px';
+
+    if (isMobile) {
+        // Center horizontally, constrained to viewport
+        const menuWidth = Math.min(350, window.innerWidth - margin * 2);
+        menu.style.width = menuWidth + 'px';
+        menu.style.left = Math.max(margin, (window.innerWidth - menuWidth) / 2) + 'px';
+    } else {
+        // Left-align to the button
+        menu.style.width = '';
+        menu.style.left = rect.left + 'px';
+    }
+
+    // Max-height: fill from top of menu to bottom of viewport with some padding
+    menu.style.maxHeight = (window.innerHeight - rect.bottom - 4 - margin) + 'px';
+}
+
 function toggleEventMenu() {
     const menu = document.getElementById('event-menu');
     const wrapper = document.querySelector('.gear-wrapper'); // Event selector wrapper
-    
+
     if (menu) {
         menu.classList.toggle('active');
         if (wrapper) wrapper.classList.toggle('active');
-        
+
         if (menu.classList.contains('active')) {
             fetchEventList();
+            positionEventMenu();
             // Prevent background scrolling when overlay is open
             document.querySelector('.cogitator-frame').style.overflow = 'hidden';
         } else {
@@ -1760,6 +1788,14 @@ document.addEventListener('click', function(event) {
             if (eventWrapper) eventWrapper.classList.remove('active');
             document.querySelector('.cogitator-frame').style.overflow = '';
         }
+    }
+});
+
+// Reposition event menu on resize so it stays anchored to the button
+window.addEventListener('resize', function() {
+    const menu = document.getElementById('event-menu');
+    if (menu && menu.classList.contains('active')) {
+        positionEventMenu();
     }
 });
 
