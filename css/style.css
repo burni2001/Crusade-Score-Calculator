@@ -817,13 +817,19 @@ select option {
     text-transform: uppercase;
     letter-spacing: 1px;
     transition: all 0.2s ease-in-out;
-    box-shadow: var(--shadow-sm);
+    border-radius: 3px;
+    box-shadow: var(--shadow-sm), inset 0 1px 0 rgba(51, 255, 0, 0.15), 0 2px 0 rgba(0, 0, 0, 0.4);
 }
 
 .btn:hover {
     background-color: var(--pip-green);
     color: var(--bg-color);
-    box-shadow: var(--shadow-md);
+    box-shadow: var(--shadow-md), inset 0 1px 0 rgba(255, 255, 255, 0.2), 0 2px 0 rgba(0, 0, 0, 0.4);
+}
+
+.btn:active {
+    transform: translateY(1px);
+    box-shadow: var(--shadow-sm), inset 0 2px 3px rgba(0, 0, 0, 0.3);
 }
 
 .btn-primary {
@@ -832,14 +838,14 @@ select option {
     border: 1px solid var(--pip-green) !important;
     font-weight: 900 !important;
     text-shadow: none !important;
-    box-shadow: 0 0 15px rgba(51, 255, 0, 0.6);
+    box-shadow: 0 0 15px rgba(51, 255, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.15), 0 2px 0 rgba(0, 0, 0, 0.4);
     opacity: 1 !important;
 }
 
 .btn-primary:hover {
     background-color: #000 !important;
     color: var(--pip-green) !important;
-    box-shadow: 0 0 20px var(--pip-green), inset 0 0 10px rgba(51, 255, 0, 0.3);
+    box-shadow: 0 0 20px var(--pip-green), inset 0 0 10px rgba(51, 255, 0, 0.3), 0 2px 0 rgba(0, 0, 0, 0.4);
 }
 
 .btn-danger {
@@ -850,7 +856,7 @@ select option {
 .btn-danger:hover {
     background-color: var(--warning-color);
     color: var(--bg-color);
-    box-shadow: 0 0 15px var(--warning-color);
+    box-shadow: 0 0 15px var(--warning-color), inset 0 1px 0 rgba(255, 255, 255, 0.2), 0 2px 0 rgba(0, 0, 0, 0.4);
 }
 
 .btn-sm {
