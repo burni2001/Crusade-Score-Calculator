@@ -1579,8 +1579,9 @@ select.validation-error {
 /* === 29. MULTI-PAGE NAVIGATION === */
 .page-container {
     position: relative;
-    overflow: hidden;
+    overflow: clip;
     z-index: 3; /* Above the cogitator-frame::before scanline overlay (z-index: 2) */
+    touch-action: pan-y; /* Let browser handle vertical scroll; JS handles horizontal swipe */
 }
 
 .page {
