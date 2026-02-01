@@ -285,11 +285,8 @@ h1, h2, h3 {
     top: calc(-1 * var(--space-lg));
     background-color: var(--bg-color);
     z-index: 100;
-    padding-top: calc(var(--space-lg) + var(--space-md));
-    margin-left: calc(-1 * var(--space-lg));
-    margin-right: calc(-1 * var(--space-lg));
-    padding-left: var(--space-lg);
-    padding-right: var(--space-lg);
+    margin-top: calc(-1 * var(--space-lg));
+    padding-top: var(--space-sm);
 }
 
 .btn-nav {
@@ -1392,11 +1389,8 @@ select.validation-error {
 
     .header-nav {
         top: calc(-1 * var(--space-sm));
-        padding-top: calc(var(--space-sm) + var(--space-md));
-        margin-left: calc(-1 * var(--space-sm));
-        margin-right: calc(-1 * var(--space-sm));
-        padding-left: var(--space-sm);
-        padding-right: var(--space-sm);
+        margin-top: calc(-1 * var(--space-sm));
+        padding-top: var(--space-xs);
     }
 
     h1 {
