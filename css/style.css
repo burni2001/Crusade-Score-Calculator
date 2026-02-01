@@ -1580,7 +1580,9 @@ select.validation-error {
 /* === 29. MULTI-PAGE NAVIGATION === */
 .page-container {
     position: relative;
-    overflow: clip;
+    /* Use clip-path instead of overflow:clip so the header-nav negative margin
+       isn't clipped at the top while horizontal slide overflow is still hidden */
+    clip-path: inset(calc(-1 * var(--space-lg)) 0 0 0);
     z-index: 3; /* Above the cogitator-frame::before scanline overlay (z-index: 2) */
     touch-action: pan-y; /* Let browser handle vertical scroll; JS handles horizontal swipe */
 }
