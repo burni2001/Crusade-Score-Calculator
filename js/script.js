@@ -1240,7 +1240,11 @@ function aggregateInternalData() {
     if (successCount > 0) {
         statusEl.textContent = `AGGREGATED ${successCount} SLATE(S)` + (corruptedCount ? ` (${corruptedCount} PURGED)` : "");
         statusEl.style.color = "var(--pip-green)";
-        document.getElementById('results-container').scrollIntoView({ behavior: 'smooth' });
+        const resultsEl = document.getElementById('results-container');
+        const frame = document.querySelector('.cogitator-frame');
+        if (resultsEl && frame) {
+            frame.scrollTo({ top: resultsEl.offsetTop - frame.offsetTop, behavior: 'smooth' });
+        }
     } else {
         statusEl.textContent = "ALL SLATES WERE CORRUPTED AND PURGED.";
         statusEl.style.color = "#ff5555";
@@ -1580,14 +1584,14 @@ function toggleEventMenu() {
                 const rect = wrapper.getBoundingClientRect();
                 menu.style.top = (rect.bottom + 5) + 'px';
                 // Prevent background scrolling on mobile when overlay is open
-                document.body.style.overflow = 'hidden';
+                document.querySelector('.cogitator-frame').style.overflow = 'hidden';
             }
         } else {
             // Reset inline style when closing
             menu.style.top = '';
-            // Restore body scroll when closing on mobile
+            // Restore scroll when closing on mobile
             if (window.innerWidth <= 768) {
-                document.body.style.overflow = '';
+                document.querySelector('.cogitator-frame').style.overflow = '';
             }
         }
     }
@@ -1712,9 +1716,9 @@ function selectEvent(selectedId) {
         
         setTimeout(() => {
             document.getElementById('event-menu').classList.remove('active');
-            // Restore body scroll on mobile
+            // Restore scroll on mobile
             if (window.innerWidth <= 768) {
-                document.body.style.overflow = '';
+                document.querySelector('.cogitator-frame').style.overflow = '';
             }
             status.innerText = "";
         }, 300);
@@ -1752,9 +1756,9 @@ document.addEventListener('keydown', function(event) {
         if (eventMenu && eventMenu.classList.contains('active')) {
             eventMenu.classList.remove('active');
             if (eventWrapper) eventWrapper.classList.remove('active');
-            // Restore body scroll on mobile
+            // Restore scroll on mobile
             if (window.innerWidth <= 768) {
-                document.body.style.overflow = '';
+                document.querySelector('.cogitator-frame').style.overflow = '';
             }
         }
     }
@@ -1769,9 +1773,9 @@ document.addEventListener('click', function(event) {
         if (eventMenu && eventMenu.classList.contains('active')) {
             eventMenu.classList.remove('active');
             if (eventWrapper) eventWrapper.classList.remove('active');
-            // Restore body scroll on mobile
+            // Restore scroll on mobile
             if (window.innerWidth <= 768) {
-                document.body.style.overflow = '';
+                document.querySelector('.cogitator-frame').style.overflow = '';
             }
         }
     }
@@ -1811,7 +1815,7 @@ function navigateToPage(pageNum) {
         currentPage = pageNum;
         
         // Scroll to top of the page
-        window.scrollTo({ top: 0, behavior: 'smooth' });
+        document.querySelector('.cogitator-frame').scrollTo({ top: 0, behavior: 'smooth' });
         
         // Update the data bank UI on both Page 2 and Page 3
         if (pageNum === 2 || pageNum === 3) {
