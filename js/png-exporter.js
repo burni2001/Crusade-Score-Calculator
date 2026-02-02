@@ -470,15 +470,20 @@ const PNGExporter = {
         const startIdx = lines.findIndex(line => line.includes(sectionTitle));
         if (startIdx === -1) return '<p>Data not found</p>';
 
-        let html = '<table style="width:100%;border-collapse:collapse;table-layout:fixed;font-family:VT323,monospace;">';
+        // Table styling to match Page 2 live tables
+        const cellBase = 'border:1px solid #1a331a;background-color:#0f1e0f;padding:4px;vertical-align:middle;';
+        const headerBase = 'border:1px solid #1a331a;background-color:#000;padding:10px;vertical-align:middle;color:#20c020;font-size:0.9rem;line-height:1.1;';
+
+        let html = '<table style="width:100%;border-collapse:separate;border-spacing:5px;table-layout:fixed;font-family:VT323,monospace;">';
 
         const headerLine = lines[startIdx + 1];
         if (headerLine) {
             const headers = headerLine.split(',');
             html += '<thead><tr>';
-            html += '<th style="text-align:left;padding:6px;color:#20c020;border-bottom:1px solid #20c020;">METRIC</th>';
+            html += `<th style="${headerBase}text-align:right;width:180px;padding-right:15px;">METRIC</th>`;
             for (let i = 1; i < headers.length; i++) {
-                html += `<th style="text-align:center;padding:6px;color:#20c020;border-bottom:1px solid #20c020;">${this._escapeHtml(headers[i].trim())}</th>`;
+                const isTotal = i === headers.length - 1;
+                html += `<th style="${headerBase}text-align:center;${isTotal ? 'width:120px;' : ''}">${this._escapeHtml(headers[i].trim())}</th>`;
             }
             html += '</tr></thead>';
         }
@@ -489,13 +494,28 @@ const PNGExporter = {
             if (!line || line === "ADDITIONAL STATISTICS" || line === "MODIFIERS") break;
 
             const cols = line.split(',');
-            html += '<tr style="border-bottom:1px solid #333;">';
-            html += `<td style="text-align:left;padding:6px;color:#aaa;">${this._escapeHtml(cols[0].trim())}</td>`;
+            const metricName = cols[0].trim();
+            const isFinalScore = metricName.toLowerCase().includes('final score');
+            const isScoreRow = metricName.toLowerCase().includes('base score') || metricName.toLowerCase().includes('modifier score');
+
+            html += '<tr>';
+            // Row label cell (matches .row-label styling)
+            if (isFinalScore) {
+                html += `<td style="${cellBase}text-align:right;width:180px;font-weight:bold;padding-right:15px;background-color:#000;border-top:2px solid #20c020;border-bottom:2px double #20c020;font-size:1.5rem;color:#80cc80;text-shadow:0 0 8px #20c020;">${this._escapeHtml(metricName)}</td>`;
+            } else {
+                html += `<td style="${cellBase}text-align:right;width:180px;font-weight:bold;padding-right:15px;background-color:#000;">${this._escapeHtml(metricName)}</td>`;
+            }
             for (let j = 1; j < cols.length; j++) {
                 const isTotal = j === cols.length - 1;
-                const color = isTotal ? '#fff' : '#80cc80';
-                const weight = isTotal ? 'bold' : 'normal';
-                html += `<td style="text-align:center;padding:6px;color:${color};font-weight:${weight};">${this._escapeHtml(cols[j].trim())}</td>`;
+                if (isFinalScore) {
+                    html += `<td style="${cellBase}text-align:center;font-weight:bold;font-size:1.5rem;color:#80cc80;text-shadow:0 0 8px #20c020;border-top:2px solid #20c020;border-bottom:2px double #20c020;${isTotal ? 'background-color:#000;width:120px;' : ''}">${this._escapeHtml(cols[j].trim())}</td>`;
+                } else if (isTotal) {
+                    html += `<td style="${cellBase}text-align:center;font-weight:bold;background-color:#000;width:120px;">${this._escapeHtml(cols[j].trim())}</td>`;
+                } else if (isScoreRow) {
+                    html += `<td style="${cellBase}text-align:center;font-weight:bold;">${this._escapeHtml(cols[j].trim())}</td>`;
+                } else {
+                    html += `<td style="${cellBase}text-align:center;">${this._escapeHtml(cols[j].trim())}</td>`;
+                }
             }
             html += '</tr>';
         }
