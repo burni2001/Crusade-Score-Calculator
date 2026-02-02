@@ -1384,6 +1384,7 @@ function buildImportTable(tableId, rowKeys) {
     
     const thEmpty = document.createElement('th');
     thEmpty.textContent = 'METRIC';
+    thEmpty.style.whiteSpace = 'nowrap';
     headRow.appendChild(thEmpty);
     
     importAppState.playerOrder.forEach(p => {
