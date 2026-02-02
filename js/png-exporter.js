@@ -56,6 +56,121 @@ const PNGExporter = {
     },
 
     /**
+     * Export a single mission's data from its stored CSV string.
+     * Builds off-screen DOM with mission parameters and tables, then captures as PNG.
+     * @param {Object} slot - Mission slot object {name, difficulty, csv, ...}
+     * @param {number} index - Mission index (for filename)
+     * @returns {Promise<void>}
+     */
+    async exportMissionFromCSV(slot, index) {
+        let captureContainer = null;
+        let originalBodyWidth = "";
+
+        try {
+            // 1. Build mission parameter info from CSV
+            const lines = slot.csv.split('\n');
+            const missionParams = this._parseMissionParams(lines);
+
+            // 2. Build HTML tables from CSV
+            const matrixHtml = this._csvSectionToHtml(lines, "SQUAD PERFORMANCE MATRIX");
+            const statsHtml = this._csvSectionToHtml(lines, "ADDITIONAL STATISTICS");
+
+            // 3. Create off-screen container
+            captureContainer = document.createElement('div');
+            captureContainer.style.cssText = `
+                position: fixed;
+                top: -9999px;
+                left: -9999px;
+                width: ${this.config.captureWidth}px;
+                min-width: ${this.config.captureWidth}px;
+                max-width: ${this.config.captureWidth}px;
+                background-color: #050a05;
+                border: 4px solid #3d4c3d;
+                padding: 20px;
+                box-sizing: border-box;
+                font-family: 'VT323', monospace;
+                color: #80cc80;
+            `;
+
+            // 4. Add mission header
+            const header = document.createElement('div');
+            header.style.cssText = `
+                background-color: #040a04;
+                color: #20c020;
+                padding: 8px;
+                font-weight: bold;
+                text-align: center;
+                margin-bottom: 12px;
+                border: 1px solid #20c020;
+                font-size: 18px;
+            `;
+            header.textContent = (slot.name || 'Unknown Mission').toUpperCase();
+            captureContainer.appendChild(header);
+
+            // 5. Add mission parameters
+            const paramsDiv = document.createElement('div');
+            paramsDiv.style.cssText = `
+                margin-bottom: 15px;
+                padding: 8px 12px;
+                border: 1px solid #3d4c3d;
+                background-color: #0a140a;
+                font-size: 14px;
+                line-height: 1.6;
+            `;
+            paramsDiv.innerHTML = `
+                <span style="color:#20c020;">Difficulty:</span> ${this._escapeHtml(missionParams.difficulty)} &nbsp;|&nbsp;
+                <span style="color:#20c020;">Waves:</span> ${this._escapeHtml(missionParams.waves)} &nbsp;|&nbsp;
+                <span style="color:#20c020;">Objective:</span> ${this._escapeHtml(missionParams.objective)} &nbsp;|&nbsp;
+                <span style="color:#20c020;">Geneseed:</span> ${this._escapeHtml(missionParams.geneseed)} &nbsp;|&nbsp;
+                <span style="color:#20c020;">Armoury:</span> ${this._escapeHtml(missionParams.armoury)}
+            `;
+            captureContainer.appendChild(paramsDiv);
+
+            // 6. Add Squad Performance Matrix section
+            const matrixSection = this._buildTableSection('SQUAD PERFORMANCE MATRIX', matrixHtml);
+            captureContainer.appendChild(matrixSection);
+
+            // 7. Add Additional Statistics section
+            const statsSection = this._buildTableSection('ADDITIONAL STATISTICS', statsHtml);
+            statsSection.style.marginTop = '15px';
+            captureContainer.appendChild(statsSection);
+
+            document.body.appendChild(captureContainer);
+
+            // 8. Temporarily adjust body width
+            originalBodyWidth = document.body.style.width;
+            document.body.style.width = `${this.config.bodyWidth}px`;
+
+            // 9. Wait for DOM to settle
+            await this._delay(this.config.settleDelay);
+
+            // 10. Verify html2canvas
+            if (typeof html2canvas === 'undefined') {
+                throw new Error('Screenshot library not loaded. Please refresh the page.');
+            }
+
+            // 11. Capture
+            const canvas = await html2canvas(captureContainer, {
+                scale: this.config.scale,
+                backgroundColor: this.config.backgroundColor,
+                windowWidth: this.config.windowWidth,
+                useCORS: true,
+                logging: false
+            });
+
+            // 12. Download
+            const safeName = (slot.name || 'mission').replace(/[^a-z0-9]/gi, '_').toLowerCase();
+            this._downloadCanvas(canvas, `Mission_${index + 1}_${safeName}`);
+
+        } catch (err) {
+            this._handleError(err, `PNG Export Mission ${index + 1}`);
+            throw err;
+        } finally {
+            this._cleanup(captureContainer, originalBodyWidth);
+        }
+    },
+
+    /**
      * Export aggregated data screen (Aggregated Squad Matrix + Aggregated Statistics)
      * @param {string} buttonSelector - CSS selector for the export button (for feedback)
      * @returns {Promise<void>}
@@ -321,6 +436,114 @@ const PNGExporter = {
      */
     _delay(ms) {
         return new Promise(resolve => setTimeout(resolve, ms));
+    },
+
+    /**
+     * Parse mission parameters from CSV lines
+     * @private
+     * @param {Array<string>} lines - CSV lines
+     * @returns {Object} - Mission parameters
+     */
+    _parseMissionParams(lines) {
+        const params = { difficulty: '-', waves: '-', objective: '-', geneseed: '-', armoury: '-' };
+        for (let i = 0; i < Math.min(lines.length, 30); i++) {
+            const line = lines[i].trim();
+            if (!line) continue;
+            const matchVal = (regex) => { const m = line.match(regex); return m ? m[1].trim() : null; };
+            params.difficulty = matchVal(/Difficulty[:,\s]+(.+)/i) || params.difficulty;
+            params.waves = matchVal(/Waves Reached[:,\s]+(.+)/i) || params.waves;
+            params.objective = matchVal(/Objective Completion[:,\s]+(.+)/i) || params.objective;
+            params.geneseed = matchVal(/Geneseed Retrieved[:,\s]+(.+)/i) || params.geneseed;
+            params.armoury = matchVal(/Armoury Data Retrieved[:,\s]+(.+)/i) || params.armoury;
+        }
+        return params;
+    },
+
+    /**
+     * Convert a CSV section into an HTML table string
+     * @private
+     * @param {Array<string>} lines - All CSV lines
+     * @param {string} sectionTitle - Section title to find
+     * @returns {string} - HTML table string
+     */
+    _csvSectionToHtml(lines, sectionTitle) {
+        const startIdx = lines.findIndex(line => line.includes(sectionTitle));
+        if (startIdx === -1) return '<p>Data not found</p>';
+
+        let html = '<table style="width:100%;border-collapse:collapse;table-layout:fixed;font-family:VT323,monospace;">';
+
+        const headerLine = lines[startIdx + 1];
+        if (headerLine) {
+            const headers = headerLine.split(',');
+            html += '<thead><tr>';
+            html += '<th style="text-align:left;padding:6px;color:#20c020;border-bottom:1px solid #20c020;">METRIC</th>';
+            for (let i = 1; i < headers.length; i++) {
+                html += `<th style="text-align:center;padding:6px;color:#20c020;border-bottom:1px solid #20c020;">${this._escapeHtml(headers[i].trim())}</th>`;
+            }
+            html += '</tr></thead>';
+        }
+
+        html += '<tbody>';
+        for (let i = startIdx + 2; i < lines.length; i++) {
+            const line = lines[i].trim();
+            if (!line || line === "ADDITIONAL STATISTICS" || line === "MODIFIERS") break;
+
+            const cols = line.split(',');
+            html += '<tr style="border-bottom:1px solid #333;">';
+            html += `<td style="text-align:left;padding:6px;color:#aaa;">${this._escapeHtml(cols[0].trim())}</td>`;
+            for (let j = 1; j < cols.length; j++) {
+                const isTotal = j === cols.length - 1;
+                const color = isTotal ? '#fff' : '#80cc80';
+                const weight = isTotal ? 'bold' : 'normal';
+                html += `<td style="text-align:center;padding:6px;color:${color};font-weight:${weight};">${this._escapeHtml(cols[j].trim())}</td>`;
+            }
+            html += '</tr>';
+        }
+        html += '</tbody></table>';
+        return html;
+    },
+
+    /**
+     * Build a section element with header and table content
+     * @private
+     * @param {string} title - Section title
+     * @param {string} tableHtml - HTML table string
+     * @returns {Element} - Section DOM element
+     */
+    _buildTableSection(title, tableHtml) {
+        const section = document.createElement('div');
+        const sectionHeader = document.createElement('div');
+        sectionHeader.style.cssText = `
+            background-color: #040a04;
+            color: #20c020;
+            padding: 6px;
+            font-weight: bold;
+            text-align: center;
+            margin-bottom: 10px;
+            border: 1px solid #20c020;
+            font-size: 15px;
+        `;
+        sectionHeader.textContent = title;
+        section.appendChild(sectionHeader);
+
+        const tableContainer = document.createElement('div');
+        tableContainer.style.cssText = 'width:100%;overflow:visible;';
+        tableContainer.innerHTML = tableHtml;
+        section.appendChild(tableContainer);
+
+        return section;
+    },
+
+    /**
+     * Escape HTML special characters
+     * @private
+     * @param {string} str - String to escape
+     * @returns {string} - Escaped string
+     */
+    _escapeHtml(str) {
+        const div = document.createElement('div');
+        div.appendChild(document.createTextNode(str));
+        return div.innerHTML;
     },
 
     /**
