@@ -1344,6 +1344,8 @@ select.validation-error {
         font-size: 0.75rem;
         padding-right: var(--space-xs) !important;
         white-space: normal;
+        overflow-wrap: break-word;
+        hyphens: auto;
         line-height: 1.1;
     }
 
