@@ -1929,30 +1929,61 @@ function toggleCustomRules() {
 
 /**
  * Record data screens as PNG (for Page 3)
- * Captures the Aggregated Squad Matrix and Aggregated Statistics
+ * Captures each individual saved mission and the aggregated tables
  */
 async function recordAllDataScreens() {
     try {
         const statusEl = document.getElementById('import-status');
+        const savedSlots = JSON.parse(localStorage.getItem("cogitator_saved_missions") || "[]");
+
+        if (savedSlots.length === 0) {
+            if (statusEl) {
+                statusEl.textContent = 'No saved missions to capture.';
+                statusEl.style.color = '#cc4444';
+            }
+            return;
+        }
+
+        const btn = document.querySelector('button[onclick="recordAllDataScreens()"]');
+        const originalText = btn ? btn.innerText : '';
+
+        // Export each saved mission individually from its CSV data
+        for (let i = 0; i < savedSlots.length; i++) {
+            const slot = savedSlots[i];
+            if (!slot || !slot.csv) continue;
+
+            if (statusEl) {
+                statusEl.textContent = `Capturing mission ${i + 1} of ${savedSlots.length}...`;
+                statusEl.style.color = 'var(--pip-green)';
+            }
+            if (btn) btn.innerText = `CAPTURING ${i + 1}/${savedSlots.length}...`;
+
+            await PNGExporter.exportMissionFromCSV(slot, i);
+        }
+
+        // Export aggregated data from page 3 (Aggregated Squad Matrix + Aggregated Statistics)
         if (statusEl) {
-            statusEl.textContent = 'Capturing data screens...';
+            statusEl.textContent = 'Capturing aggregated data...';
             statusEl.style.color = 'var(--pip-green)';
         }
-        
-        // Export mission data from page 2 (Squad Performance Matrix + Additional Statistics)
-        await PNGExporter.exportMissionScreen('button[onclick="recordAllDataScreens()"]');
-        
-        // Export aggregated data from page 3 (Aggregated Squad Matrix + Aggregated Statistics)
+        if (btn) btn.innerText = 'CAPTURING AGGREGATED...';
+
         await PNGExporter.exportAggregatedScreen();
-        
+
         if (statusEl) {
-            statusEl.textContent = 'Data screens captured successfully!';
+            statusEl.textContent = `${savedSlots.length} mission(s) + aggregated data captured!`;
             statusEl.style.color = '#80cc80';
             setTimeout(() => {
                 statusEl.textContent = '';
             }, 3000);
         }
-        
+        if (btn) {
+            btn.innerText = '✓ CAPTURED';
+            setTimeout(() => {
+                if (btn) btn.innerText = originalText;
+            }, 2000);
+        }
+
     } catch (error) {
         console.error('Error recording data screens:', error);
         const statusEl = document.getElementById('import-status');
