@@ -860,8 +860,29 @@ select option {
     min-width: 180px;
 }
 
+.export-buttons-container .btn-shrink {
+    flex: 0 0 auto;
+    min-width: 0;
+}
+
+/* Page 2: row-reverse so Save is right, Purge is left; save expands */
 #page-2 .export-buttons-container {
     flex-direction: row-reverse;
+}
+
+#page-2 .export-buttons-container .btn-primary {
+    flex: 1 1 auto;
+}
+
+/* Page 3 widescreen: reorder buttons - purge left, record data middle, create message right (widest) */
+@media (min-width: 769px) {
+    #page-3 .export-buttons-container .btn-danger {
+        order: -1;
+    }
+    #page-3 .export-buttons-container .btn-primary {
+        order: 1;
+        flex: 2 1 auto;
+    }
 }
 
 /* === 16. MODALS === */
