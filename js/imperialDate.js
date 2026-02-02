@@ -28,6 +28,9 @@ const ImperialDate = {
 
     // Toggle state: true = Imperial Date, false = real date
     showingImperial: true,
+
+    // localStorage key for persisting date format preference
+    STORAGE_KEY: "cogitator_date_format",
     
     /**
      * Calculate the Imperial Date based on current UTC date
@@ -121,6 +124,9 @@ const ImperialDate = {
             return null;
         }
         
+        // Restore saved date format preference
+        this.loadDateFormatPreference();
+
         // Make element clickable and add toggle handler
         element.style.cursor = 'pointer';
         element.addEventListener('click', () => this.toggleDateDisplay());
@@ -164,9 +170,11 @@ const ImperialDate = {
             this.lastCalculatedDate = this.getCurrentDateString();
             this.cachedImperialDate = imperialDate;
 
-            // Only update text if currently showing Imperial Date
+            // Update text based on current format preference
             if (this.showingImperial) {
                 element.textContent = `DAT: ${imperialDate}`;
+            } else {
+                element.textContent = `DAT: ${this.getRealDate()}`;
             }
 
             console.log(`Imperial Date updated: ${imperialDate}`);
@@ -191,6 +199,7 @@ const ImperialDate = {
      */
     toggleDateDisplay() {
         this.showingImperial = !this.showingImperial;
+        this.saveDateFormatPreference();
         const elements = document.querySelectorAll('[id^="imperial-date"]');
         elements.forEach(el => {
             if (this.showingImperial) {
@@ -200,6 +209,31 @@ const ImperialDate = {
                 el.textContent = `DAT: ${this.getRealDate()}`;
             }
         });
+    },
+
+    /**
+     * Save date format preference to localStorage
+     */
+    saveDateFormatPreference() {
+        try {
+            localStorage.setItem(this.STORAGE_KEY, this.showingImperial ? "imperial" : "real");
+        } catch (e) {
+            // Silently fail if localStorage is unavailable
+        }
+    },
+
+    /**
+     * Load date format preference from localStorage
+     */
+    loadDateFormatPreference() {
+        try {
+            const saved = localStorage.getItem(this.STORAGE_KEY);
+            if (saved !== null) {
+                this.showingImperial = saved === "imperial";
+            }
+        } catch (e) {
+            // Silently fail if localStorage is unavailable
+        }
     },
 
     /**
