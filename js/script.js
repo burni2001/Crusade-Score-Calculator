@@ -1,6 +1,6 @@
 // ============================================================================
 // CRUSADE SCORE CALCULATOR - Main Application Script
-// Version: 7.15
+// Version: 7.16
 // 
 // A complete scoring system for Warhammer 40K Space Marine 2 missions
 // with OCR capabilities, data persistence, and export functionality
@@ -907,6 +907,61 @@ function loadData() {
     }
 }
 
+// ============================================================================
+// Aggregated State Persistence
+// ============================================================================
+
+const AGGREGATED_STATE_KEY = 'cogitator_aggregated_state';
+
+/**
+ * Saves the current importAppState to localStorage so aggregated tables
+ * persist across app restarts.
+ */
+function saveAggregatedState() {
+    try {
+        if (!importAppState.playerOrder || importAppState.playerOrder.length === 0) {
+            localStorage.removeItem(AGGREGATED_STATE_KEY);
+            return;
+        }
+        localStorage.setItem(AGGREGATED_STATE_KEY, JSON.stringify(importAppState));
+    } catch (e) {
+        ErrorHandler.handle(e, 'Save Aggregated State', false);
+    }
+}
+
+/**
+ * Restores importAppState from localStorage and re-renders the aggregated
+ * tables if data was previously saved.
+ */
+function loadAggregatedState() {
+    try {
+        const saved = localStorage.getItem(AGGREGATED_STATE_KEY);
+        if (!saved) return false;
+
+        const parsed = JSON.parse(saved);
+        if (!parsed || !Array.isArray(parsed.playerOrder) || parsed.playerOrder.length === 0) {
+            localStorage.removeItem(AGGREGATED_STATE_KEY);
+            return false;
+        }
+
+        importAppState = parsed;
+        renderImportUI();
+
+        const statusEl = document.getElementById('import-status');
+        if (statusEl) {
+            statusEl.textContent = `RESTORED ${parsed.playerOrder.length} OPERATIVE(S) FROM MEMORY`;
+            statusEl.style.color = 'var(--pip-green)';
+        }
+
+        console.log(`✅ Restored aggregated state (${parsed.playerOrder.length} players)`);
+        return true;
+    } catch (e) {
+        ErrorHandler.handle(e, 'Load Aggregated State', false);
+        localStorage.removeItem(AGGREGATED_STATE_KEY);
+        return false;
+    }
+}
+
 // Debug helpers
 function debugStorage() {
     console.log('=== Storage Debug ===');
@@ -1236,7 +1291,8 @@ function aggregateInternalData() {
     }
 
     renderImportUI();
-    
+    saveAggregatedState();
+
     if (successCount > 0) {
         statusEl.textContent = `AGGREGATED ${successCount} SLATE(S)` + (corruptedCount ? ` (${corruptedCount} PURGED)` : "");
         statusEl.style.color = "var(--pip-green)";
@@ -1292,6 +1348,7 @@ if (csvUploadInput) {
                 processCSV(text);
             }
             renderImportUI();
+            saveAggregatedState();
             const statusEl = document.getElementById('import-status');
             statusEl.textContent = `PROCESSED ${files.length} FILES SUCCESSFULLY`;
             statusEl.style.color = "var(--pip-green)";
@@ -1327,8 +1384,9 @@ function resetImport() {
     };
     
     localStorage.removeItem("cogitator_saved_missions");
+    localStorage.removeItem(AGGREGATED_STATE_KEY);
     renderDataBankUI();
-    
+
     console.log("Aggregated data purged.");
 }
 
@@ -2010,6 +2068,7 @@ window.addEventListener('DOMContentLoaded', function() {
     calculate();
     updateAdditionalStatsHeaders();
     renderDataBankUI();
+    loadAggregatedState();
 
     // Initialize input validation
     if (typeof InputValidator !== 'undefined') {
@@ -2041,6 +2100,7 @@ window.addEventListener('DOMContentLoaded', function() {
 
 window.addEventListener('beforeunload', function() {
     saveData();
+    saveAggregatedState();
     // Clean up Imperial Date intervals to prevent memory leaks
     if (typeof ImperialDate !== 'undefined') {
         if (imperialDateIntervalId) ImperialDate.stopUpdating(imperialDateIntervalId);
