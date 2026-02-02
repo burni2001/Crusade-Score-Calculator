@@ -299,36 +299,7 @@ h1, h2, h3 {
     visibility: hidden;
 }
 
-/* === 6. CUSTOM LISTS === */
-.cogitator-list {
-    list-style: none;
-    padding: 0;
-    margin: var(--space-sm) auto;
-    text-align: left;
-    display: inline-block;
-    max-width: 90%;
-}
-
-.cogitator-list li {
-    position: relative;
-    padding-left: var(--space-lg);
-    margin-bottom: 6px;
-    color: var(--pip-dim);
-    line-height: 1.4;
-}
-
-.cogitator-list li::before {
-    content: '';
-    position: absolute;
-    left: 0;
-    top: 7px;
-    width: 6px;
-    height: 6px;
-    background-color: var(--pip-green);
-    box-shadow: 0 0 4px var(--pip-green);
-}
-
-/* === 7. FORM INPUTS === */
+/* === 6. FORM INPUTS === */
 input, select {
     background-color: #000;
     color: var(--pip-green);
@@ -355,7 +326,7 @@ select option {
     color: var(--pip-green);
 }
 
-/* === 8. SECTIONS & CONTAINERS === */
+/* === 7. SECTIONS & CONTAINERS === */
 .section {
     background-color: rgba(20, 40, 20, 0.45);
     border: 1px solid var(--border-color);
@@ -373,13 +344,7 @@ select option {
     border: 1px solid var(--pip-green);
 }
 
-.divider-line {
-    border-top: 1px solid var(--pip-dim);
-    margin: 25px 0;
-    width: 100%;
-}
-
-/* === 9. CONTENT SECTIONS === */
+/* === 8. CONTENT BOXES === */
 .content-box {
     padding: var(--space-sm);
     background-color: rgba(32, 192, 32, 0.1);
@@ -392,7 +357,7 @@ select option {
     border: 1px solid var(--pip-green);
 }
 
-/* === 10. CONFIGURATION BAR === */
+/* === 9. CONFIGURATION BAR === */
 .config-bar {
     width: 95%;
     max-width: 500px;
@@ -455,7 +420,7 @@ select option {
     text-shadow: 0 0 5px var(--pip-green);
 }
 
-/* === 11. DROPDOWN MENUS === */
+/* === 10. DROPDOWN MENUS === */
 .dropdown {
     display: none;
     position: absolute;
@@ -512,12 +477,6 @@ select option {
     right: auto;
 }
 
-#modifiers-menu {
-    left: auto;
-    right: 0;
-    transform-origin: top right;
-}
-
 .menu-title {
     margin: 0 0 var(--space-md) 0;
     font-size: var(--font-md);
@@ -527,7 +486,7 @@ select option {
     text-align: center;
 }
 
-/* === 12. EVENT LIST === */
+/* === 11. EVENT LIST === */
 .event-list-scroll {
     padding-right: var(--space-xs);
 }
@@ -609,18 +568,9 @@ select option {
 /* === Event Items within Collapsed Cycles === */
 .cycle-events .event-item {
     padding: 8px 20px; /* Extra left padding for visual hierarchy */
-    margin-bottom: 4px;
-    cursor: pointer;
-    border: 1px solid transparent;
-    transition: all 0.2s ease;
-    font-size: var(--font-md);
-    color: var(--pip-green);
 }
 
 .cycle-events .event-item:hover {
-    background-color: rgba(32, 192, 32, 0.1);
-    border-color: var(--pip-green);
-    text-shadow: 0 0 5px var(--pip-green);
     padding-left: 25px;
 }
 
@@ -646,7 +596,7 @@ select option {
     }
 }
 
-/* === 13. DASHBOARD LAYOUT === */
+/* === 12. DASHBOARD LAYOUT === */
 .dashboard-wrapper {
     display: flex;
     flex-wrap: nowrap;
@@ -680,7 +630,7 @@ select option {
     line-height: 1.1;
 }
 
-/* === 14. MODIFIERS GRID === */
+/* === 13. MODIFIERS GRID === */
 .mod-grid {
     display: grid;
     grid-template-columns: 1fr 1fr;
@@ -721,7 +671,7 @@ select option {
     color: var(--pip-green);
 }
 
-/* === 15. TABLES === */
+/* === 14. TABLES === */
 .score-table-container {
     width: 100%;
     overflow-x: auto;
@@ -806,7 +756,7 @@ select option {
     height: var(--space-sm);
 }
 
-/* === 16. BUTTONS === */
+/* === 15. BUTTONS === */
 .btn {
     background-color: var(--panel-bg);
     color: var(--pip-green);
@@ -890,7 +840,7 @@ select option {
     min-width: 180px;
 }
 
-/* === 17. MODALS === */
+/* === 16. MODALS === */
 .modal-overlay {
     display: none;
     position: fixed;
@@ -972,7 +922,7 @@ select option {
     flex-wrap: wrap;
 }
 
-/* === 18. OCR MODAL === */
+/* === 17. OCR MODAL === */
 #ocr-detected-grid {
     display: grid;
     grid-template-columns: 1fr;
@@ -1077,7 +1027,7 @@ select option {
     scrollbar-width: thin;
 }
 
-/* === 19. CSV MODAL TABLES === */
+/* === 18. CSV MODAL TABLES === */
 .csv-modal-table {
     width: 100%;
     border-collapse: collapse;
@@ -1123,7 +1073,7 @@ select option {
     font-weight: bold;
 }
 
-/* === 20. DATA BANK === */
+/* === 19. DATA BANK === */
 .data-bank-display {
     display: flex;
     gap: var(--space-sm);
@@ -1183,7 +1133,7 @@ select option {
     text-shadow: 0 0 5px #cc0000;
 }
 
-/* === 21. RESULTS DISPLAY === */
+/* === 20. RESULTS DISPLAY === */
 .results-container {
     display: none;
 }
@@ -1192,36 +1142,7 @@ select option {
     display: block;
 }
 
-.panels-wrapper {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: var(--space-lg);
-    margin-bottom: var(--space-lg);
-}
-
-.stat-panel {
-    background-color: rgba(20, 40, 20, 0.45);
-    border: 1px solid var(--border-color);
-    padding: var(--space-md);
-}
-
-.stat-panel h3 {
-    margin: 0 0 var(--space-sm) 0;
-    font-size: var(--font-md);
-    border-bottom: 1px solid var(--pip-dim);
-    padding-bottom: var(--space-xs);
-    color: #fff;
-    text-transform: uppercase;
-}
-
-.kv-row {
-    display: flex;
-    justify-content: space-between;
-    margin-bottom: 4px;
-    font-size: var(--font-md);
-}
-
-/* === 22. TRANSMISSION LOG === */
+/* === 21. COPY/TRANSMISSION LOG === */
 #copy-text {
     background-color: #0a0f0a !important;
     color: var(--pip-light) !important;
@@ -1238,57 +1159,7 @@ select option {
     white-space: pre-wrap;
 }
 
-/* === 23. CREDITS === */
-.credits-full {
-    padding: var(--space-lg);
-    margin-top: var(--space-xl);
-    text-align: center;
-    width: 100%;
-    max-width: 1100px;
-    box-sizing: border-box;
-}
-
-.credits-full .title {
-    font-size: var(--font-md);
-    font-weight: bold;
-    color: var(--pip-light);
-    margin-bottom: var(--space-md);
-    text-transform: uppercase;
-    letter-spacing: 2px;
-}
-
-.credits-full .credit-row {
-    margin: 8px 0;
-    font-size: 0.95rem;
-}
-
-.credits-full .role {
-    color: var(--pip-dim);
-}
-
-.credits-full .name {
-    color: var(--pip-green);
-}
-
-.credits-full .copyright {
-    margin-top: var(--space-md);
-    padding-top: var(--space-md);
-    border-top: 1px solid var(--border-color);
-    font-size: var(--font-sm);
-    opacity: 0.7;
-}
-
-.credits-full a {
-    color: var(--pip-light);
-    text-decoration: none;
-}
-
-.credits-full a:hover {
-    color: var(--pip-green);
-    text-shadow: 0 0 5px var(--pip-green);
-}
-
-/* === 24. RESPONSIVE TEXT === */
+/* === 22. RESPONSIVE TEXT === */
 .mobile-text {
     display: none;
 }
@@ -1297,7 +1168,7 @@ select option {
     display: inline;
 }
 
-/* === 25. INPUT VALIDATION === */
+/* === 23. INPUT VALIDATION === */
 .validation-tooltip {
     display: none;
     position: absolute;
@@ -1334,7 +1205,7 @@ select.validation-error {
     75% { transform: translateX(5px); }
 }
 
-/* === 26. RESPONSIVE LAYOUTS === */
+/* === 24. RESPONSIVE LAYOUTS === */
 
 /* Shared header flexbox layout for all non-desktop sizes (≤ 900px) */
 @media (max-width: 900px) {
@@ -1528,9 +1399,14 @@ select.validation-error {
     .ocr-input-row select {
         font-size: max(16px, 0.9rem) !important;
     }
+
+    .credits-button-container {
+        bottom: var(--space-md);
+        right: var(--space-md);
+    }
 }
 
-/* === 27. INTERMEDIATE BREAKPOINT (769px - 900px) === */
+/* === 25. INTERMEDIATE BREAKPOINT (769px - 900px) === */
 @media (min-width: 769px) and (max-width: 900px) {
     .header-decor h1 {
         order: 2;
@@ -1546,7 +1422,7 @@ select.validation-error {
     }
 }
 
-/* === 28. TABLET & DESKTOP === */
+/* === 26. TABLET & DESKTOP === */
 @media (min-width: 901px) {
     #ocr-detected-grid {
         grid-template-columns: 1fr 1fr 1fr;
@@ -1581,7 +1457,7 @@ select.validation-error {
     }
 }
 
-/* === 29. MULTI-PAGE NAVIGATION === */
+/* === 27. MULTI-PAGE NAVIGATION === */
 .page-container {
     position: relative;
     /* Use clip-path instead of overflow:clip so the header-nav negative margin
@@ -1676,20 +1552,7 @@ select.validation-error {
     to   { transform: translateX(0); opacity: 1; }
 }
 
-.page-navigation {
-    display: flex;
-    justify-content: center;
-    gap: var(--space-lg);
-    padding: var(--space-lg) 0;
-    border-top: 1px solid var(--border-color);
-    margin-top: var(--space-lg);
-}
-
-.page-navigation .btn {
-    min-width: 200px;
-}
-
-/* === 30. CENTERED CONFIG BAR (for Page 1) === */
+/* === 28. CENTERED CONFIG BAR === */
 .config-bar-centered {
     justify-content: center;
     margin-bottom: var(--space-lg);
@@ -1716,7 +1579,7 @@ select.validation-error {
     transform-origin: top left;
 }
 
-/* === 31. CUSTOM RULES SECTION (integrated in Event Selector) === */
+/* === 29. CUSTOM RULES SECTION === */
 .custom-rules-section {
     margin-top: var(--space-md);
     padding-top: var(--space-md);
@@ -1757,83 +1620,7 @@ select.validation-error {
     padding: var(--space-md) var(--space-sm);
 }
 
-/* === 32. INLINE CREDITS (for each page) === */
-.credits-inline {
-    padding: var(--space-lg);
-    margin-top: var(--space-lg);
-    text-align: center;
-    border-top: 1px solid var(--border-color);
-}
-
-.credits-inline .title {
-    font-size: var(--font-md);
-    font-weight: bold;
-    color: var(--pip-light);
-    margin-bottom: var(--space-md);
-    text-transform: uppercase;
-    letter-spacing: 2px;
-}
-
-.credits-inline .credit-row {
-    margin: 8px 0;
-    font-size: 0.95rem;
-}
-
-.credits-inline .role {
-    color: var(--pip-dim);
-}
-
-.credits-inline .name {
-    color: var(--pip-green);
-}
-
-.credits-inline .copyright {
-    margin-top: var(--space-md);
-    padding-top: var(--space-md);
-    border-top: 1px solid var(--border-color);
-    font-size: var(--font-sm);
-    opacity: 0.7;
-}
-
-.credits-inline a {
-    color: var(--pip-light);
-    text-decoration: none;
-}
-
-.credits-inline a:hover {
-    color: var(--pip-green);
-    text-shadow: 0 0 5px var(--pip-green);
-}
-
-/* === 33. RESPONSIVE ADJUSTMENTS FOR MULTI-PAGE === */
-@media (max-width: 768px) {
-    .page-navigation {
-        flex-direction: column;
-        gap: var(--space-sm);
-    }
-
-    .page-navigation .btn {
-        width: 100%;
-        min-width: auto;
-    }
-
-    .dropdown-centered {
-        min-width: 0;
-    }
-}
-
-@keyframes menu-unfold-mobile {
-    from {
-        opacity: 0;
-        transform: translateY(-10px) scale(0.95);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0) scale(1);
-    }
-}
-
-/* === 34. CREDITS BUTTON AND MODAL === */
+/* === 30. CREDITS BUTTON AND MODAL === */
 .credits-button-container {
     position: fixed;
     bottom: var(--space-lg);
@@ -1905,9 +1692,3 @@ select.validation-error {
     text-shadow: 0 0 5px var(--pip-green);
 }
 
-@media (max-width: 768px) {
-    .credits-button-container {
-        bottom: var(--space-md);
-        right: var(--space-md);
-    }
-}
