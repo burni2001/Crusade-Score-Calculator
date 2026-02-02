@@ -776,10 +776,12 @@ select option {
     box-shadow: var(--shadow-sm), inset 0 1px 0 rgba(32, 192, 32, 0.15), 0 2px 0 rgba(0, 0, 0, 0.4);
 }
 
-.btn:hover {
-    background-color: var(--pip-green);
-    color: var(--bg-color);
-    box-shadow: var(--shadow-md), inset 0 1px 0 rgba(255, 255, 255, 0.2), 0 2px 0 rgba(0, 0, 0, 0.4);
+@media (hover: hover) {
+    .btn:hover {
+        background-color: var(--pip-green);
+        color: var(--bg-color);
+        box-shadow: var(--shadow-md), inset 0 1px 0 rgba(255, 255, 255, 0.2), 0 2px 0 rgba(0, 0, 0, 0.4);
+    }
 }
 
 .btn:active {
@@ -797,10 +799,12 @@ select option {
     opacity: 1 !important;
 }
 
-.btn-primary:hover {
-    background-color: #000 !important;
-    color: var(--pip-green) !important;
-    box-shadow: 0 0 20px var(--pip-green), inset 0 0 10px rgba(32, 192, 32, 0.3), 0 2px 0 rgba(0, 0, 0, 0.4);
+@media (hover: hover) {
+    .btn-primary:hover {
+        background-color: #000 !important;
+        color: var(--pip-green) !important;
+        box-shadow: 0 0 20px var(--pip-green), inset 0 0 10px rgba(32, 192, 32, 0.3), 0 2px 0 rgba(0, 0, 0, 0.4);
+    }
 }
 
 .btn-danger {
@@ -808,10 +812,12 @@ select option {
     color: var(--warning-color);
 }
 
-.btn-danger:hover {
-    background-color: var(--warning-color);
-    color: var(--bg-color);
-    box-shadow: 0 0 15px var(--warning-color), inset 0 1px 0 rgba(255, 255, 255, 0.2), 0 2px 0 rgba(0, 0, 0, 0.4);
+@media (hover: hover) {
+    .btn-danger:hover {
+        background-color: var(--warning-color);
+        color: var(--bg-color);
+        box-shadow: 0 0 15px var(--warning-color), inset 0 1px 0 rgba(255, 255, 255, 0.2), 0 2px 0 rgba(0, 0, 0, 0.4);
+    }
 }
 
 .btn-sm {
