@@ -25,6 +25,9 @@ const ImperialDate = {
     // Cached date to track daily changes
     lastCalculatedDate: null,
     cachedImperialDate: null,
+
+    // Toggle state: true = Imperial Date, false = real date
+    showingImperial: true,
     
     /**
      * Calculate the Imperial Date based on current UTC date
@@ -118,9 +121,13 @@ const ImperialDate = {
             return null;
         }
         
+        // Make element clickable and add toggle handler
+        element.style.cursor = 'pointer';
+        element.addEventListener('click', () => this.toggleDateDisplay());
+
         // Initial update
         this.updateDisplay(element);
-        
+
         // Check for date change every hour (efficient enough)
         // This is much more efficient than checking every second
         const intervalId = setInterval(() => {
@@ -152,16 +159,49 @@ const ImperialDate = {
     updateDisplay(element) {
         if (element) {
             const imperialDate = this.calculate();
-            element.textContent = `DAT: ${imperialDate}`;
-            
+
             // Cache the date and result
             this.lastCalculatedDate = this.getCurrentDateString();
             this.cachedImperialDate = imperialDate;
-            
+
+            // Only update text if currently showing Imperial Date
+            if (this.showingImperial) {
+                element.textContent = `DAT: ${imperialDate}`;
+            }
+
             console.log(`Imperial Date updated: ${imperialDate}`);
         }
     },
     
+    /**
+     * Get the current real-world date formatted as DD.MM.YYYY
+     * @returns {string} Formatted real date
+     */
+    getRealDate() {
+        const now = new Date();
+        const day = String(now.getDate()).padStart(2, '0');
+        const month = String(now.getMonth() + 1).padStart(2, '0');
+        const year = now.getFullYear();
+        return `${day}.${month}.${year}`;
+    },
+
+    /**
+     * Toggle between Imperial Date and real date display
+     * Updates all registered display elements
+     */
+    toggleDateDisplay() {
+        this.showingImperial = !this.showingImperial;
+        const elements = document.querySelectorAll('[id^="imperial-date"]');
+        elements.forEach(el => {
+            if (this.showingImperial) {
+                const imperialDate = this.cachedImperialDate || this.calculate();
+                el.textContent = `DAT: ${imperialDate}`;
+            } else {
+                el.textContent = `DAT: ${this.getRealDate()}`;
+            }
+        });
+    },
+
     /**
      * Stop updating the Imperial Date
      * @param {number} intervalId - Interval ID returned from startUpdating()
