@@ -292,6 +292,16 @@ h1, h2, h3 {
     padding-top: var(--space-sm);
     padding-left: var(--space-lg);
     padding-right: var(--space-lg);
+    border-bottom: none;
+}
+
+.header-nav::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: var(--space-lg);
+    right: var(--space-lg);
+    border-bottom: 2px solid var(--pip-green);
 }
 
 .btn-nav {
@@ -1264,6 +1274,11 @@ select.validation-error {
         padding-top: var(--space-xs);
         padding-left: var(--space-sm);
         padding-right: var(--space-sm);
+    }
+
+    .header-nav::after {
+        left: var(--space-sm);
+        right: var(--space-sm);
     }
 
     .page-container {
