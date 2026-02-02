@@ -287,7 +287,11 @@ h1, h2, h3 {
     background-color: var(--bg-color);
     z-index: 100;
     margin-top: calc(-1 * var(--space-lg));
+    margin-left: calc(-1 * var(--space-lg));
+    margin-right: calc(-1 * var(--space-lg));
     padding-top: var(--space-sm);
+    padding-left: var(--space-lg);
+    padding-right: var(--space-lg);
 }
 
 .btn-nav {
@@ -1249,7 +1253,11 @@ select.validation-error {
     .header-nav {
         top: calc(-1 * var(--space-sm));
         margin-top: calc(-1 * var(--space-sm));
+        margin-left: calc(-1 * var(--space-sm));
+        margin-right: calc(-1 * var(--space-sm));
         padding-top: var(--space-xs);
+        padding-left: var(--space-sm);
+        padding-right: var(--space-sm);
     }
 
     .page-container {
