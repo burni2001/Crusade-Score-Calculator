@@ -860,6 +860,10 @@ select option {
     min-width: 180px;
 }
 
+#page-2 .export-buttons-container {
+    flex-direction: row-reverse;
+}
+
 /* === 16. MODALS === */
 .modal-overlay {
     display: none;
@@ -1353,7 +1357,8 @@ select.validation-error {
         grid-template-columns: 1fr;
     }
 
-    .export-buttons-container {
+    .export-buttons-container,
+    #page-2 .export-buttons-container {
         flex-direction: column;
         gap: var(--space-sm);
     }
