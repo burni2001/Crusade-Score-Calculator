@@ -874,19 +874,19 @@ select option {
     flex: 1 1 auto;
 }
 
-/* Page 3: message button always on top row, purge left + record right on second row */
+/* Page 3: message button on top, record in middle, purge on bottom */
 #page-3 .export-buttons-container .btn-primary {
     order: -1;
     flex: 1 1 100%;
 }
 
-#page-3 .export-buttons-container .btn-danger {
+#page-3 .export-buttons-container .btn:not(.btn-primary):not(.btn-danger) {
     order: 0;
+    flex: 1 1 100%;
 }
 
-#page-3 .export-buttons-container .btn:not(.btn-primary):not(.btn-danger) {
+#page-3 .export-buttons-container .btn-danger {
     order: 1;
-    flex: 1 1 auto;
 }
 
 /* === 16. MODALS === */
