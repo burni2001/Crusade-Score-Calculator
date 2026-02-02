@@ -1920,6 +1920,7 @@ function navigateToPage(pageNum) {
         document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
         targetPage.classList.add('active');
         currentPage = pageNum;
+        localStorage.setItem('cogitator_last_page', pageNum);
         document.querySelector('.cogitator-frame').scrollTo({ top: 0, behavior: 'smooth' });
         if (pageNum === 2 || pageNum === 3) renderDataBankUI();
         console.log(`📄 Navigated to Page ${pageNum}`);
@@ -1949,6 +1950,7 @@ function navigateToPage(pageNum) {
     targetPage.classList.add(direction === 'left' ? 'slide-in-right' : 'slide-in-left');
 
     currentPage = pageNum;
+    localStorage.setItem('cogitator_last_page', pageNum);
 
     // Update data bank UI during animation so it's ready when visible
     if (pageNum === 2 || pageNum === 3) {
@@ -2092,8 +2094,9 @@ window.addEventListener('DOMContentLoaded', function() {
     // Initialize swipe navigation for mobile
     SwipeHandler.init();
     
-    // Set initial page to Page 1
-    navigateToPage(1);
+    // Restore last viewed page, defaulting to Page 1
+    const savedPage = parseInt(localStorage.getItem('cogitator_last_page')) || 1;
+    navigateToPage(savedPage);
     
     console.log('✅ Ready');
 });
