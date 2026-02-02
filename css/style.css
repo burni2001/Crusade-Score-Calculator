@@ -889,6 +889,19 @@ select option {
     order: 1;
 }
 
+/* Page 3: side-by-side on widescreen mobile (record left, message right) */
+@media (min-width: 500px) {
+    #page-3 .export-buttons-container .btn-primary {
+        order: 1;
+        flex: 1 1 auto;
+    }
+
+    #page-3 .export-buttons-container .btn:not(.btn-primary):not(.btn-danger) {
+        order: 0;
+        flex: 1 1 auto;
+    }
+}
+
 /* === 16. MODALS === */
 .modal-overlay {
     display: none;
