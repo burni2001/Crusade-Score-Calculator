@@ -17,7 +17,7 @@ const InputValidator = {
         missionName: {
             minLength: 1,
             maxLength: 100,
-            pattern: /^[a-zA-Z0-9\s\u00C0-\u00FF\u0100-\u017F:_-]+$/,
+            pattern: /^[a-zA-Z0-9\s\u00C0-\u00FF\u0100-\u017F:_()\-]+$/,
             errorMsg: 'Mission name must be 1-100 characters'
         },
         number: {
@@ -78,7 +78,7 @@ const InputValidator = {
             return {
                 valid: false,
                 error: rule.errorMsg,
-                value: str.replace(/[^a-zA-Z0-9\s\u00C0-\u00FF\u0100-\u017F_-]/g, '')
+                value: str.replace(/[^a-zA-Z0-9\s\u00C0-\u00FF\u0100-\u017F:_()\-]/g, '')
             };
         }
 
