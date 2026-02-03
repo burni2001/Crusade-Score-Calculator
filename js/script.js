@@ -2395,6 +2395,7 @@ const SwipeHandler = {
     minSwipeDistance: 50,
     maxVerticalDistance: 100,
     dragDamping: 0.55,        // how much the finger drag translates to page movement
+    swipeGap: 40,             // pixel gap between pages during swipe to prevent visual overlap
 
     // Trackpad wheel gesture state
     wheelDeltaX: 0,
@@ -2508,11 +2509,12 @@ const SwipeHandler = {
             this.activePage.style.opacity = Math.max(0.3, 1 - Math.abs(dragX) / containerWidth);
         }
 
-        // Position peek page coming from the side
+        // Position peek page coming from the side (with gap to prevent overlap)
         if (this.peekPage) {
+            const gap = this.swipeGap;
             const peekOffset = goingLeft
-                ? containerWidth + dragX   // comes from right
-                : -containerWidth + dragX; // comes from left
+                ? containerWidth + dragX + gap   // comes from right
+                : -containerWidth + dragX - gap; // comes from left
             this.peekPage.style.transform = `translateX(${peekOffset}px)`;
             this.peekPage.style.opacity = Math.min(1, Math.abs(dragX) / containerWidth + 0.3);
         }
@@ -2555,10 +2557,11 @@ const SwipeHandler = {
         }
         if (this.peekPage) {
             const containerWidth = this.activePage ? this.activePage.offsetWidth : window.innerWidth;
+            const gap = this.swipeGap;
             // Determine which side the peek page came from
             const peekIsNext = this.peekPage.id > `page-${currentPage}`;
             this.peekPage.style.transition = transitionStyle;
-            this.peekPage.style.transform = `translateX(${peekIsNext ? containerWidth : -containerWidth}px)`;
+            this.peekPage.style.transform = `translateX(${peekIsNext ? containerWidth + gap : -containerWidth - gap}px)`;
             this.peekPage.style.opacity = '0';
         }
 
