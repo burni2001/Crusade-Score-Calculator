@@ -90,10 +90,25 @@
       "events": [
         {
           "id": "c2_w1",
-          "name": "Week 1: Inferno",
+          "name": "Week 1: INFERNO",
           "modifiers": {
             "kills": 1,
             "elite": 20,
+            "tasks": 0,
+            "death": -100,
+            "damage": -0.1,
+            "gene": 100,
+            "armoury": 25,
+            "obj": 100,
+            "waves": 0
+          }
+        },
+        {
+          "id": "c2_w2",
+          "name": "Week 2: DECAPITATION",
+          "modifiers": {
+            "kills": 1,
+            "elite": 100,
             "tasks": 0,
             "death": -100,
             "damage": -0.1,
