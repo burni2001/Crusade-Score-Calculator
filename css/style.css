@@ -1608,21 +1608,21 @@ select.validation-error {
 
 @keyframes slideOutLeft {
     from { transform: translateX(0); opacity: 1; }
-    to   { transform: translateX(-100%); opacity: 0; }
+    to   { transform: translateX(calc(-100% - 40px)); opacity: 0; }
 }
 
 @keyframes slideOutRight {
     from { transform: translateX(0); opacity: 1; }
-    to   { transform: translateX(100%); opacity: 0; }
+    to   { transform: translateX(calc(100% + 40px)); opacity: 0; }
 }
 
 @keyframes slideInLeft {
-    from { transform: translateX(-100%); opacity: 0; }
+    from { transform: translateX(calc(-100% - 40px)); opacity: 0; }
     to   { transform: translateX(0); opacity: 1; }
 }
 
 @keyframes slideInRight {
-    from { transform: translateX(100%); opacity: 0; }
+    from { transform: translateX(calc(100% + 40px)); opacity: 0; }
     to   { transform: translateX(0); opacity: 1; }
 }
 
