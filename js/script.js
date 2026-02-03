@@ -1069,6 +1069,7 @@ function loadData() {
             if (savedEvent) {
                 const eventInfo = JSON.parse(savedEvent);
                 updateWeekSelector(eventInfo);
+                checkCustomModifiers();
             }
         } catch (evtErr) {
             console.warn('Could not restore active event display:', evtErr.message);
@@ -2004,6 +2005,36 @@ function updateWeekSelector(eventData) {
     container.innerHTML = `<span class="text-xs">Currently active: WEEK ${weekNumber} / ${eventTitle.charAt(0).toUpperCase() + eventTitle.slice(1).toLowerCase()}</span>`;
 }
 
+function checkCustomModifiers() {
+    const container = document.getElementById('active-week-selector');
+    if (!container) return;
+
+    try {
+        const savedEvent = localStorage.getItem('cogitator_active_event');
+        if (!savedEvent) return;
+
+        const eventInfo = JSON.parse(savedEvent);
+        if (!eventInfo.modifiers) return;
+
+        const modifierIds = ['kills', 'elite', 'tasks', 'death', 'damage', 'gene', 'armoury', 'obj', 'waves'];
+        const isCustom = modifierIds.some(key => {
+            const currentVal = parseFloat(document.getElementById('mod-' + key).value) || 0;
+            const savedVal = parseFloat(eventInfo.modifiers[key]) || 0;
+            return currentVal !== savedVal;
+        });
+
+        if (isCustom) {
+            container.innerHTML = '<span class="text-xs">Currently active: custom rules</span>';
+            localStorage.setItem('cogitator_custom_rules', 'true');
+        } else {
+            updateWeekSelector(eventInfo);
+            localStorage.removeItem('cogitator_custom_rules');
+        }
+    } catch (e) {
+        // Silently ignore parse errors
+    }
+}
+
 function selectEvent(selectedId) {
     const status = document.getElementById('event-status');
     const eventData = cachedEvents.find(e => e.id === selectedId);
@@ -2028,8 +2059,10 @@ function selectEvent(selectedId) {
             id: eventData.id,
             name: eventData.name,
             cycleName: eventData.cycleName,
-            cycleEvents: (eventData.cycleEvents || []).map(e => ({ id: e.id, name: e.name }))
+            cycleEvents: (eventData.cycleEvents || []).map(e => ({ id: e.id, name: e.name })),
+            modifiers: eventData.modifiers
         }));
+        localStorage.removeItem('cogitator_custom_rules');
 
         status.innerText = "Protocol Loaded.";
         status.style.color = "#80cc80";
