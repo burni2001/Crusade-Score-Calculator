@@ -1068,10 +1068,6 @@ function loadData() {
             const savedEvent = localStorage.getItem('cogitator_active_event');
             if (savedEvent) {
                 const eventInfo = JSON.parse(savedEvent);
-                const activeDisplay = document.getElementById('active-event-display');
-                if (activeDisplay && eventInfo.name) {
-                    activeDisplay.textContent = eventInfo.name.toUpperCase();
-                }
                 updateWeekSelector(eventInfo);
             }
         } catch (evtErr) {
@@ -2005,7 +2001,7 @@ function updateWeekSelector(eventData) {
     const weekNumber = weekMatch[1];
     const eventTitle = weekMatch[2].trim();
 
-    container.innerHTML = `<span class="text-xs opacity-70">Currently active: WEEK ${weekNumber} / ${eventTitle.charAt(0).toUpperCase() + eventTitle.slice(1).toLowerCase()}</span>`;
+    container.innerHTML = `<span class="text-xs">Currently active: WEEK ${weekNumber} / ${eventTitle.charAt(0).toUpperCase() + eventTitle.slice(1).toLowerCase()}</span>`;
 }
 
 function selectEvent(selectedId) {
@@ -2027,10 +2023,6 @@ function selectEvent(selectedId) {
         saveData();
 
         // Display and persist the active event
-        const activeDisplay = document.getElementById('active-event-display');
-        if (activeDisplay) {
-            activeDisplay.textContent = eventData.name.toUpperCase();
-        }
         updateWeekSelector(eventData);
         localStorage.setItem('cogitator_active_event', JSON.stringify({
             id: eventData.id,

@@ -1630,12 +1630,15 @@ select.validation-error {
 .config-bar-centered {
     justify-content: center;
     margin-bottom: var(--space-lg);
+    flex-wrap: wrap;
 }
 
 .week-selector {
+    width: 100%;
     text-align: center;
     margin-top: 4px;
     min-height: 1.2em;
+    color: rgba(32, 192, 32, 0.45);
 }
 
 .dropdown-centered {
