@@ -2061,8 +2061,6 @@ async function recordAllDataScreens() {
 
 // Global variable to store Imperial Date interval ID
 let imperialDateIntervalId = null;
-let imperialDateIntervalId2 = null;
-let imperialDateIntervalId3 = null;
 
 window.addEventListener('DOMContentLoaded', function() {
     console.log('🚀 Initializing Crusade Score Calculator...');
@@ -2082,11 +2080,9 @@ window.addEventListener('DOMContentLoaded', function() {
         initializeDifficultySelector();
     }
     
-    // Initialize Imperial Date display for all pages
+    // Initialize Imperial Date display
     if (typeof ImperialDate !== 'undefined') {
         imperialDateIntervalId = ImperialDate.startUpdating('imperial-date');
-        imperialDateIntervalId2 = ImperialDate.startUpdating('imperial-date-2');
-        imperialDateIntervalId3 = ImperialDate.startUpdating('imperial-date-3');
     } else {
         console.warn('⚠️ ImperialDate module not loaded - check that imperialDate.js is included before script.js');
     }
@@ -2104,11 +2100,9 @@ window.addEventListener('DOMContentLoaded', function() {
 window.addEventListener('beforeunload', function() {
     saveData();
     saveAggregatedState();
-    // Clean up Imperial Date intervals to prevent memory leaks
+    // Clean up Imperial Date interval to prevent memory leaks
     if (typeof ImperialDate !== 'undefined') {
         if (imperialDateIntervalId) ImperialDate.stopUpdating(imperialDateIntervalId);
-        if (imperialDateIntervalId2) ImperialDate.stopUpdating(imperialDateIntervalId2);
-        if (imperialDateIntervalId3) ImperialDate.stopUpdating(imperialDateIntervalId3);
     }
 });
 
