@@ -24,8 +24,8 @@ The app uses OCR (Optical Character Recognition) by https://ocr.space to automat
 2. Review the detected values and make any corrections
 3. Click "Apply Values" to fill in the form
 4. Adjust modifiers and other settings as needed
-5. Save up to 3 results or export PNG
-6. Aggregate results
+5. Save up to 4 results and aggregate them
+6. Export your results as png and text message
 
 ## Technology
 
