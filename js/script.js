@@ -179,6 +179,51 @@ document.getElementById("screenshot-upload")?.addEventListener("change", async f
 // SECTION 5: OCR MODAL UI
 // ============================================================================
 
+/**
+ * Map an OCR-detected mission name to a dropdown option value.
+ * Returns { selectValue, customValue } where selectValue is the <option> value
+ * and customValue is the freeform text (only used when selectValue is 'Custom').
+ */
+const KNOWN_MISSIONS = [
+    'INFERNO', 'DECAPITATION', 'VOX LIBERATIS', 'RELIQUARY',
+    'FALL OF ATREUS', 'BALLISTIC ENGINE', 'TERMINATION', 'OBELISK',
+    'EXFILTRATION', 'VORTEX', 'RECLAMATION', 'DISRUPTION', 'FORTRESS (SIEGE)'
+];
+
+function mapToMissionDropdown(detectedName) {
+    if (!detectedName) return { selectValue: '', customValue: '' };
+    const upper = detectedName.toUpperCase().trim();
+
+    // Direct match
+    for (const m of KNOWN_MISSIONS) {
+        if (upper === m) return { selectValue: m, customValue: '' };
+    }
+
+    // Fuzzy: check if the detected text contains a known mission keyword
+    const keywords = [
+        { key: 'INFERNO',           val: 'INFERNO' },
+        { key: 'DECAPITATION',      val: 'DECAPITATION' },
+        { key: 'VOX',               val: 'VOX LIBERATIS' },
+        { key: 'RELIQUARY',         val: 'RELIQUARY' },
+        { key: 'ATREUS',            val: 'FALL OF ATREUS' },
+        { key: 'BALLISTIC',         val: 'BALLISTIC ENGINE' },
+        { key: 'TERMINATION',       val: 'TERMINATION' },
+        { key: 'OBELISK',           val: 'OBELISK' },
+        { key: 'EXFILTRATION',      val: 'EXFILTRATION' },
+        { key: 'VORTEX',            val: 'VORTEX' },
+        { key: 'RECLAMATION',       val: 'RECLAMATION' },
+        { key: 'DISRUPTION',        val: 'DISRUPTION' },
+        { key: 'FORTRESS',          val: 'FORTRESS (SIEGE)' },
+        { key: 'SIEGE',             val: 'FORTRESS (SIEGE)' },
+    ];
+    for (const { key, val } of keywords) {
+        if (upper.includes(key)) return { selectValue: val, customValue: '' };
+    }
+
+    // No match → use Custom
+    return { selectValue: 'Custom', customValue: detectedName };
+}
+
 function showOCRModal() {
     const modal = document.getElementById('ocr-modal-overlay');
     const grid = document.getElementById('ocr-detected-grid');
@@ -193,6 +238,24 @@ function showOCRModal() {
         
         if (type === "yesno") {
             inputHtml = `<select data-target-id="${id}"><option value="0">No</option><option value="1">Yes</option></select>`;
+        } else if (type === "mission") {
+            inputHtml = `<select data-target-id="${id}">
+                <option value="">—</option>
+                <option value="INFERNO">Inferno</option>
+                <option value="DECAPITATION">Decapitation</option>
+                <option value="VOX LIBERATIS">Vox Liberatis</option>
+                <option value="RELIQUARY">Reliquary</option>
+                <option value="FALL OF ATREUS">Fall of Atreus</option>
+                <option value="BALLISTIC ENGINE">Ballistic Engine</option>
+                <option value="TERMINATION">Termination</option>
+                <option value="OBELISK">Obelisk</option>
+                <option value="EXFILTRATION">Exfiltration</option>
+                <option value="VORTEX">Vortex</option>
+                <option value="RECLAMATION">Reclamation</option>
+                <option value="DISRUPTION">Disruption</option>
+                <option value="FORTRESS (SIEGE)">Fortress (Siege)</option>
+                <option value="Custom">Custom...</option>
+            </select>`;
         } else if (type === "difficulty") {
             inputHtml = `<select data-target-id="${id}">
                 <option value="Minimal">Minimal</option>
@@ -226,7 +289,7 @@ function showOCRModal() {
     html += `<div class="ocr-section">`;
     html += `<div class="ocr-section-title">MISSION PARAMETERS</div>`;
     html += `<div class="mission-info-flex">`;
-    html += createRow("mission-name", "text", "Mission");
+    html += createRow("mission-name", "mission", "Mission");
     html += createRow("mission-difficulty", "difficulty", "Difficulty");
     html += createRow("global-objective", "yesno", "Objective");
     html += createRow("global-geneseed", "yesno", "Geneseed");
@@ -261,7 +324,13 @@ function showOCRModal() {
     inputs.forEach(input => {
         const id = input.dataset.targetId;
         if (id && pendingOCRResults[id] !== undefined) {
-            input.value = sanitizeInput(String(pendingOCRResults[id]));
+            if (id === 'mission-name') {
+                // Map OCR text to dropdown value
+                const mapped = mapToMissionDropdown(String(pendingOCRResults[id]));
+                input.value = mapped.selectValue;
+            } else {
+                input.value = sanitizeInput(String(pendingOCRResults[id]));
+            }
         }
     });
 
@@ -289,7 +358,15 @@ function applyOCRResults() {
                 } else if (targetId === 'mission-name') {
                     result = InputValidator.validateMissionName(newValue);
                     if (result.valid) {
-                        updateDifficultyOptions(result.value);
+                        // Map OCR-detected mission name to dropdown value
+                        const mapped = mapToMissionDropdown(result.value);
+                        result.value = mapped.selectValue;
+                        // If custom, populate the custom field
+                        if (mapped.selectValue === 'Custom') {
+                            const customEl = document.getElementById('mission-name-custom');
+                            if (customEl) customEl.value = mapped.customValue;
+                        }
+                        // UI updates will be triggered by handleMissionSelect after apply
                     }
                 } else if (targetId.includes('damage') || targetId.includes('melee') || targetId.includes('ranged')) {
                     result = InputValidator.validateDamage(newValue);
@@ -350,6 +427,8 @@ function applyOCRResults() {
         }
 
         try {
+            // Update mission-dependent UI (custom row, waves/tasks, difficulty, geneseed)
+            if (typeof handleMissionSelect === 'function') handleMissionSelect();
             calculate();
             saveData();
             if (typeof updateAdditionalStatsHeaders === "function") {
@@ -480,7 +559,9 @@ function getStr(id) {
     if (id.includes('name') && id.startsWith('p')) {
         result = InputValidator.validatePlayerName(rawValue);
     } else if (id === 'mission-name') {
-        result = InputValidator.validateMissionName(rawValue);
+        // Return the effective mission name (custom text when "Custom" is selected)
+        const effectiveName = getEffectiveMissionName();
+        return effectiveName || rawValue;
     } else {
         result = { valid: true, value: sanitizeInput(rawValue) };
     }
@@ -660,6 +741,74 @@ function clearData() {
 // ============================================================================
 
 /**
+ * Get the effective mission name from the dropdown (or custom field if "Custom" is selected)
+ */
+function getEffectiveMissionName() {
+    const select = document.getElementById('mission-name');
+    if (!select) return '';
+    if (select.value === 'Custom') {
+        const customInput = document.getElementById('mission-name-custom');
+        return customInput ? customInput.value : '';
+    }
+    return select.value;
+}
+
+/**
+ * Handle mission dropdown selection changes.
+ * Shows/hides custom field, updates difficulty, waves/tasks availability.
+ */
+function handleMissionSelect() {
+    const select = document.getElementById('mission-name');
+    const customRow = document.getElementById('custom-mission-row');
+    if (!select) return;
+
+    const isCustom = select.value === 'Custom';
+    if (customRow) {
+        customRow.style.display = isCustom ? '' : 'none';
+    }
+
+    const missionName = getEffectiveMissionName();
+    updateDifficultyOptions(missionName);
+    updateWavesAndTasksFields(missionName);
+    calculate();
+}
+
+/**
+ * Update Total Waves and Tasks Completed fields based on mission type.
+ * Only Siege missions have waves and tasks; all others show N/A.
+ */
+function updateWavesAndTasksFields(missionName) {
+    const wavesInput = document.getElementById('global-waves');
+    const taskIds = ['p1-tasks', 'p2-tasks', 'p3-tasks'];
+    const isSiege = isSiegeMission(missionName);
+
+    if (wavesInput) {
+        wavesInput.disabled = !isSiege;
+        if (!isSiege) {
+            wavesInput.value = '';
+            wavesInput.placeholder = 'N/A';
+        } else {
+            wavesInput.placeholder = '';
+            if (wavesInput.value === '') wavesInput.value = '0';
+        }
+    }
+
+    taskIds.forEach(id => {
+        const el = document.getElementById(id);
+        if (el) {
+            el.disabled = !isSiege;
+            if (!isSiege) {
+                el.value = '';
+                el.placeholder = 'N/A';
+            } else {
+                el.placeholder = '';
+                if (el.value === '') el.value = '0';
+            }
+        }
+    });
+}
+
+/**
  * Check if mission name indicates a Siege-type mission
  */
 function isSiegeMission(missionName) {
@@ -723,26 +872,39 @@ function updateDifficultyOptions(missionName) {
  * Initialize difficulty selector with event listeners
  */
 function initializeDifficultySelector() {
-    const missionNameInput = document.getElementById('mission-name');
-    
-    if (!missionNameInput) {
-        console.warn('Mission name input not found');
+    const missionNameSelect = document.getElementById('mission-name');
+    const customMissionInput = document.getElementById('mission-name-custom');
+
+    if (!missionNameSelect) {
+        console.warn('Mission name select not found');
         return;
     }
-    
-    // Update as user types
-    missionNameInput.addEventListener('input', function() {
-        updateDifficultyOptions(this.value);
-    });
-    
-    // Update on field change
-    missionNameInput.addEventListener('change', function() {
-        updateDifficultyOptions(this.value);
-    });
-    
-    // Initial update
-    updateDifficultyOptions(missionNameInput.value);
-    
+
+    // Listen for custom mission name changes (typing in the custom field)
+    if (customMissionInput) {
+        customMissionInput.addEventListener('input', function() {
+            const missionName = getEffectiveMissionName();
+            updateDifficultyOptions(missionName);
+            updateWavesAndTasksFields(missionName);
+        });
+        customMissionInput.addEventListener('change', function() {
+            const missionName = getEffectiveMissionName();
+            updateDifficultyOptions(missionName);
+            updateWavesAndTasksFields(missionName);
+        });
+    }
+
+    // Initial update based on current selection
+    const missionName = getEffectiveMissionName();
+    updateDifficultyOptions(missionName);
+    updateWavesAndTasksFields(missionName);
+
+    // Show/hide custom row based on current value
+    const customRow = document.getElementById('custom-mission-row');
+    if (customRow && missionNameSelect.value === 'Custom') {
+        customRow.style.display = '';
+    }
+
     console.log('✅ Dynamic difficulty selector initialized');
 }
 
@@ -792,7 +954,7 @@ const STORAGE_KEY = "missionDebriefData";
 const inputIds = [
     "mod-kills", "mod-elite", "mod-death", "mod-damage", "mod-gene", "mod-armoury",
     "mod-obj", "mod-waves", "mod-tasks",
-    "mission-name", "mission-difficulty", "global-objective", "global-geneseed",
+    "mission-name", "mission-name-custom", "mission-difficulty", "global-objective", "global-geneseed",
     "global-armoury", "global-waves",
     "p1-name", "p2-name", "p3-name",
     "p1-class", "p2-class", "p3-class",
@@ -894,10 +1056,13 @@ function loadData() {
         });
         
         console.log(`✅ Loaded ${loadedCount} fields`);
-        
+
+        // Restore mission dropdown UI state (custom row visibility + waves/tasks)
+        if (typeof handleMissionSelect === 'function') handleMissionSelect();
+
         if (typeof calculate === 'function') calculate();
         if (typeof updateAdditionalStatsHeaders === 'function') updateAdditionalStatsHeaders();
-        
+
         return true;
         
     } catch (e) {
@@ -1038,7 +1203,7 @@ function saveMissionInternal() {
     }
 
     const csvContent = generateCSVString();
-    const missionName = getStr("mission-name") || "Unknown Mission";
+    const missionName = getEffectiveMissionName() || "Unknown Mission";
     const difficulty = document.getElementById("mission-difficulty").value || "Unknown";
     
     const newSlot = {

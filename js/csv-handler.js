@@ -136,7 +136,7 @@ const CSVHandler = {
         // MISSION PARAMETERS
         // ====================================================================
         csv.push("MISSION PARAMETERS");
-        csv.push(`Mission Played:,${this.escapeField(getStr("mission-name"))}`);
+        csv.push(`Mission Played:,${this.escapeField(typeof getEffectiveMissionName === 'function' ? getEffectiveMissionName() : getStr("mission-name"))}`);
         csv.push(`Difficulty:,${this.escapeField(getSelect("mission-difficulty"))}`);
         csv.push(`Waves Reached:,${getVal("global-waves")}`);
         csv.push(`Objective Completion:,${getSelect("global-objective") === "1" ? "Yes" : "No"}`);

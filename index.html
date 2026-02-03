@@ -113,7 +113,27 @@
                     
                     <div class="mission-params">
                         <label for="mission-name">Mission Played</label>
-                        <input type="text" id="mission-name" placeholder="e.g., Inferno" onchange="saveData();">
+                        <select id="mission-name" onchange="handleMissionSelect(); saveData();">
+                            <option value="" disabled selected hidden>Select</option>
+                            <option value="INFERNO">Inferno</option>
+                            <option value="DECAPITATION">Decapitation</option>
+                            <option value="VOX LIBERATIS">Vox Liberatis</option>
+                            <option value="RELIQUARY">Reliquary</option>
+                            <option value="FALL OF ATREUS">Fall of Atreus</option>
+                            <option value="BALLISTIC ENGINE">Ballistic Engine</option>
+                            <option value="TERMINATION">Termination</option>
+                            <option value="OBELISK">Obelisk</option>
+                            <option value="EXFILTRATION">Exfiltration</option>
+                            <option value="VORTEX">Vortex</option>
+                            <option value="RECLAMATION">Reclamation</option>
+                            <option value="DISRUPTION">Disruption</option>
+                            <option value="FORTRESS (SIEGE)">Fortress (Siege)</option>
+                            <option value="Custom">Custom...</option>
+                        </select>
+                    </div>
+                    <div class="mission-params" id="custom-mission-row" style="display:none;">
+                        <label for="mission-name-custom">Custom Mission</label>
+                        <input type="text" id="mission-name-custom" placeholder="Enter mission name" onchange="saveData();">
                     </div>
                     <div class="mission-params">
                         <label for="mission-difficulty">Difficulty</label>
