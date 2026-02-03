@@ -1632,6 +1632,12 @@ select.validation-error {
     margin-bottom: var(--space-lg);
 }
 
+.week-selector {
+    text-align: center;
+    margin-top: 4px;
+    min-height: 1.2em;
+}
+
 .dropdown-centered {
     position: fixed;
     overflow-y: auto;

@@ -1063,7 +1063,7 @@ function loadData() {
         if (typeof calculate === 'function') calculate();
         if (typeof updateAdditionalStatsHeaders === 'function') updateAdditionalStatsHeaders();
 
-        // Restore active event display
+        // Restore active event display and week selector
         try {
             const savedEvent = localStorage.getItem('cogitator_active_event');
             if (savedEvent) {
@@ -1072,6 +1072,7 @@ function loadData() {
                 if (activeDisplay && eventInfo.name) {
                     activeDisplay.textContent = eventInfo.name.toUpperCase();
                 }
+                updateWeekSelector(eventInfo);
             }
         } catch (evtErr) {
             console.warn('Could not restore active event display:', evtErr.message);
@@ -1953,6 +1954,8 @@ async function fetchEventList() {
             };
 
             cycle.events.forEach(event => {
+                event.cycleName = cycle.name;
+                event.cycleEvents = cycle.events;
                 cachedEvents.push(event);
 
                 const item = document.createElement('div');
@@ -1980,6 +1983,31 @@ async function fetchEventList() {
     }
 }
 
+function updateWeekSelector(eventData) {
+    const container = document.getElementById('active-week-selector');
+    if (!container) return;
+
+    const cycleEvents = eventData.cycleEvents || [];
+
+    // Don't show week selector for single-event cycles (e.g., Global Rules)
+    if (cycleEvents.length <= 1) {
+        container.innerHTML = '';
+        return;
+    }
+
+    // Extract week number and event title from the event name (e.g., "Week 2: DECAPITATION")
+    const weekMatch = eventData.name.match(/^Week\s+(\d+):\s*(.+)$/i);
+    if (!weekMatch) {
+        container.innerHTML = '';
+        return;
+    }
+
+    const weekNumber = weekMatch[1];
+    const eventTitle = weekMatch[2].trim();
+
+    container.innerHTML = `<span class="text-xs opacity-70">Currently active: WEEK ${weekNumber} / ${eventTitle.charAt(0).toUpperCase() + eventTitle.slice(1).toLowerCase()}</span>`;
+}
+
 function selectEvent(selectedId) {
     const status = document.getElementById('event-status');
     const eventData = cachedEvents.find(e => e.id === selectedId);
@@ -2003,7 +2031,13 @@ function selectEvent(selectedId) {
         if (activeDisplay) {
             activeDisplay.textContent = eventData.name.toUpperCase();
         }
-        localStorage.setItem('cogitator_active_event', JSON.stringify({ id: eventData.id, name: eventData.name }));
+        updateWeekSelector(eventData);
+        localStorage.setItem('cogitator_active_event', JSON.stringify({
+            id: eventData.id,
+            name: eventData.name,
+            cycleName: eventData.cycleName,
+            cycleEvents: (eventData.cycleEvents || []).map(e => ({ id: e.id, name: e.name }))
+        }));
 
         status.innerText = "Protocol Loaded.";
         status.style.color = "#80cc80";
