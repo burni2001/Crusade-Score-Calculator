@@ -1063,6 +1063,20 @@ function loadData() {
         if (typeof calculate === 'function') calculate();
         if (typeof updateAdditionalStatsHeaders === 'function') updateAdditionalStatsHeaders();
 
+        // Restore active event display
+        try {
+            const savedEvent = localStorage.getItem('cogitator_active_event');
+            if (savedEvent) {
+                const eventInfo = JSON.parse(savedEvent);
+                const activeDisplay = document.getElementById('active-event-display');
+                if (activeDisplay && eventInfo.name) {
+                    activeDisplay.textContent = eventInfo.name.toUpperCase();
+                }
+            }
+        } catch (evtErr) {
+            console.warn('Could not restore active event display:', evtErr.message);
+        }
+
         return true;
         
     } catch (e) {
@@ -1984,9 +1998,16 @@ function selectEvent(selectedId) {
         calculate();
         saveData();
 
+        // Display and persist the active event
+        const activeDisplay = document.getElementById('active-event-display');
+        if (activeDisplay) {
+            activeDisplay.textContent = eventData.name.toUpperCase();
+        }
+        localStorage.setItem('cogitator_active_event', JSON.stringify({ id: eventData.id, name: eventData.name }));
+
         status.innerText = "Protocol Loaded.";
         status.style.color = "#80cc80";
-        
+
         setTimeout(() => {
             closeEventMenu();
             status.innerText = "";
