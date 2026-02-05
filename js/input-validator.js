@@ -319,6 +319,150 @@ const InputValidator = {
     },
 
     /**
+     * Check if a mission is a Siege-type mission
+     */
+    isSiegeMission(missionName) {
+        if (!missionName || typeof missionName !== 'string') return false;
+        const normalized = missionName.toLowerCase().trim();
+        return /siege|seige|fortress/i.test(normalized);
+    },
+
+    /**
+     * Validate mandatory mission fields before saving
+     * Returns { valid: boolean, errors: string[], invalidFields: string[] }
+     */
+    validateMandatoryFields() {
+        const errors = [];
+        const invalidFields = [];
+
+        // Get mission name (handles both dropdown and custom)
+        const missionSelect = document.getElementById('mission-name');
+        const customMissionInput = document.getElementById('mission-name-custom');
+        const missionValue = missionSelect ? missionSelect.value : '';
+        const isCustom = missionValue === 'Custom';
+        const customValue = customMissionInput ? customMissionInput.value.trim() : '';
+
+        // Determine effective mission name
+        let effectiveMissionName = '';
+        if (isCustom) {
+            effectiveMissionName = customValue;
+        } else {
+            effectiveMissionName = missionValue;
+        }
+
+        const isSiege = this.isSiegeMission(effectiveMissionName);
+
+        // 1. Mission Played - always required
+        if (!missionValue || missionValue === '') {
+            errors.push('Please select a mission');
+            invalidFields.push('mission-name');
+        } else if (isCustom && !customValue) {
+            errors.push('Please enter a custom mission name');
+            invalidFields.push('mission-name-custom');
+        }
+
+        // 2. Difficulty - always required
+        const difficultySelect = document.getElementById('mission-difficulty');
+        const difficultyValue = difficultySelect ? difficultySelect.value : '';
+        if (!difficultyValue || difficultyValue === '') {
+            errors.push('Please select a difficulty');
+            invalidFields.push('mission-difficulty');
+        }
+
+        // 3. Main Objective Completion - always required
+        const objectiveSelect = document.getElementById('global-objective');
+        const objectiveValue = objectiveSelect ? objectiveSelect.value : '';
+        if (objectiveValue === '' || objectiveValue === null || objectiveValue === undefined) {
+            errors.push('Please select Main Objective Completion');
+            invalidFields.push('global-objective');
+        }
+
+        // 4. Gene-Seed Retrieved - required for NON-siege missions only
+        if (!isSiege) {
+            const geneseedSelect = document.getElementById('global-geneseed');
+            const geneseedValue = geneseedSelect ? geneseedSelect.value : '';
+            if (geneseedValue === '' || geneseedValue === null || geneseedValue === undefined) {
+                errors.push('Please select Gene-Seed Retrieved');
+                invalidFields.push('global-geneseed');
+            }
+        }
+
+        // 5. Armoury Data Retrieved - always required (number, check if it has a value)
+        const armouryInput = document.getElementById('global-armoury');
+        const armouryValue = armouryInput ? armouryInput.value : '';
+        if (armouryValue === '' || armouryValue === null || armouryValue === undefined) {
+            errors.push('Please enter Armoury Data Retrieved count');
+            invalidFields.push('global-armoury');
+        }
+
+        // 6. Total Waves Completed - required for SIEGE missions only
+        if (isSiege) {
+            const wavesInput = document.getElementById('global-waves');
+            const wavesValue = wavesInput ? wavesInput.value : '';
+            if (wavesValue === '' || wavesValue === null || wavesValue === undefined) {
+                errors.push('Please enter Total Waves Completed');
+                invalidFields.push('global-waves');
+            }
+        }
+
+        return {
+            valid: errors.length === 0,
+            errors: errors,
+            invalidFields: invalidFields
+        };
+    },
+
+    /**
+     * Show validation errors on multiple fields and display alert
+     */
+    showMandatoryFieldErrors(invalidFields, errors) {
+        // Clear any previous validation errors first
+        this.clearAllValidationErrors();
+
+        // Add validation-error class to all invalid fields
+        invalidFields.forEach(fieldId => {
+            const element = document.getElementById(fieldId);
+            if (element) {
+                element.classList.add('validation-error');
+
+                // For parent containers (like mission-params divs), also highlight
+                const parentDiv = element.closest('.mission-params');
+                if (parentDiv) {
+                    parentDiv.classList.add('has-validation-error');
+                }
+            }
+        });
+
+        // Show alert with all errors
+        const errorMessage = 'Please complete the following required fields:\n\n• ' + errors.join('\n• ');
+        alert(errorMessage);
+
+        // Scroll to first invalid field
+        if (invalidFields.length > 0) {
+            const firstInvalid = document.getElementById(invalidFields[0]);
+            if (firstInvalid) {
+                firstInvalid.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                firstInvalid.focus();
+            }
+        }
+    },
+
+    /**
+     * Clear all validation error styles
+     */
+    clearAllValidationErrors() {
+        // Remove validation-error class from all inputs/selects
+        document.querySelectorAll('.validation-error').forEach(el => {
+            el.classList.remove('validation-error');
+        });
+
+        // Remove has-validation-error from parent containers
+        document.querySelectorAll('.has-validation-error').forEach(el => {
+            el.classList.remove('has-validation-error');
+        });
+    },
+
+    /**
      * Initialize validation for all form fields
      */
     initializeValidation() {
@@ -355,7 +499,42 @@ const InputValidator = {
             this.attachValidator(`mod-${mod}`, (val) => this.validateModifier(val));
         });
 
+        // Initialize mandatory field validation listeners
+        this.initializeMandatoryFieldListeners();
+
         console.log('✅ Input validation initialized');
+    },
+
+    /**
+     * Initialize listeners to clear validation errors when mandatory fields change
+     */
+    initializeMandatoryFieldListeners() {
+        const mandatoryFieldIds = [
+            'mission-name',
+            'mission-name-custom',
+            'mission-difficulty',
+            'global-objective',
+            'global-geneseed',
+            'global-armoury',
+            'global-waves'
+        ];
+
+        mandatoryFieldIds.forEach(fieldId => {
+            const element = document.getElementById(fieldId);
+            if (element) {
+                // Clear validation error on this specific field when changed
+                const clearFieldError = () => {
+                    element.classList.remove('validation-error');
+                    const parentDiv = element.closest('.mission-params');
+                    if (parentDiv) {
+                        parentDiv.classList.remove('has-validation-error');
+                    }
+                };
+
+                element.addEventListener('change', clearFieldError);
+                element.addEventListener('input', clearFieldError);
+            }
+        });
     }
 };
 
