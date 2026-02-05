@@ -1271,6 +1271,19 @@ select.validation-error {
     75% { transform: translateX(5px); }
 }
 
+/* Mandatory field validation - parent container highlight */
+.mission-params.has-validation-error {
+    background-color: rgba(204, 68, 68, 0.15);
+    border-radius: var(--border-radius);
+    padding: 5px;
+    margin: -5px;
+    margin-bottom: 3px;
+}
+
+.mission-params.has-validation-error label {
+    color: var(--error-color);
+}
+
 /* === 24. RESPONSIVE LAYOUTS === */
 
 /* Shared header flexbox layout for all non-desktop sizes (≤ 900px) */

@@ -1207,6 +1207,17 @@ function generateCSVString() {
 }
 
 function saveMissionInternal() {
+    // Validate mandatory fields before saving
+    if (typeof InputValidator !== 'undefined' && typeof InputValidator.validateMandatoryFields === 'function') {
+        const validation = InputValidator.validateMandatoryFields();
+        if (!validation.valid) {
+            InputValidator.showMandatoryFieldErrors(validation.invalidFields, validation.errors);
+            return;
+        }
+        // Clear any previous validation errors if validation passed
+        InputValidator.clearAllValidationErrors();
+    }
+
     let savedSlots = JSON.parse(localStorage.getItem("cogitator_saved_missions") || "[]");
 
     if (savedSlots.length >= 4) {
