@@ -717,13 +717,16 @@ function clearData() {
         "p1-revived", "p2-revived", "p3-revived",
     ];
 
+    // Fields that should be cleared to empty (null) instead of 0
+    const clearToEmpty = ["global-armoury", "global-waves"];
+
     fieldsToClear.forEach((id) => {
         const el = document.getElementById(id);
         if (el) {
             if (el.tagName === "SELECT") {
                 el.selectedIndex = 0;
             } else if (el.type === "number") {
-                el.value = 0;
+                el.value = clearToEmpty.includes(id) ? "" : 0;
             } else {
                 el.value = "";
             }
@@ -789,7 +792,7 @@ function updateWavesAndTasksFields(missionName) {
             wavesInput.placeholder = 'N/A';
         } else {
             wavesInput.placeholder = '';
-            if (wavesInput.value === '') wavesInput.value = '0';
+            // Don't auto-fill with 0 - user must enter a value
         }
     }
 
@@ -802,7 +805,7 @@ function updateWavesAndTasksFields(missionName) {
                 el.placeholder = 'N/A';
             } else {
                 el.placeholder = '';
-                if (el.value === '') el.value = '0';
+                // Don't auto-fill with 0 - user must enter a value
             }
         }
     });
