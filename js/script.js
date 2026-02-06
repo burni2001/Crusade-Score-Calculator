@@ -1761,7 +1761,7 @@ export function downloadTransmissionLog() {
 // SECTION 12: EVENT SYSTEM (Mission Protocols)
 // ============================================================================
 
-const DB_URL = "https://raw.githubusercontent.com/burni2001/Crusade-Score-Calculator/refs/heads/Version7/data/events.json";
+const DB_URL = "https://raw.githubusercontent.com/burni2001/Crusade-Score-Calculator/refs/heads/Version8_CLI/data/events.json";
 let cachedEvents = [];
 
 export function positionEventMenu() {
