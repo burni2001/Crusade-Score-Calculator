@@ -8,7 +8,7 @@
  * @param {string} rawText - Raw OCR output
  * @returns {object} - Structured game data
  */
-function parseOCRText(rawText) {
+export function parseOCRText(rawText) {
     const normalized = normalizeOCRText(rawText);
     const lines = normalized.split(/[\r\n]+/).map(l => l.trim()).filter(l => l.length > 0);
     const upperText = normalized.toUpperCase();
@@ -721,15 +721,4 @@ function extractTeammatesRevived(lines) {
     );
 }
 
-// ========================================
-// EXPORTS (for use in main script)
-// ========================================
 
-// Main parser function
-if (typeof module !== 'undefined' && module.exports) {
-    // Node.js environment
-    module.exports = { parseOCRText };
-} else {
-    // Browser environment - expose globally
-    window.parseOCRText = parseOCRText;
-}

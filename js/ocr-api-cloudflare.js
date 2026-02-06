@@ -202,9 +202,4 @@ const OCRApi = {
     }
 };
 
-// Export for use in main script
-if (typeof module !== 'undefined' && module.exports) {
-    module.exports = { OCRApi };
-} else {
-    window.OCRApi = OCRApi;
-}
+export default OCRApi;

@@ -8,63 +8,27 @@
 
 "use strict";
 
+import { sanitizeInput, safeSetText, safeSetValue, escapeHtml } from './utils/dom-sanitizer.js';
+import { isSiegeMission } from './utils/mission-utils.js';
+import { parseOCRText } from './ocr-parser.js';
+import OCRApi from './ocr-api-cloudflare.js';
+import CSVHandler from './csv-handler.js';
+import CalculationEngine from './calculation-engine.js';
+import PNGExporter from './png-exporter.js';
+import CalculationEngine from './calculation-engine.js';
+
 // ============================================================================
 // SECTION 1: SECURITY & INPUT SANITIZATION
 // ============================================================================
 
-/**
- * Sanitizes user input to prevent XSS attacks
- * Removes HTML tags, dangerous characters, and limits length
- */
-function sanitizeInput(input, context = 'text') {
-    if (typeof input !== 'string') return '';
-    
-    const cleaned = input
-        .replace(/[<>"']/g, '')           // Remove HTML brackets and quotes
-        .replace(/javascript:/gi, '')      // Remove javascript: protocol
-        .replace(/on\w+\s*=/gi, '')       // Remove event handlers
-        .trim();
-    
-    return cleaned.slice(0, 200);         // Limit length to prevent DoS
-}
+// These functions have been moved to js/utils/dom-sanitizer.js
 
-/**
- * Safely set text content (never uses innerHTML with user data)
- */
-function safeSetText(elementId, value) {
-    const el = document.getElementById(elementId);
-    if (el) el.textContent = sanitizeInput(value);
-}
-
-/**
- * Safely set input value
- */
-function safeSetValue(elementId, value) {
-    const el = document.getElementById(elementId);
-    if (el) el.value = sanitizeInput(value);
-}
-
-/**
- * Escapes HTML special characters to prevent XSS
- */
-function escapeHtml(str) {
-    if (typeof str !== 'string') return '';
-    const escapeMap = {
-        '&': '&amp;',
-        '<': '&lt;',
-        '>': '&gt;',
-        '"': '&quot;',
-        "'": '&#039;',
-        '/': '&#x2F;'
-    };
-    return str.replace(/[&<>"'/]/g, char => escapeMap[char]);
-}
 
 // ============================================================================
 // SECTION 2: ERROR HANDLING SYSTEM
 // ============================================================================
 
-const ErrorHandler = {
+export const ErrorHandler = {
     log: [],
     
     handle(error, context = 'Unknown', showUser = false) {
@@ -190,7 +154,7 @@ const KNOWN_MISSIONS = [
     'EXFILTRATION', 'VORTEX', 'RECLAMATION', 'DISRUPTION', 'FORTRESS (SIEGE)'
 ];
 
-function mapToMissionDropdown(detectedName) {
+export function mapToMissionDropdown(detectedName) {
     if (!detectedName) return { selectValue: '', customValue: '' };
     const upper = detectedName.toUpperCase().trim();
 
@@ -224,7 +188,7 @@ function mapToMissionDropdown(detectedName) {
     return { selectValue: 'Custom', customValue: detectedName };
 }
 
-function showOCRModal() {
+export function showOCRModal() {
     const modal = document.getElementById('ocr-modal-overlay');
     const grid = document.getElementById('ocr-detected-grid');
     const rawText = document.getElementById('ocr-raw-text');
@@ -337,7 +301,7 @@ function showOCRModal() {
     modal.classList.add('active');
 }
 
-function applyOCRResults() {
+export function applyOCRResults() {
     try {
         const grid = document.getElementById('ocr-detected-grid');
         if (!grid) return;
@@ -450,14 +414,14 @@ function applyOCRResults() {
     }
 }
 
-function closeOCRModal() {
+export export function closeOCRModal() {
     const modal = document.getElementById("ocr-modal-overlay");
     if (modal) {
         modal.classList.remove("active");
     }
 }
 
-function exportOCRDebug() {
+export export function exportOCRDebug() {
     const headerDecor = document.querySelector(".header-decor");
     const versionText = headerDecor?.textContent || "";
     const versionMatch = versionText.match(/V\s*(\d+\.\d+\.\d+)/i);
@@ -511,7 +475,7 @@ function exportOCRDebug() {
 // SECTION 6: CALCULATION FUNCTIONS (Using CalculationEngine Module)
 // ============================================================================
 
-function getVal(id) {
+export function getVal(id) {
     const el = document.getElementById(id);
     if (!el) return 0;
     
@@ -544,7 +508,7 @@ function getVal(id) {
     return result.value;
 }
 
-function getStr(id) {
+export function getStr(id) {
     const el = document.getElementById(id);
     if (!el) return '';
     
@@ -569,12 +533,12 @@ function getStr(id) {
     return result.value;
 }
 
-function setTxt(id, txt) {
+export function setTxt(id, txt) {
     const el = document.getElementById(id);
     if (el) el.textContent = txt;
 }
 
-function updateAdditionalStatsHeaders() {
+export function updateAdditionalStatsHeaders() {
     for (let i = 1; i <= 3; i++) {
         const nameInput = document.getElementById(`p${i}-name`);
         const header = document.getElementById(`addstats-p${i}-header`);
@@ -588,7 +552,7 @@ function updateAdditionalStatsHeaders() {
 /**
  * Main calculation function - now uses CalculationEngine module
  */
-function calculate() {
+export function calculate() {
     try {
         // Gather data from DOM
         const modifiers = {
@@ -698,7 +662,7 @@ function calculate() {
     }
 }
 
-function clearData() {
+export function clearData() {
     if (!confirm("Clear all mission data? (Modifiers will be kept)")) return;
 
     const fieldsToClear = [
@@ -746,7 +710,7 @@ function clearData() {
 /**
  * Get the effective mission name from the dropdown (or custom field if "Custom" is selected)
  */
-function getEffectiveMissionName() {
+export function getEffectiveMissionName() {
     const select = document.getElementById('mission-name');
     if (!select) return '';
     if (select.value === 'Custom') {
@@ -760,7 +724,7 @@ function getEffectiveMissionName() {
  * Handle mission dropdown selection changes.
  * Shows/hides custom field, updates difficulty, waves/tasks availability.
  */
-function handleMissionSelect() {
+export function handleMissionSelect() {
     const select = document.getElementById('mission-name');
     const customRow = document.getElementById('custom-mission-row');
     if (!select) return;
@@ -780,7 +744,7 @@ function handleMissionSelect() {
  * Update Total Waves and Tasks Completed fields based on mission type.
  * Only Siege missions have waves and tasks; all others show N/A.
  */
-function updateWavesAndTasksFields(missionName) {
+export function updateWavesAndTasksFields(missionName) {
     const wavesInput = document.getElementById('global-waves');
     const taskIds = ['p1-tasks', 'p2-tasks', 'p3-tasks'];
     const isSiege = isSiegeMission(missionName);
@@ -811,19 +775,12 @@ function updateWavesAndTasksFields(missionName) {
     });
 }
 
-/**
- * Check if mission name indicates a Siege-type mission
- */
-function isSiegeMission(missionName) {
-    if (!missionName || typeof missionName !== 'string') return false;
-    const normalized = missionName.toLowerCase().trim();
-    return /siege|seige|fortress/i.test(normalized);
-}
+
 
 /**
  * Update difficulty dropdown options based on mission type
  */
-function updateDifficultyOptions(missionName) {
+export function updateDifficultyOptions(missionName) {
     const difficultySelect = document.getElementById('mission-difficulty');
     if (!difficultySelect) return;
     
@@ -874,7 +831,7 @@ function updateDifficultyOptions(missionName) {
 /**
  * Initialize difficulty selector with event listeners
  */
-function initializeDifficultySelector() {
+export function initializeDifficultySelector() {
     const missionNameSelect = document.getElementById('mission-name');
     const customMissionInput = document.getElementById('mission-name-custom');
 
@@ -915,7 +872,7 @@ function initializeDifficultySelector() {
  * Update Gene-Seed field based on mission type
  * Siege missions don't have Gene-Seed, so disable and set to N/A
  */
-function updateGeneseedField(missionName) {
+export function updateGeneseedField(missionName) {
     const geneseedSelect = document.getElementById('global-geneseed');
     if (!geneseedSelect) return;
     
@@ -972,7 +929,7 @@ const inputIds = [
     "p1-tasks", "p2-tasks", "p3-tasks"
 ];
 
-function saveData() {
+export function saveData() {
     try {
         const data = {};
         let savedCount = 0;
@@ -1097,7 +1054,7 @@ const AGGREGATED_STATE_KEY = 'cogitator_aggregated_state';
  * Saves the current importAppState to localStorage so aggregated tables
  * persist across app restarts.
  */
-function saveAggregatedState() {
+export function saveAggregatedState() {
     try {
         if (!importAppState.playerOrder || importAppState.playerOrder.length === 0) {
             localStorage.removeItem(AGGREGATED_STATE_KEY);
@@ -1113,7 +1070,7 @@ function saveAggregatedState() {
  * Restores importAppState from localStorage and re-renders the aggregated
  * tables if data was previously saved.
  */
-function loadAggregatedState() {
+export function loadAggregatedState() {
     try {
         const saved = localStorage.getItem(AGGREGATED_STATE_KEY);
         if (!saved) return false;
@@ -1188,11 +1145,7 @@ function clearSavedData() {
     }
 }
 
-// Expose helpers
-window.debugStorage = debugStorage;
-window.forceSave = forceSave;
-window.forceLoad = forceLoad;
-window.clearSavedData = clearSavedData;
+// Expose helpers (removed global window assignments)
 
 // ============================================================================
 // SECTION 8: INTERNAL DATA BANK (Mission Slots)
@@ -1209,7 +1162,7 @@ function generateCSVString() {
     return CSVHandler.generateFromState(getVal, getStr, getSelect);
 }
 
-function saveMissionInternal() {
+export function saveMissionInternal() {
     // Validate mandatory fields before saving
     if (typeof InputValidator !== 'undefined' && typeof InputValidator.validateMandatoryFields === 'function') {
         const validation = InputValidator.validateMandatoryFields();
@@ -1246,7 +1199,7 @@ function saveMissionInternal() {
     renderDataBankUI();
 }
 
-function renderDataBankUI() {
+export function renderDataBankUI() {
     const container = document.getElementById("data-bank-ui");
     const containerPage3 = document.getElementById("data-bank-ui-page3");
     
@@ -1272,38 +1225,34 @@ function renderDataBankUI() {
 function renderSlotsToContainer(container, savedSlots) {
     for (let i = 0; i < 4; i++) {
         const slotData = savedSlots[i];
-        const slotEl = document.createElement("div");
+                    const slotEl = document.createElement("div");
+                    
+                    if (slotData) {
+                        slotEl.className = `data-slot occupied`;
+                        slotEl.dataset.slotIndex = i; // Add data attribute for delegation
         
-        if (slotData) {
-            slotEl.className = `data-slot occupied`;
-            slotEl.onclick = function() { openSlotOverlay(i); };
-
-            const nameSpan = document.createElement('span');
-            nameSpan.className = 'slot-name';
-            nameSpan.textContent = sanitizeInput(slotData.name);
-            slotEl.appendChild(nameSpan);
-
-            const diffSpan = document.createElement('span');
-            diffSpan.className = 'text-xs opacity-70';
-            diffSpan.style.marginLeft = '10px';
-            diffSpan.textContent = `[${sanitizeInput(slotData.difficulty)}]`;
-            slotEl.appendChild(diffSpan);
-
-            const deleteBtn = document.createElement('button');
-            deleteBtn.className = 'delete-slot-btn';
-            deleteBtn.textContent = 'X';
-            deleteBtn.onclick = function(e) { 
-                e.stopPropagation(); 
-                deleteSlot(i); 
-            };
-            slotEl.appendChild(deleteBtn);
-
-        } else {
-            slotEl.className = `data-slot`;
-            slotEl.innerHTML = `<span class="slot-name opacity-60">[ EMPTY SLOT ]</span>`;
-        }
-        container.appendChild(slotEl);
-    }
+                        const nameSpan = document.createElement('span');
+                        nameSpan.className = 'slot-name';
+                        nameSpan.textContent = sanitizeInput(slotData.name);
+                        slotEl.appendChild(nameSpan);
+        
+                        const diffSpan = document.createElement('span');
+                        diffSpan.className = 'text-xs opacity-70';
+                        diffSpan.style.marginLeft = '10px';
+                        diffSpan.textContent = `[${sanitizeInput(slotData.difficulty)}]`;
+                        slotEl.appendChild(diffSpan);
+        
+                        const deleteBtn = document.createElement('button');
+                        deleteBtn.className = 'delete-slot-btn';
+                        deleteBtn.textContent = 'X';
+                        deleteBtn.dataset.slotIndex = i; // Add data attribute for delegation
+                        slotEl.appendChild(deleteBtn);
+        
+                    } else {
+                        slotEl.className = `data-slot`;
+                        slotEl.innerHTML = `<span class="slot-name opacity-60">[ EMPTY SLOT ]</span>`;
+                    }
+                    container.appendChild(slotEl);    }
 }
 
 function csvToHtmlTable(csvText, sectionTitle) {
@@ -1347,7 +1296,7 @@ function csvToHtmlTable(csvText, sectionTitle) {
     return html;
 }
 
-function openSlotOverlay(index) {
+export function openSlotOverlay(index) {
     const savedSlots = JSON.parse(localStorage.getItem("cogitator_saved_missions") || "[]");
     const slot = savedSlots[index];
     if (!slot) return;
@@ -1378,8 +1327,8 @@ function openSlotOverlay(index) {
             ${statsTable}
 
             <div class="modal-actions">
-                <button onclick="downloadSlotCSV(${index})" class="btn btn-sm">DOWNLOAD CSV</button>
-                <button onclick="closeSlotModal()" class="btn btn-sm">CLOSE</button>
+                <button class="btn btn-sm" data-action="download-slot-csv" data-slot-index="${index}">DOWNLOAD CSV</button>
+                <button class="btn btn-sm" data-action="close-slot-modal">CLOSE</button>
             </div>
         </div>
     `;
@@ -1387,7 +1336,7 @@ function openSlotOverlay(index) {
     requestAnimationFrame(() => modal.classList.add('active'));
 }
 
-function closeSlotModal() {
+export function closeSlotModal() {
     const modal = document.getElementById('slot-modal-overlay');
     if (modal) modal.classList.remove('active');
 }
@@ -1414,7 +1363,7 @@ function downloadSlotCSV(index) {
     }
 }
 
-function deleteSlot(index) {
+export function deleteSlot(index) {
     if (!confirm("Purge this Data Slate from memory?")) return;
     
     let savedSlots = JSON.parse(localStorage.getItem("cogitator_saved_missions") || "[]");
@@ -1423,7 +1372,7 @@ function deleteSlot(index) {
     renderDataBankUI();
 }
 
-function aggregateInternalData() {
+export function aggregateInternalData() {
     const statusEl = document.getElementById('import-status');
     let savedSlots = [];
     
@@ -1552,7 +1501,7 @@ if (csvUploadInput) {
     });
 }
 
-function resetImport() {
+export function resetImport() {
     if (!confirm("WARNING: This will purge ALL aggregated data and wipe the internal memory banks. \n\nAre you sure?")) {
         return;
     }
@@ -1581,7 +1530,7 @@ function resetImport() {
     console.log("Aggregated data purged.");
 }
 
-function processCSV(text) {
+export function processCSV(text) {
     // Use modular CSV handler with validation
     const parsedData = CSVHandler.parseToStructure(text, InputValidator);
     
@@ -1617,14 +1566,14 @@ function processCSV(text) {
 // SECTION 10: IMPORT UI RENDERING
 // ============================================================================
 
-function renderImportUI() {
+export function renderImportUI() {
     document.getElementById('results-container').classList.add('visible');
     
     buildImportTable('matrix-table', MATRIX_KEYS);
     buildImportTable('stats-table', ADD_STATS_KEYS);
 }
 
-function buildImportTable(tableId, rowKeys) {
+export function buildImportTable(tableId, rowKeys) {
     const table = document.getElementById(tableId);
     table.innerHTML = '';
     
@@ -1722,7 +1671,7 @@ function buildImportTable(tableId, rowKeys) {
     table.appendChild(tbody);
 }
 
-function openCopyModal() {
+export function openCopyModal() {
     if (!importAppState.playerOrder.length) return;
     
     let maxScore = -Infinity;
@@ -1766,7 +1715,7 @@ function openCopyModal() {
     document.getElementById('copy-modal').classList.add('active');
 }
 
-function copySummaryText() {
+export function copySummaryText() {
     const el = document.getElementById('copy-text');
     el.select();
     el.setSelectionRange(0, 99999);
@@ -1778,7 +1727,7 @@ function copySummaryText() {
     });
 }
 
-function downloadTransmissionLog() {
+export function downloadTransmissionLog() {
     const text = document.getElementById('copy-text').value;
     if (!text) {
         alert("No transmission data to save.");
@@ -1804,13 +1753,9 @@ function downloadTransmissionLog() {
 // Delegated to PNG Exporter module for DRY code
 // ============================================================================
 
-async function exportTopSectionPNG() {
-    return PNGExporter.exportMissionScreen();
-}
 
-async function saveAsPNG() {
-    return PNGExporter.exportAggregatedScreen();
-}
+
+
 
 // ============================================================================
 // SECTION 12: EVENT SYSTEM (Mission Protocols)
@@ -1819,7 +1764,7 @@ async function saveAsPNG() {
 const DB_URL = "https://raw.githubusercontent.com/burni2001/Crusade-Score-Calculator/refs/heads/Version7/data/events.json";
 let cachedEvents = [];
 
-function positionEventMenu() {
+export function positionEventMenu() {
     const menu = document.getElementById('event-menu');
     const wrapper = document.querySelector('.gear-wrapper');
     if (!menu || !wrapper) return;
@@ -1862,7 +1807,7 @@ function positionEventMenu() {
     menu.style.maxHeight = (window.innerHeight - rect.bottom - gap - margin) + 'px';
 }
 
-function closeEventMenu() {
+export function closeEventMenu() {
     const menu = document.getElementById('event-menu');
     const wrapper = document.querySelector('.gear-wrapper');
     if (menu && menu.classList.contains('active')) {
@@ -1876,7 +1821,7 @@ function closeEventMenu() {
     }
 }
 
-function toggleEventMenu() {
+export function toggleEventMenu() {
     const menu = document.getElementById('event-menu');
     const wrapper = document.querySelector('.gear-wrapper');
 
@@ -1896,7 +1841,7 @@ function toggleEventMenu() {
     }
 }
 
-async function fetchEventList() {
+export async function fetchEventList() {
     const container = document.getElementById('event-list-container');
     const status = document.getElementById('event-status');
     
@@ -1953,16 +1898,7 @@ async function fetchEventList() {
             }
             
             // Add click handler to toggle
-            header.onclick = function() {
-                eventsContainer.classList.toggle('expanded');
-                indicator.classList.toggle('expanded');
-                
-                if (indicator.classList.contains('expanded')) {
-                    indicator.innerHTML = '&#9660;'; // Down-pointing triangle
-                } else {
-                    indicator.innerHTML = '&#9664;'; // Left-pointing triangle
-                }
-            };
+            // Event handling moved to event-handlers.js via delegation.
 
             cycle.events.forEach(event => {
                 event.cycleName = cycle.name;
@@ -1972,10 +1908,7 @@ async function fetchEventList() {
                 const item = document.createElement('div');
                 item.className = 'event-item';
                 item.innerText = event.name;
-                item.onclick = function(e) { 
-                    e.stopPropagation(); // Prevent header toggle
-                    selectEvent(event.id); 
-                };
+                item.dataset.eventId = event.id; // Add data attribute for delegation
 
                 eventsContainer.appendChild(item);
             });
@@ -1994,7 +1927,7 @@ async function fetchEventList() {
     }
 }
 
-function updateWeekSelector(eventData) {
+export function updateWeekSelector(eventData) {
     const container = document.getElementById('active-week-selector');
     if (!container) return;
 
@@ -2019,7 +1952,7 @@ function updateWeekSelector(eventData) {
     container.innerHTML = `<span class="text-xs">Currently active: WEEK ${weekNumber} / ${eventTitle.charAt(0).toUpperCase() + eventTitle.slice(1).toLowerCase()}</span>`;
 }
 
-function checkCustomModifiers() {
+export function checkCustomModifiers() {
     const container = document.getElementById('active-week-selector');
     if (!container) return;
 
@@ -2049,7 +1982,7 @@ function checkCustomModifiers() {
     }
 }
 
-function selectEvent(selectedId) {
+export function selectEvent(selectedId) {
     const status = document.getElementById('event-status');
     const eventData = cachedEvents.find(e => e.id === selectedId);
     
@@ -2144,16 +2077,8 @@ window.addEventListener('orientationchange', function() {
 // SECTION 14: MULTI-PAGE NAVIGATION SYSTEM
 // ============================================================================
 
-// Tracks the current active page (1, 2, or 3) - exposed for debugging via getCurrentPage()
+// Tracks the current active page (1, 2, or 3) - will be handled internally
 let currentPage = 1;
-
-/**
- * Get the current active page number
- * @returns {number} The current page number (1, 2, or 3)
- */
-function getCurrentPage() {
-    return currentPage;
-}
 
 /** Flag to prevent overlapping page transitions */
 let isPageTransitioning = false;
@@ -2162,7 +2087,7 @@ let isPageTransitioning = false;
  * Navigate to a specific page (1, 2, or 3) with slide animation
  * @param {number} pageNum - The page number to navigate to
  */
-function navigateToPage(pageNum) {
+export function navigateToPage(pageNum) {
     if (pageNum < 1 || pageNum > 3) return;
     if (pageNum === currentPage) return;
     if (isPageTransitioning) return;
@@ -2230,7 +2155,7 @@ function navigateToPage(pageNum) {
 /**
  * Toggle Custom Rules section in Event Selector dropdown
  */
-function toggleCustomRules() {
+export function toggleCustomRules() {
     const content = document.getElementById('custom-rules-content');
     const indicator = document.getElementById('custom-rules-indicator');
     
@@ -2251,7 +2176,7 @@ function toggleCustomRules() {
  * Record data screens as PNG (for Page 3)
  * Captures each individual saved mission and the aggregated tables
  */
-async function recordAllDataScreens() {
+export async function recordAllDataScreens() {
     try {
         const statusEl = document.getElementById('import-status');
         const savedSlots = JSON.parse(localStorage.getItem("cogitator_saved_missions") || "[]");
@@ -2321,6 +2246,10 @@ async function recordAllDataScreens() {
 // Global variable to store Imperial Date interval ID
 let imperialDateIntervalId = null;
 
+import { setupEventListeners } from './event-handlers.js';
+import { startUpdating, stopUpdating } from './imperialDate.js';
+import { validateMandatoryFields, showMandatoryFieldErrors, clearAllValidationErrors, initializeValidation } from './input-validator.js';
+
 window.addEventListener('DOMContentLoaded', function() {
     console.log('🚀 Initializing Crusade Score Calculator...');
     loadData();
@@ -2330,9 +2259,7 @@ window.addEventListener('DOMContentLoaded', function() {
     loadAggregatedState();
 
     // Initialize input validation
-    if (typeof InputValidator !== 'undefined') {
-        InputValidator.initializeValidation();
-    }
+    initializeValidation();
     
     // Initialize difficulty selector
     if (typeof initializeDifficultySelector === 'function') {
@@ -2340,18 +2267,13 @@ window.addEventListener('DOMContentLoaded', function() {
     }
     
     // Initialize Imperial Date display
-    if (typeof ImperialDate !== 'undefined') {
-        imperialDateIntervalId = ImperialDate.startUpdating('imperial-date');
-    } else {
-        console.warn('⚠️ ImperialDate module not loaded - check that imperialDate.js is included before script.js');
-    }
+    imperialDateIntervalId = startUpdating('imperial-date');
     
     // Initialize swipe navigation for mobile
     SwipeHandler.init();
     
-    // Restore last viewed page, defaulting to Page 1
-    const savedPage = parseInt(localStorage.getItem('cogitator_last_page')) || 1;
-    navigateToPage(savedPage);
+    // Setup all event listeners
+    setupEventListeners();
     
     console.log('✅ Ready');
 });
@@ -2360,9 +2282,7 @@ window.addEventListener('beforeunload', function() {
     saveData();
     saveAggregatedState();
     // Clean up Imperial Date interval to prevent memory leaks
-    if (typeof ImperialDate !== 'undefined') {
-        if (imperialDateIntervalId) ImperialDate.stopUpdating(imperialDateIntervalId);
-    }
+    if (imperialDateIntervalId) stopUpdating(imperialDateIntervalId);
 });
 
 console.log('💡 Debug Commands: debugStorage(), forceSave(), forceLoad(), clearSavedData()');
@@ -2373,7 +2293,7 @@ console.log('💡 Debug Commands: debugStorage(), forceSave(), forceLoad(), clea
 /**
  * Toggle the visibility of the credits modal
  */
-function toggleCreditsModal() {
+export function toggleCreditsModal() {
     const modal = document.getElementById('credits-modal');
     if (modal) {
         modal.classList.toggle('active');
@@ -2383,7 +2303,7 @@ function toggleCreditsModal() {
 /**
  * Close credits modal when clicking on the backdrop (outside modal content)
  */
-function closeCreditsOnBackdrop(event) {
+export function closeCreditsOnBackdrop(event) {
     if (event.target.id === 'credits-modal') {
         toggleCreditsModal();
     }

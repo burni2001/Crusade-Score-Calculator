@@ -17,6 +17,8 @@
 
 "use strict";
 
+import { getEffectiveMissionName } from './script.js';
+
 const CSVHandler = {
     
     // ========================================================================
@@ -136,7 +138,7 @@ const CSVHandler = {
         // MISSION PARAMETERS
         // ====================================================================
         csv.push("MISSION PARAMETERS");
-        csv.push(`Mission Played:,${this.escapeField(typeof getEffectiveMissionName === 'function' ? getEffectiveMissionName() : getStr("mission-name"))}`);
+        csv.push(`Mission Played:,${this.escapeField(getEffectiveMissionName())}`);
         csv.push(`Difficulty:,${this.escapeField(getSelect("mission-difficulty"))}`);
         csv.push(`Waves Reached:,${getVal("global-waves")}`);
         csv.push(`Objective Completion:,${getSelect("global-objective") === "1" ? "Yes" : "No"}`);
@@ -495,20 +497,6 @@ const CSVHandler = {
     }
 };
 
-// ============================================================================
-// EXPORTS
-// ============================================================================
+export default CSVHandler;
 
-// Node.js / CommonJS
-if (typeof module !== 'undefined' && module.exports) {
-    module.exports = { CSVHandler };
-}
 
-// Browser / Global
-if (typeof window !== 'undefined') {
-    window.CSVHandler = CSVHandler;
-    
-    // Expose test function to console
-    window.testCSV = () => CSVHandler.runAllTests();
-    console.log('💡 CSV Handler loaded. Run: testCSV()');
-}

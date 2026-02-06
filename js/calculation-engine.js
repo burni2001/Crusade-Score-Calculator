@@ -6,6 +6,8 @@
 
 "use strict";
 
+import { ErrorHandler } from './script.js'; // Assuming ErrorHandler will be exported from script.js
+
 const CalculationEngine = {
     // ========================================================================
     // CORE CALCULATION FUNCTIONS
@@ -181,7 +183,8 @@ const CalculationEngine = {
         );
 
         // Calculate final score
-        totals.finalScore = Math.round(totals.baseScore + totals.modifierScore);
+        const finalScore = totals.baseScore + totals.modifierScore;
+        totals.finalScore = Math.round(finalScore);
 
         // Calculate total revive diff
         totals.reviveDiff = totals.revived - totals.death;
@@ -246,7 +249,7 @@ const CalculationEngine = {
             return calculationFn();
         } catch (error) {
             console.error('Calculation error:', error);
-            if (typeof ErrorHandler !== 'undefined') {
+            if (ErrorHandler) { // Check if ErrorHandler is imported/available
                 ErrorHandler.handle(error, 'Calculation Engine', false);
             }
             return fallbackValue;
@@ -282,17 +285,4 @@ const CalculationEngine = {
     }
 };
 
-// ============================================================================
-// EXPORTS
-// ============================================================================
-
-// Browser / Global
-if (typeof window !== 'undefined') {
-    window.CalculationEngine = CalculationEngine;
-    console.log('🧮 Calculation Engine loaded');
-}
-
-// Node.js / CommonJS (for testing)
-if (typeof module !== 'undefined' && module.exports) {
-    module.exports = { CalculationEngine };
-}
+export default CalculationEngine;

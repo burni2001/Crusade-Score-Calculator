@@ -6,6 +6,9 @@
 
 "use strict";
 
+import { ErrorHandler } from './script.js';
+import { escapeHtml } from './utils/dom-sanitizer.js';
+
 const PNGExporter = {
     // ========================================================================
     // CONFIGURATION
@@ -118,11 +121,11 @@ const PNGExporter = {
                 line-height: 1.6;
             `;
             paramsDiv.innerHTML = `
-                <span style="color:#20c020;">Difficulty:</span> ${this._escapeHtml(missionParams.difficulty)} &nbsp;|&nbsp;
-                <span style="color:#20c020;">Waves:</span> ${this._escapeHtml(missionParams.waves)} &nbsp;|&nbsp;
-                <span style="color:#20c020;">Objective:</span> ${this._escapeHtml(missionParams.objective)} &nbsp;|&nbsp;
-                <span style="color:#20c020;">Geneseed:</span> ${this._escapeHtml(missionParams.geneseed)} &nbsp;|&nbsp;
-                <span style="color:#20c020;">Armoury:</span> ${this._escapeHtml(missionParams.armoury)}
+                <span style="color:#20c020;">Difficulty:</span> ${escapeHtml(missionParams.difficulty)} &nbsp;|&nbsp;
+                <span style="color:#20c020;">Waves:</span> ${escapeHtml(missionParams.waves)} &nbsp;|&nbsp;
+                <span style="color:#20c020;">Objective:</span> ${escapeHtml(missionParams.objective)} &nbsp;|&nbsp;
+                <span style="color:#20c020;">Geneseed:</span> ${escapeHtml(missionParams.geneseed)} &nbsp;|&nbsp;
+                <span style="color:#20c020;">Armoury:</span> ${escapeHtml(missionParams.armoury)}
             `;
             captureContainer.appendChild(paramsDiv);
 
@@ -483,7 +486,7 @@ const PNGExporter = {
             html += `<th style="${headerBase}text-align:right;width:180px;padding-right:15px;">METRIC</th>`;
             for (let i = 1; i < headers.length; i++) {
                 const isTotal = i === headers.length - 1;
-                html += `<th style="${headerBase}text-align:center;${isTotal ? 'width:120px;' : ''}">${this._escapeHtml(headers[i].trim())}</th>`;
+                html += `<th style="${headerBase}text-align:center;${isTotal ? 'width:120px;' : ''}">${escapeHtml(headers[i].trim())}</th>`;
             }
             html += '</tr></thead>';
         }
@@ -501,14 +504,14 @@ const PNGExporter = {
             html += '<tr>';
             // Row label cell (matches .row-label styling)
             if (isFinalScore) {
-                html += `<td style="${cellBase}text-align:right;width:180px;font-weight:bold;padding-right:15px;background-color:#000;border-top:2px solid #20c020;border-bottom:2px double #20c020;font-size:1.5rem;color:#80cc80;text-shadow:0 0 8px #20c020;">${this._escapeHtml(metricName)}</td>`;
+                html += `<td style="${cellBase}text-align:right;width:180px;font-weight:bold;padding-right:15px;background-color:#000;border-top:2px solid #20c020;border-bottom:2px double #20c020;font-size:1.5rem;color:#80cc80;text-shadow:0 0 8px #20c020;">${escapeHtml(metricName)}</td>`;
             } else {
-                html += `<td style="${cellBase}text-align:right;width:180px;font-weight:bold;padding-right:15px;background-color:#000;">${this._escapeHtml(metricName)}</td>`;
+                html += `<td style="${cellBase}text-align:right;width:180px;font-weight:bold;padding-right:15px;background-color:#000;">${escapeHtml(metricName)}</td>`;
             }
             for (let j = 1; j < cols.length; j++) {
                 const isTotal = j === cols.length - 1;
                 if (isFinalScore) {
-                    html += `<td style="${cellBase}text-align:center;font-weight:bold;font-size:1.5rem;color:#80cc80;text-shadow:0 0 8px #20c020;border-top:2px solid #20c020;border-bottom:2px double #20c020;${isTotal ? 'background-color:#000;width:120px;' : ''}">${this._escapeHtml(cols[j].trim())}</td>`;
+                    html += `<td style="${cellBase}text-align:center;font-weight:bold;font-size:1.5rem;color:#80cc80;text-shadow:0 0 8px #20c020;border-top:2px solid #20c020;border-bottom:2px double #20c020;${isTotal ? 'background-color:#000;width:120px;' : ''}">${escapeHtml(cols[j].trim())}</td>`;
                 } else if (isTotal) {
                     html += `<td style="${cellBase}text-align:center;font-weight:bold;background-color:#000;width:120px;">${this._escapeHtml(cols[j].trim())}</td>`;
                 } else if (isScoreRow) {
@@ -554,17 +557,7 @@ const PNGExporter = {
         return section;
     },
 
-    /**
-     * Escape HTML special characters
-     * @private
-     * @param {string} str - String to escape
-     * @returns {string} - Escaped string
-     */
-    _escapeHtml(str) {
-        const div = document.createElement('div');
-        div.appendChild(document.createTextNode(str));
-        return div.innerHTML;
-    },
+
 
     /**
      * Error handling wrapper
@@ -581,17 +574,6 @@ const PNGExporter = {
     }
 };
 
-// ============================================================================
-// EXPORTS
-// ============================================================================
+export default PNGExporter;
 
-// Browser / Global
-if (typeof window !== 'undefined') {
-    window.PNGExporter = PNGExporter;
-    console.log('📸 PNG Exporter loaded');
-}
 
-// Node.js / CommonJS (for testing)
-if (typeof module !== 'undefined' && module.exports) {
-    module.exports = { PNGExporter };
-}
