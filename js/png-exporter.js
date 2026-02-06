@@ -104,7 +104,7 @@ const PNGExporter = {
                 border: 1px solid #20c020;
                 font-size: 18px;
             `;
-            header.textContent = (slot.name || 'Unknown Mission').toUpperCase();
+            header.textContent = `RUN ${index + 1}: ${(slot.name || 'Unknown Mission').toUpperCase()}`;
             captureContainer.appendChild(header);
 
             // 5. Add mission parameters
@@ -160,7 +160,7 @@ const PNGExporter = {
 
             // 12. Download
             const safeName = (slot.name || 'mission').replace(/[^a-z0-9]/gi, '_').toLowerCase();
-            this._downloadCanvas(canvas, `Mission_${index + 1}_${safeName}`);
+            this._downloadCanvas(canvas, `Run_${index + 1}_${safeName}`);
 
         } catch (err) {
             this._handleError(err, `PNG Export Mission ${index + 1}`);

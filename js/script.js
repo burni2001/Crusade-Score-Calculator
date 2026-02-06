@@ -1260,12 +1260,14 @@ function renderDataBankUI() {
     if (container) {
         container.innerHTML = "";
         renderSlotsToContainer(container, savedSlots);
+        initTouchDrag(container);
     }
-    
+
     // Render data bank for Page 3
     if (containerPage3) {
         containerPage3.innerHTML = "";
         renderSlotsToContainer(containerPage3, savedSlots);
+        initTouchDrag(containerPage3);
     }
 }
 
@@ -1273,37 +1275,276 @@ function renderSlotsToContainer(container, savedSlots) {
     for (let i = 0; i < 4; i++) {
         const slotData = savedSlots[i];
         const slotEl = document.createElement("div");
-        
+
         if (slotData) {
             slotEl.className = `data-slot occupied`;
-            slotEl.onclick = function() { openSlotOverlay(i); };
+            slotEl.setAttribute('draggable', 'true');
+            slotEl.dataset.slotIndex = i;
+
+            // Run number label
+            const runLabel = document.createElement('span');
+            runLabel.className = 'slot-run-label';
+            runLabel.textContent = `Run ${i + 1}`;
+            slotEl.appendChild(runLabel);
+
+            // Slot content wrapper (clickable area)
+            const contentWrapper = document.createElement('span');
+            contentWrapper.className = 'slot-content';
+            contentWrapper.onclick = function() { openSlotOverlay(i); };
 
             const nameSpan = document.createElement('span');
             nameSpan.className = 'slot-name';
             nameSpan.textContent = sanitizeInput(slotData.name);
-            slotEl.appendChild(nameSpan);
+            contentWrapper.appendChild(nameSpan);
 
             const diffSpan = document.createElement('span');
             diffSpan.className = 'text-xs opacity-70';
             diffSpan.style.marginLeft = '10px';
             diffSpan.textContent = `[${sanitizeInput(slotData.difficulty)}]`;
-            slotEl.appendChild(diffSpan);
+            contentWrapper.appendChild(diffSpan);
+
+            slotEl.appendChild(contentWrapper);
 
             const deleteBtn = document.createElement('button');
             deleteBtn.className = 'delete-slot-btn';
             deleteBtn.textContent = 'X';
-            deleteBtn.onclick = function(e) { 
-                e.stopPropagation(); 
-                deleteSlot(i); 
+            deleteBtn.onclick = function(e) {
+                e.stopPropagation();
+                deleteSlot(i);
             };
             slotEl.appendChild(deleteBtn);
 
+            // Drag-and-drop event listeners
+            slotEl.addEventListener('dragstart', handleDragStart);
+            slotEl.addEventListener('dragend', handleDragEnd);
+
         } else {
             slotEl.className = `data-slot`;
-            slotEl.innerHTML = `<span class="slot-name opacity-60">[ EMPTY SLOT ]</span>`;
+            slotEl.dataset.slotIndex = i;
+
+            const runLabel = document.createElement('span');
+            runLabel.className = 'slot-run-label opacity-60';
+            runLabel.textContent = `Run ${i + 1}`;
+            slotEl.appendChild(runLabel);
+
+            const emptyLabel = document.createElement('span');
+            emptyLabel.className = 'slot-name opacity-60';
+            emptyLabel.textContent = '[ EMPTY SLOT ]';
+            slotEl.appendChild(emptyLabel);
         }
+
+        // Drop target listeners (both occupied and empty slots)
+        slotEl.addEventListener('dragover', handleDragOver);
+        slotEl.addEventListener('dragenter', handleDragEnter);
+        slotEl.addEventListener('dragleave', handleDragLeave);
+        slotEl.addEventListener('drop', handleDrop);
+
         container.appendChild(slotEl);
     }
+}
+
+// ============================================================================
+// DRAG-AND-DROP REORDERING FOR MISSION SLOTS
+// ============================================================================
+
+let dragSrcIndex = null;
+
+function handleDragStart(e) {
+    dragSrcIndex = parseInt(this.dataset.slotIndex);
+    this.classList.add('dragging');
+    e.dataTransfer.effectAllowed = 'move';
+    e.dataTransfer.setData('text/plain', dragSrcIndex);
+}
+
+function handleDragEnd(e) {
+    this.classList.remove('dragging');
+    // Remove all drag-over indicators
+    document.querySelectorAll('.data-slot').forEach(el => {
+        el.classList.remove('drag-over');
+    });
+    dragSrcIndex = null;
+}
+
+function handleDragOver(e) {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+}
+
+function handleDragEnter(e) {
+    e.preventDefault();
+    const targetIndex = parseInt(this.dataset.slotIndex);
+    if (dragSrcIndex !== null && targetIndex !== dragSrcIndex) {
+        this.classList.add('drag-over');
+    }
+}
+
+function handleDragLeave(e) {
+    // Only remove if we're actually leaving the element (not entering a child)
+    if (!this.contains(e.relatedTarget)) {
+        this.classList.remove('drag-over');
+    }
+}
+
+function handleDrop(e) {
+    e.preventDefault();
+    this.classList.remove('drag-over');
+
+    const srcIndex = parseInt(e.dataTransfer.getData('text/plain'));
+    const destIndex = parseInt(this.dataset.slotIndex);
+
+    if (isNaN(srcIndex) || isNaN(destIndex) || srcIndex === destIndex) return;
+
+    let savedSlots = JSON.parse(localStorage.getItem("cogitator_saved_missions") || "[]");
+
+    // Ensure array has enough slots (pad with null if needed)
+    while (savedSlots.length <= Math.max(srcIndex, destIndex)) {
+        savedSlots.push(null);
+    }
+
+    // Swap the two slots
+    const temp = savedSlots[srcIndex];
+    savedSlots[srcIndex] = savedSlots[destIndex];
+    savedSlots[destIndex] = temp;
+
+    // Remove trailing nulls
+    while (savedSlots.length > 0 && savedSlots[savedSlots.length - 1] === null) {
+        savedSlots.pop();
+    }
+
+    localStorage.setItem("cogitator_saved_missions", JSON.stringify(savedSlots));
+    renderDataBankUI();
+}
+
+// Touch-based drag-and-drop for mobile
+let touchDragSrcIndex = null;
+let touchDragElement = null;
+let touchClone = null;
+let touchStartY = 0;
+let touchStartX = 0;
+
+function initTouchDrag(container) {
+    const slots = container.querySelectorAll('.data-slot.occupied');
+    slots.forEach(slot => {
+        slot.addEventListener('touchstart', handleTouchStart, { passive: false });
+    });
+}
+
+function handleTouchStart(e) {
+    // Only start drag if holding for a moment (long press)
+    const slot = this;
+    const touch = e.touches[0];
+    touchStartX = touch.clientX;
+    touchStartY = touch.clientY;
+
+    slot._longPressTimer = setTimeout(() => {
+        e.preventDefault();
+        touchDragSrcIndex = parseInt(slot.dataset.slotIndex);
+        touchDragElement = slot;
+        slot.classList.add('dragging');
+
+        // Create a visual clone for dragging
+        touchClone = slot.cloneNode(true);
+        touchClone.classList.add('touch-drag-clone');
+        touchClone.style.cssText = `
+            position: fixed;
+            top: ${touch.clientY - 20}px;
+            left: ${touch.clientX - 20}px;
+            width: ${slot.offsetWidth}px;
+            z-index: 10000;
+            pointer-events: none;
+            opacity: 0.8;
+        `;
+        document.body.appendChild(touchClone);
+
+        document.addEventListener('touchmove', handleTouchMove, { passive: false });
+        document.addEventListener('touchend', handleTouchEnd);
+    }, 300);
+
+    slot.addEventListener('touchend', cancelLongPress);
+    slot.addEventListener('touchmove', function moveCheck(ev) {
+        const t = ev.touches[0];
+        const dx = Math.abs(t.clientX - touchStartX);
+        const dy = Math.abs(t.clientY - touchStartY);
+        if (dx > 10 || dy > 10) {
+            cancelLongPress.call(slot);
+            slot.removeEventListener('touchmove', moveCheck);
+        }
+    });
+}
+
+function cancelLongPress() {
+    if (this._longPressTimer) {
+        clearTimeout(this._longPressTimer);
+        this._longPressTimer = null;
+    }
+}
+
+function handleTouchMove(e) {
+    if (touchDragSrcIndex === null) return;
+    e.preventDefault();
+
+    const touch = e.touches[0];
+    if (touchClone) {
+        touchClone.style.top = `${touch.clientY - 20}px`;
+        touchClone.style.left = `${touch.clientX - 20}px`;
+    }
+
+    // Highlight drop target
+    document.querySelectorAll('.data-slot').forEach(el => {
+        el.classList.remove('drag-over');
+        const rect = el.getBoundingClientRect();
+        if (touch.clientX >= rect.left && touch.clientX <= rect.right &&
+            touch.clientY >= rect.top && touch.clientY <= rect.bottom) {
+            const targetIndex = parseInt(el.dataset.slotIndex);
+            if (targetIndex !== touchDragSrcIndex) {
+                el.classList.add('drag-over');
+            }
+        }
+    });
+}
+
+function handleTouchEnd(e) {
+    if (touchDragSrcIndex === null) return;
+
+    const touch = e.changedTouches[0];
+    let dropTarget = null;
+
+    document.querySelectorAll('.data-slot').forEach(el => {
+        el.classList.remove('drag-over');
+        const rect = el.getBoundingClientRect();
+        if (touch.clientX >= rect.left && touch.clientX <= rect.right &&
+            touch.clientY >= rect.top && touch.clientY <= rect.bottom) {
+            dropTarget = el;
+        }
+    });
+
+    if (dropTarget) {
+        const destIndex = parseInt(dropTarget.dataset.slotIndex);
+        if (!isNaN(destIndex) && destIndex !== touchDragSrcIndex) {
+            let savedSlots = JSON.parse(localStorage.getItem("cogitator_saved_missions") || "[]");
+            while (savedSlots.length <= Math.max(touchDragSrcIndex, destIndex)) {
+                savedSlots.push(null);
+            }
+            const temp = savedSlots[touchDragSrcIndex];
+            savedSlots[touchDragSrcIndex] = savedSlots[destIndex];
+            savedSlots[destIndex] = temp;
+            while (savedSlots.length > 0 && savedSlots[savedSlots.length - 1] === null) {
+                savedSlots.pop();
+            }
+            localStorage.setItem("cogitator_saved_missions", JSON.stringify(savedSlots));
+            renderDataBankUI();
+        }
+    }
+
+    // Cleanup
+    if (touchDragElement) touchDragElement.classList.remove('dragging');
+    if (touchClone && touchClone.parentNode) touchClone.parentNode.removeChild(touchClone);
+    touchDragSrcIndex = null;
+    touchDragElement = null;
+    touchClone = null;
+
+    document.removeEventListener('touchmove', handleTouchMove);
+    document.removeEventListener('touchend', handleTouchEnd);
 }
 
 function csvToHtmlTable(csvText, sectionTitle) {
@@ -1366,7 +1607,7 @@ function openSlotOverlay(index) {
     modal.innerHTML = `
         <div class="modal-content">
             <div class="modal-header">
-                <h2 class="modal-title">${sanitizeInput(slot.name).toUpperCase()}</h2>
+                <h2 class="modal-title">RUN ${index + 1}: ${sanitizeInput(slot.name).toUpperCase()}</h2>
                 <div class="modal-subtitle">
                     Difficulty: ${sanitizeInput(slot.difficulty)}
                 </div>
@@ -1399,7 +1640,7 @@ function downloadSlotCSV(index) {
 
     const blob = new Blob([slot.csv], { type: 'text/csv;charset=utf-8;' });
     const safeName = slot.name.replace(/[^a-z0-9]/gi, '_').toLowerCase();
-    const filename = `mission_data_${safeName}_${index+1}.csv`;
+    const filename = `Run_${index+1}_${safeName}.csv`;
 
     const link = document.createElement("a");
     if (link.download !== undefined) {
@@ -2273,10 +2514,10 @@ async function recordAllDataScreens() {
             if (!slot || !slot.csv) continue;
 
             if (statusEl) {
-                statusEl.textContent = `Capturing mission ${i + 1} of ${savedSlots.length}...`;
+                statusEl.textContent = `Capturing Run ${i + 1} of ${savedSlots.length}...`;
                 statusEl.style.color = 'var(--pip-green)';
             }
-            if (btn) btn.innerText = `CAPTURING ${i + 1}/${savedSlots.length}...`;
+            if (btn) btn.innerText = `CAPTURING RUN ${i + 1}/${savedSlots.length}...`;
 
             await PNGExporter.exportMissionFromCSV(slot, i);
         }

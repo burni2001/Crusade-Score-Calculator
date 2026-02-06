@@ -1183,6 +1183,51 @@ select option {
     max-width: 150px;
 }
 
+.slot-run-label {
+    font-weight: bold;
+    color: var(--pip-green);
+    white-space: nowrap;
+    min-width: 45px;
+    flex-shrink: 0;
+}
+
+.slot-content {
+    display: flex;
+    align-items: center;
+    flex: 1;
+    overflow: hidden;
+    cursor: pointer;
+}
+
+.data-slot.occupied {
+    cursor: grab;
+}
+
+.data-slot.occupied:active {
+    cursor: grabbing;
+}
+
+.data-slot.dragging {
+    opacity: 0.4;
+    border-style: dashed;
+}
+
+.data-slot.drag-over {
+    border-color: #80cc80;
+    background-color: rgba(32, 192, 32, 0.3);
+    box-shadow: 0 0 10px rgba(32, 192, 32, 0.4);
+}
+
+.touch-drag-clone {
+    border: 2px solid var(--pip-green);
+    background-color: rgba(0, 20, 0, 0.9);
+    border-radius: var(--border-radius);
+    padding: 8px 12px;
+    font-family: "VT323", monospace;
+    color: var(--pip-light);
+    box-shadow: 0 0 15px rgba(32, 192, 32, 0.5);
+}
+
 .delete-slot-btn {
     background: none;
     border: none;
