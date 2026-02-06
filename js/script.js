@@ -1247,9 +1247,12 @@ function saveMissionInternal() {
 }
 
 function renderDataBankUI() {
+    // Clean up any in-progress touch drag to prevent ghost clones
+    cleanupTouchDrag();
+
     const container = document.getElementById("data-bank-ui");
     const containerPage3 = document.getElementById("data-bank-ui-page3");
-    
+
     const savedSlots = JSON.parse(localStorage.getItem("cogitator_saved_missions") || "[]");
     
     // Update counter in all places
@@ -1422,6 +1425,42 @@ let touchClone = null;
 let touchStartY = 0;
 let touchStartX = 0;
 
+/**
+ * Clean up any in-progress touch drag state.
+ * Called on page navigation, render, and touchcancel to prevent ghost clones.
+ */
+function cleanupTouchDrag() {
+    // Remove the floating clone from document.body
+    if (touchClone && touchClone.parentNode) {
+        touchClone.parentNode.removeChild(touchClone);
+    }
+    // Also remove any orphaned clones (safety net)
+    document.querySelectorAll('.touch-drag-clone').forEach(el => el.remove());
+
+    // Clear dragging/drag-over visual classes from all data slots
+    document.querySelectorAll('.data-slot').forEach(el => {
+        el.classList.remove('dragging', 'drag-over');
+    });
+
+    // Clear any pending long-press timers on slots
+    document.querySelectorAll('.data-slot.occupied').forEach(slot => {
+        if (slot._longPressTimer) {
+            clearTimeout(slot._longPressTimer);
+            slot._longPressTimer = null;
+        }
+    });
+
+    // Reset state variables
+    touchDragSrcIndex = null;
+    touchDragElement = null;
+    touchClone = null;
+    dragSrcIndex = null;
+
+    // Remove document-level listeners (safe to call even if not attached)
+    document.removeEventListener('touchmove', handleTouchMove);
+    document.removeEventListener('touchend', handleTouchEnd);
+}
+
 function initTouchDrag(container) {
     const slots = container.querySelectorAll('.data-slot.occupied');
     slots.forEach(slot => {
@@ -1546,6 +1585,14 @@ function handleTouchEnd(e) {
     document.removeEventListener('touchmove', handleTouchMove);
     document.removeEventListener('touchend', handleTouchEnd);
 }
+
+// Handle touchcancel (system gesture, notification, browser interruption)
+// Without this, the clone stays in document.body when the browser cancels the touch
+document.addEventListener('touchcancel', function() {
+    if (touchDragSrcIndex !== null) {
+        cleanupTouchDrag();
+    }
+});
 
 function csvToHtmlTable(csvText, sectionTitle) {
     const lines = csvText.split('\n');
@@ -2408,6 +2455,9 @@ function navigateToPage(pageNum) {
     if (pageNum === currentPage) return;
     if (isPageTransitioning) return;
 
+    // Clean up any in-progress touch drag to prevent ghost clones on page switch
+    cleanupTouchDrag();
+
     const oldPage = document.getElementById(`page-${currentPage}`);
     const targetPage = document.getElementById(`page-${pageNum}`);
     if (!targetPage) return;
@@ -2847,6 +2897,9 @@ const SwipeHandler = {
      * Complete page navigation from current drag position with a smooth finish
      */
     completeSwipeNavigation(targetPageNum, deltaX) {
+        // Clean up any in-progress touch drag to prevent ghost clones on swipe navigation
+        cleanupTouchDrag();
+
         isPageTransitioning = true;
 
         const containerWidth = this.activePage ? this.activePage.offsetWidth : window.innerWidth;
