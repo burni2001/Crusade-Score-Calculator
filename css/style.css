@@ -4,7 +4,17 @@
    ============================================ */
 
 /* === 1. VARIABLES & FONTS === */
-@import url("https://fonts.googleapis.com/css2?family=VT323&display=swap");
+
+/* Self-hosted VT323 font for Discord CSP compliance */
+@font-face {
+    font-family: 'VT323';
+    font-style: normal;
+    font-weight: 400;
+    font-display: swap;
+    src: local('VT323'),
+         local('VT323-Regular'),
+         url('../fonts/vt323/VT323-Regular.ttf') format('truetype');
+}
 
 :root {
     /* Colors */
