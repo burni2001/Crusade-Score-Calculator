@@ -8,7 +8,7 @@ class DiscordIntegration {
         this.discordSDK = null;
         this.auth = null;
         this.isDiscordEnvironment = false;
-        this.clientId = '1470106608687255623D';
+        this.clientId = '1470106608687255623';
     }
 
     /**
