@@ -2612,8 +2612,19 @@ async function recordAllDataScreens() {
 // Global variable to store Imperial Date interval ID
 let imperialDateIntervalId = null;
 
-window.addEventListener('DOMContentLoaded', function() {
+window.addEventListener('DOMContentLoaded', async function() {
     console.log('🚀 Initializing Crusade Score Calculator...');
+    
+    // Initialize Discord if in Discord environment
+    if (typeof discordIntegration !== 'undefined') {
+        const isDiscord = await discordIntegration.initialize();
+        
+        if (isDiscord) {
+            console.log('🎮 Running as Discord Activity');
+            document.body.classList.add('discord-mode');
+        }
+    }
+    
     loadData();
     calculate();
     updateAdditionalStatsHeaders();
