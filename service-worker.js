@@ -11,12 +11,12 @@ const urlsToCache = [
     "./js/csv-handler.js",
     "./js/calculation-engine.js",
     "./js/png-exporter.js",
+    "./js/discord-integration.js",
+    "./fonts/vt323/VT323-Regular.ttf",
     "./data/events.json",
     "./data/crusade_modifiers.csv",
     "./manifest.json",
     "./attached_assets/FFFvLV2Ld6_crt_frei.png",
-    "https://fonts.googleapis.com/css2?family=VT323&display=swap", // Cache the Google Font CSS
-    // --- Add your PWA icons here ---
     "icons/icon-192x192.png",
     "icons/icon-512x512.png",
     "icons/icon-maskable-192x192.png",
