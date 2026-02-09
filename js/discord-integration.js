@@ -8,7 +8,7 @@ class DiscordIntegration {
         this.discordSDK = null;
         this.auth = null;
         this.isDiscordEnvironment = false;
-        this.clientId = 'YOUR_APPLICATION_ID'; // Replace with your Discord App ID
+        this.clientId = '1470106608687255623D';
     }
 
     /**
