@@ -1837,9 +1837,7 @@ select.validation-error {
     text-shadow: 0 0 5px var(--pip-green);
 }
 
-/* ============================================================================
-   DISCORD INTEGRATION STYLES
-   ============================================================================ */
+/* === 31. DISCORD INTEGRATION STYLES === */
 
 /* Discord user badge in header */
 .discord-badge {
@@ -1897,5 +1895,39 @@ body.discord-mode {
     background: linear-gradient(135deg, #4752c4 0%, #3c45a5 100%);
     box-shadow: 0 0 12px rgba(88, 101, 242, 0.6);
     transform: translateY(-2px);
+}
+
+/* Force all elements to be clickable in Discord */
+body.discord-mode,
+body.discord-mode * {
+    pointer-events: auto !important;
+}
+
+/* Explicitly enable interactions on all interactive elements */
+body.discord-mode button,
+body.discord-mode .btn,
+body.discord-mode input,
+body.discord-mode select,
+body.discord-mode textarea,
+body.discord-mode a,
+body.discord-mode label {
+    pointer-events: auto !important;
+    touch-action: manipulation !important;
+    cursor: pointer !important;
+}
+
+/* Fix for modals and overlays */
+body.discord-mode .modal-overlay,
+body.discord-mode #event-menu,
+body.discord-mode .dropdown-content {
+    pointer-events: auto !important;
+}
+
+/* Ensure page containers don't block clicks */
+body.discord-mode .page-container,
+body.discord-mode .content-wrapper,
+body.discord-mode main,
+body.discord-mode section {
+    pointer-events: auto !important;
 }
 
