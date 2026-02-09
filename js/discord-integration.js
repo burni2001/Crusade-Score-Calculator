@@ -16,18 +16,25 @@ class DiscordIntegration {
      * @returns {Promise<boolean>} Success status
      */
     async initialize() {
-        try {
-            // Check if running in Discord
-            if (typeof DiscordSDK === 'undefined') {
-                console.log('📱 Not running in Discord environment - standard web mode');
-                this.isDiscordEnvironment = false;
-                return false;
-            }
+    try {
+        // Check if running in Discord
+        if (typeof DiscordSDK === 'undefined') {
+            console.log('📱 Not running in Discord environment - standard web mode');
+            this.isDiscordEnvironment = false;
+            return false;
+        }
 
-            console.log('🎮 Discord environment detected - initializing Activity...');
-            
-            this.discordSDK = new DiscordSDK(this.clientId);
-            await this.discordSDK.ready();
+        console.log('🎮 Discord environment detected - initializing Activity...');
+        
+        this.discordSDK = new DiscordSDK(this.clientId);
+        
+        // Add timeout to prevent hanging
+        const readyPromise = this.discordSDK.ready();
+        const timeoutPromise = new Promise((_, reject) => 
+            setTimeout(() => reject(new Error('Discord SDK timeout')), 5000)
+        );
+        
+        await Promise.race([readyPromise, timeoutPromise]);
 
             console.log('✅ Discord SDK initialized');
             this.isDiscordEnvironment = true;
