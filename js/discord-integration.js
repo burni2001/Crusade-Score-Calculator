@@ -16,25 +16,25 @@ class DiscordIntegration {
      * @returns {Promise<boolean>} Success status
      */
     async initialize() {
-    try {
-        // Check if running in Discord
-        if (typeof DiscordSDK === 'undefined') {
-            console.log('📱 Not running in Discord environment - standard web mode');
-            this.isDiscordEnvironment = false;
-            return false;
-        }
+        try {
+            // Check if running in Discord
+            if (typeof DiscordSDK === 'undefined') {
+                console.log('📱 Not running in Discord environment - standard web mode');
+                this.isDiscordEnvironment = false;
+                return false;
+            }
 
-        console.log('🎮 Discord environment detected - initializing Activity...');
-        
-        this.discordSDK = new DiscordSDK(this.clientId);
-        
-        // Add timeout to prevent hanging
-        const readyPromise = this.discordSDK.ready();
-        const timeoutPromise = new Promise((_, reject) => 
-            setTimeout(() => reject(new Error('Discord SDK timeout')), 5000)
-        );
-        
-        await Promise.race([readyPromise, timeoutPromise]);
+            console.log('🎮 Discord environment detected - initializing Activity...');
+            
+            this.discordSDK = new DiscordSDK(this.clientId);
+            
+            // Add timeout to prevent hanging
+            const readyPromise = this.discordSDK.ready();
+            const timeoutPromise = new Promise((_, reject) => 
+                setTimeout(() => reject(new Error('Discord SDK timeout')), 5000)
+            );
+            
+            await Promise.race([readyPromise, timeoutPromise]);
 
             console.log('✅ Discord SDK initialized');
             this.isDiscordEnvironment = true;
@@ -138,6 +138,9 @@ class DiscordIntegration {
         });
 
         console.log('✅ Discord features initialized');
+        
+        // Fix Discord iframe interactions (ADD THIS LINE)
+        setTimeout(() => this.fixDiscordInteractions(), 500);
     }
 
     /**
@@ -216,6 +219,46 @@ class DiscordIntegration {
      */
     getCurrentUser() {
         return this.auth?.user || null;
+    }
+
+    /**
+     * Fix interaction issues in Discord iframe
+     * NEW METHOD - ADDED HERE
+     */
+    fixDiscordInteractions() {
+        if (!this.isDiscordEnvironment) return;
+        
+        console.log('🔧 Applying Discord iframe interaction fixes...');
+        
+        // Force all elements to be interactive
+        document.body.style.pointerEvents = 'auto';
+        
+        // Apply to all interactive elements
+        const selectors = 'button, a, input, select, textarea, .btn, .nav-btn, .modal-overlay';
+        document.querySelectorAll(selectors).forEach(el => {
+            el.style.pointerEvents = 'auto';
+            el.style.touchAction = 'manipulation';
+        });
+        
+        // FIX: Handle onclick attributes for Discord CSP
+        document.addEventListener('click', function(e) {
+            const target = e.target.closest('[onclick]');
+            if (target && target.onclick) {
+                try {
+                    // Execute the onclick handler
+                    const event = new MouseEvent('click', {
+                        bubbles: true,
+                        cancelable: true,
+                        view: window
+                    });
+                    target.onclick.call(target, event);
+                } catch (error) {
+                    console.warn('Failed to execute onclick:', error);
+                }
+            }
+        }, true);
+        
+        console.log('✅ Discord interaction fixes applied');
     }
 }
 
