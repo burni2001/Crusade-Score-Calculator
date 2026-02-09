@@ -139,7 +139,7 @@ class DiscordIntegration {
 
         console.log('✅ Discord features initialized');
         
-        // Fix Discord iframe interactions (ADD THIS LINE)
+        // Fix Discord iframe interactions
         setTimeout(() => this.fixDiscordInteractions(), 500);
     }
 
@@ -223,7 +223,6 @@ class DiscordIntegration {
 
     /**
      * Fix interaction issues in Discord iframe
-     * NEW METHOD - ADDED HERE
      */
     fixDiscordInteractions() {
         if (!this.isDiscordEnvironment) return;
@@ -240,23 +239,44 @@ class DiscordIntegration {
             el.style.touchAction = 'manipulation';
         });
         
-        // FIX: Handle onclick attributes for Discord CSP
-        document.addEventListener('click', function(e) {
-            const target = e.target.closest('[onclick]');
-            if (target && target.onclick) {
+        // IMPROVED: Handle onclick attributes for Discord CSP
+        // Find all elements with onclick attributes and convert them to proper event listeners
+        document.querySelectorAll('[onclick]').forEach(element => {
+            const onclickCode = element.getAttribute('onclick');
+            if (!onclickCode) return;
+            
+            // Remove the onclick attribute to prevent CSP errors
+            element.removeAttribute('onclick');
+            
+            // Add a proper event listener that executes the code
+            element.addEventListener('click', function(e) {
                 try {
-                    // Execute the onclick handler
-                    const event = new MouseEvent('click', {
-                        bubbles: true,
-                        cancelable: true,
-                        view: window
-                    });
-                    target.onclick.call(target, event);
+                    // Create a function from the onclick code and execute it
+                    // 'this' will refer to the element, just like native onclick
+                    const func = new Function('event', onclickCode);
+                    func.call(this, e);
                 } catch (error) {
-                    console.warn('Failed to execute onclick:', error);
+                    console.warn('Failed to execute click handler:', error, 'Code:', onclickCode);
                 }
-            }
-        }, true);
+            });
+        });
+        
+        // Do the same for onchange attributes
+        document.querySelectorAll('[onchange]').forEach(element => {
+            const onchangeCode = element.getAttribute('onchange');
+            if (!onchangeCode) return;
+            
+            element.removeAttribute('onchange');
+            
+            element.addEventListener('change', function(e) {
+                try {
+                    const func = new Function('event', onchangeCode);
+                    func.call(this, e);
+                } catch (error) {
+                    console.warn('Failed to execute change handler:', error);
+                }
+            });
+        });
         
         console.log('✅ Discord interaction fixes applied');
     }
