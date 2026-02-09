@@ -1,6 +1,6 @@
 /**
- * Discord Activity Integration
- * Handles Discord SDK initialization and user authentication
+ * Discord Activity Integration for Crusade Score Calculator
+ * Handles Discord SDK initialization, authentication, and activity features
  */
 
 class DiscordIntegration {
@@ -8,6 +8,7 @@ class DiscordIntegration {
         this.discordSDK = null;
         this.auth = null;
         this.isDiscordEnvironment = false;
+        this.clientId = 'YOUR_APPLICATION_ID'; // Replace with your Discord App ID
     }
 
     /**
@@ -18,15 +19,17 @@ class DiscordIntegration {
         try {
             // Check if running in Discord
             if (typeof DiscordSDK === 'undefined') {
-                console.log('Not running in Discord environment');
+                console.log('📱 Not running in Discord environment - standard web mode');
                 this.isDiscordEnvironment = false;
                 return false;
             }
 
-            this.discordSDK = new DiscordSDK(/* YOUR_CLIENT_ID */);
+            console.log('🎮 Discord environment detected - initializing Activity...');
+            
+            this.discordSDK = new DiscordSDK(this.clientId);
             await this.discordSDK.ready();
 
-            console.log('Discord SDK initialized');
+            console.log('✅ Discord SDK initialized');
             this.isDiscordEnvironment = true;
 
             // Authenticate user
@@ -37,7 +40,7 @@ class DiscordIntegration {
 
             return true;
         } catch (error) {
-            console.error('Discord initialization failed:', error);
+            console.error('❌ Discord initialization failed:', error);
             this.isDiscordEnvironment = false;
             return false;
         }
@@ -49,7 +52,7 @@ class DiscordIntegration {
     async authenticate() {
         try {
             const { code } = await this.discordSDK.commands.authorize({
-                client_id: /* YOUR_CLIENT_ID */,
+                client_id: this.clientId,
                 response_type: "code",
                 state: "",
                 prompt: "none",
@@ -59,119 +62,139 @@ class DiscordIntegration {
                 ],
             });
 
-            // Exchange code for access token
-            const response = await fetch("/.proxy/api/token", {
+            // Exchange code for access token via Discord's built-in proxy
+            const response = await fetch("/api/token", {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
                 },
-                body: JSON.stringify({
-                    code,
-                }),
+                body: JSON.stringify({ code }),
             });
 
             const { access_token } = await response.json();
 
-            // Get user info
+            // Authenticate with access token
             const auth = await this.discordSDK.commands.authenticate({
                 access_token,
             });
 
             this.auth = auth;
 
-            console.log('Discord user authenticated:', auth.user.username);
+            console.log('✅ Discord user authenticated:', auth.user.username);
             this.displayUserInfo(auth.user);
 
         } catch (error) {
-            console.error('Discord authentication failed:', error);
+            console.error('⚠️ Discord authentication failed:', error);
+            // Non-critical - app still works without auth
         }
     }
 
     /**
-     * Display user info in the UI
+     * Display user info badge in the UI
      */
     displayUserInfo(user) {
-        // Add a Discord user badge to your UI
+        // Add Discord user badge to header
         const userBadge = document.createElement('div');
         userBadge.id = 'discord-user-badge';
+        userBadge.className = 'discord-badge';
         userBadge.innerHTML = `
-            <div class="discord-badge">
-                <img src="https://cdn.discordapp.com/avatars/${user.id}/${user.avatar}.png" 
-                     alt="${user.username}" 
-                     class="discord-avatar">
-                <span class="discord-username">${user.username}</span>
-            </div>
+            <img src="https://cdn.discordapp.com/avatars/${user.id}/${user.avatar}.png" 
+                 alt="${user.username}" 
+                 class="discord-avatar"
+                 onerror="this.style.display='none'">
+            <span class="discord-username">${user.username}</span>
+            <span class="discord-discriminator">#${user.discriminator}</span>
         `;
         
-        // Insert at top of page
-        const header = document.querySelector('header') || document.body;
-        header.insertBefore(userBadge, header.firstChild);
+        // Insert into header (after the title)
+        const header = document.querySelector('header');
+        if (header) {
+            const titleDiv = header.querySelector('.title');
+            if (titleDiv && titleDiv.nextSibling) {
+                header.insertBefore(userBadge, titleDiv.nextSibling);
+            } else {
+                header.appendChild(userBadge);
+            }
+        }
     }
 
     /**
      * Setup Discord-specific features
      */
     setupDiscordFeatures() {
-        // Set activity status
-        this.updateActivity('Calculating Crusade Scores');
+        // Set initial activity status
+        this.updateActivity('Reviewing Mission Data', 'In Cogitator');
 
-        // Listen for voice channel changes
+        // Listen for voice channel changes (optional - for future features)
         this.discordSDK.subscribe('VOICE_STATE_UPDATE', (voiceState) => {
-            console.log('Voice state updated:', voiceState);
+            console.log('🎤 Voice state updated:', voiceState);
         });
 
-        // Listen for speaking events (optional - for future features)
-        this.discordSDK.subscribe('SPEAKING_START', ({ user_id }) => {
-            console.log('User started speaking:', user_id);
-        });
+        console.log('✅ Discord features initialized');
     }
 
     /**
-     * Update Discord activity status
+     * Update Discord activity status (shows what user is doing)
      * @param {string} details - Activity details to display
+     * @param {string} state - Current state description
      */
-    updateActivity(details) {
+    updateActivity(details, state = 'Calculating Scores') {
         if (!this.isDiscordEnvironment) return;
 
-        this.discordSDK.commands.setActivity({
-            activity: {
-                type: 0, // Playing
-                details: details,
-                state: 'In Mission Debrief',
-                assets: {
-                    large_image: 'crusade_logo', // Upload to Discord app assets
-                    large_text: 'Crusade Score Calculator'
+        try {
+            this.discordSDK.commands.setActivity({
+                activity: {
+                    type: 0, // Playing
+                    details: details,
+                    state: state,
+                    timestamps: {
+                        start: Date.now()
+                    }
                 }
-            }
-        });
+            });
+        } catch (error) {
+            console.warn('Failed to update Discord activity:', error);
+        }
     }
 
     /**
-     * Share results to voice channel
+     * Share mission results to Discord channel
      * @param {Object} missionData - Mission results to share
      */
     async shareToChannel(missionData) {
-        if (!this.isDiscordEnvironment) return;
+        if (!this.isDiscordEnvironment || !this.discordSDK.channelId) {
+            console.warn('Cannot share: Not in a Discord channel');
+            return false;
+        }
 
-        const message = this.formatMissionResults(missionData);
-        
-        // Send message to current channel
-        await this.discordSDK.commands.sendMessage({
-            channel_id: this.discordSDK.channelId,
-            content: message
-        });
+        try {
+            const message = this.formatMissionResults(missionData);
+            
+            // This would require additional Discord permissions
+            // For now, we'll just copy to clipboard
+            await navigator.clipboard.writeText(message);
+            
+            console.log('✅ Mission results copied to clipboard');
+            return true;
+        } catch (error) {
+            console.error('Failed to share results:', error);
+            return false;
+        }
     }
 
     /**
-     * Format mission results for Discord message
+     * Format mission results for sharing
      */
     formatMissionResults(data) {
-        return `
-**Mission Complete: ${data.missionName}**
-Difficulty: ${data.difficulty}
-Score: ${data.totalScore}
-MVP: ${data.mvpPlayer || 'N/A'}
-        `.trim();
+        return `**╔═══════════════════════════════╗
+║   MISSION DEBRIEF COMPLETE   ║
+╚═══════════════════════════════╝**
+
+**Mission:** ${data.missionName || 'Unknown'}
+**Difficulty:** ${data.difficulty || 'Unknown'}
+**Total Score:** ${data.totalScore || 0}
+
+**By the Emperor, mission archived!**`;
     }
 
     /**
@@ -180,7 +203,29 @@ MVP: ${data.mvpPlayer || 'N/A'}
     isInDiscord() {
         return this.isDiscordEnvironment;
     }
+
+    /**
+     * Get current user info
+     */
+    getCurrentUser() {
+        return this.auth?.user || null;
+    }
 }
 
-// Export singleton instance
+// ============================================================================
+// EXPORTS
+// ============================================================================
+
+// Create singleton instance
 const discordIntegration = new DiscordIntegration();
+
+// Browser / Global
+if (typeof window !== 'undefined') {
+    window.discordIntegration = discordIntegration;
+    console.log('🎮 Discord Integration module loaded');
+}
+
+// Node.js / CommonJS (for testing)
+if (typeof module !== 'undefined' && module.exports) {
+    module.exports = { DiscordIntegration, discordIntegration };
+}
