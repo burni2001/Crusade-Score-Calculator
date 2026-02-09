@@ -1837,3 +1837,65 @@ select.validation-error {
     text-shadow: 0 0 5px var(--pip-green);
 }
 
+/* ============================================================================
+   DISCORD INTEGRATION STYLES
+   ============================================================================ */
+
+/* Discord user badge in header */
+.discord-badge {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 12px;
+    background: rgba(88, 101, 242, 0.15);
+    border: 1px solid var(--primary-green);
+    border-radius: 4px;
+    margin: 10px 0;
+    animation: glow-pulse 3s ease-in-out infinite;
+}
+
+.discord-avatar {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    border: 2px solid var(--primary-green);
+    box-shadow: 0 0 8px rgba(32, 192, 32, 0.4);
+}
+
+.discord-username {
+    color: var(--primary-green);
+    font-family: 'Courier New', monospace;
+    font-size: 13px;
+    font-weight: bold;
+    text-shadow: 0 0 4px rgba(32, 192, 32, 0.6);
+}
+
+.discord-discriminator {
+    color: var(--primary-green);
+    font-family: 'Courier New', monospace;
+    font-size: 11px;
+    opacity: 0.7;
+}
+
+/* Discord mode adjustments (when embedded in Discord) */
+body.discord-mode {
+    /* Optional: Adjust UI for Discord embedding */
+    --page-max-width: 100%;
+}
+
+/* Discord share button (if added later) */
+.discord-share-btn {
+    background: linear-gradient(135deg, #5865f2 0%, #4752c4 100%);
+    border: 1px solid var(--primary-green);
+    color: var(--primary-green);
+    padding: 8px 16px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.discord-share-btn:hover {
+    background: linear-gradient(135deg, #4752c4 0%, #3c45a5 100%);
+    box-shadow: 0 0 12px rgba(88, 101, 242, 0.6);
+    transform: translateY(-2px);
+}
+
