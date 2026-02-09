@@ -2617,11 +2617,16 @@ window.addEventListener('DOMContentLoaded', async function() {
     
     // Initialize Discord if in Discord environment
     if (typeof discordIntegration !== 'undefined') {
-        const isDiscord = await discordIntegration.initialize();
-        
-        if (isDiscord) {
-            console.log('🎮 Running as Discord Activity');
-            document.body.classList.add('discord-mode');
+        try {
+            const isDiscord = await discordIntegration.initialize();
+            
+            if (isDiscord) {
+                console.log('🎮 Running as Discord Activity');
+                document.body.classList.add('discord-mode');
+            }
+        } catch (error) {
+            // Silently handle Discord initialization errors (not in Discord environment)
+            console.log('📱 Discord not available - running in standard web mode');
         }
     }
     
