@@ -1,91 +1,92 @@
-/**
- * Crusade OCR Proxy - Cloudflare Worker
- *
- * Proxies OCR requests to the OCR.space API, keeping API keys server-side.
- * Designed to work both directly (from GitHub Pages) and through
- * Discord Activity URL mapping (/.proxy/ocr-proxy/).
- *
- * Environment secrets (set via `wrangler secret put`):
- *   OCR_API_KEY_1  - Primary OCR.space API key
- *   OCR_API_KEY_2  - Fallback OCR.space API key
- */
+// ============================================================================
+// CLOUDFLARE WORKER - OCR PROXY
+// Proxies OCR requests to OCR.space API, keeping API keys server-side.
+// Works from GitHub Pages (direct) and Discord Activity (via /.proxy/ocr-proxy/).
+// ============================================================================
 
-const OCR_SPACE_URL = 'https://api.ocr.space/parse/image';
+const API_KEY_1 = 'K88077327588957';
+const API_KEY_2 = 'K85650756988957';
 
-function corsHeaders() {
-  return {
-    'Access-Control-Allow-Origin': '*',
+// Allowed origins: GitHub Pages + Discord Activity
+const ALLOWED_ORIGINS = [
+  'https://burni2001.github.io',
+  'https://1470106608687255623.discordsays.com'
+];
+
+addEventListener('fetch', event => {
+  event.respondWith(handleRequest(event.request))
+});
+
+async function handleRequest(request) {
+  const origin = request.headers.get('Origin');
+
+  // Pick the matching origin for the CORS header, or default to first
+  const allowedOrigin = ALLOWED_ORIGINS.includes(origin)
+    ? origin
+    : ALLOWED_ORIGINS[0];
+
+  const corsHeaders = {
+    'Access-Control-Allow-Origin': allowedOrigin,
     'Access-Control-Allow-Methods': 'POST, OPTIONS',
     'Access-Control-Allow-Headers': 'Content-Type',
-    'Access-Control-Max-Age': '86400',
+    'Access-Control-Max-Age': '86400'
   };
+
+  // Handle OPTIONS (CORS preflight)
+  if (request.method === 'OPTIONS') {
+    return new Response(null, {
+      status: 204,
+      headers: corsHeaders
+    });
+  }
+
+  // Only allow POST
+  if (request.method !== 'POST') {
+    return new Response('Method not allowed', {
+      status: 405,
+      headers: { ...corsHeaders, 'Content-Type': 'text/plain' }
+    });
+  }
+
+  // Allow requests with no Origin (server-to-server, e.g. Discord's proxy)
+  // and requests from any allowed origin
+  if (origin && !ALLOWED_ORIGINS.includes(origin)) {
+    return new Response(`Origin "${origin}" not allowed`, {
+      status: 403,
+      headers: { ...corsHeaders, 'Content-Type': 'text/plain' }
+    });
+  }
+
+  try {
+    const formData = await request.formData();
+
+    // Select API key
+    const keyIndex = formData.get('keyIndex') || '0';
+    const apiKey = keyIndex === '1' ? API_KEY_2 : API_KEY_1;
+
+    // Remove keyIndex before forwarding to OCR.space
+    formData.delete('keyIndex');
+
+    const ocrResponse = await fetch('https://api.ocr.space/parse/image', {
+      method: 'POST',
+      headers: { 'apikey': apiKey },
+      body: formData
+    });
+
+    const responseText = await ocrResponse.text();
+
+    return new Response(responseText, {
+      status: ocrResponse.status,
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+    });
+
+  } catch (error) {
+    return new Response(JSON.stringify({
+      error: 'Proxy error',
+      message: error.message
+    }), {
+      status: 500,
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+    });
+  }
 }
-
-function jsonResponse(body, status = 200) {
-  return new Response(JSON.stringify(body), {
-    status,
-    headers: { ...corsHeaders(), 'Content-Type': 'application/json' },
-  });
-}
-
-export default {
-  async fetch(request, env) {
-    // CORS preflight
-    if (request.method === 'OPTIONS') {
-      return new Response(null, { status: 204, headers: corsHeaders() });
-    }
-
-    // Only POST is accepted
-    if (request.method !== 'POST') {
-      return jsonResponse({ error: 'Method not allowed' }, 405);
-    }
-
-    try {
-      const formData = await request.formData();
-
-      // Select API key based on keyIndex parameter
-      const keyIndex = parseInt(formData.get('keyIndex') || '0', 10);
-      const apiKey = keyIndex === 1 ? (env.OCR_API_KEY_2 || env.OCR_API_KEY_1) : env.OCR_API_KEY_1;
-
-      if (!apiKey) {
-        return jsonResponse(
-          { IsErroredOnProcessing: true, ErrorMessage: 'OCR API key not configured on worker' },
-          500
-        );
-      }
-
-      // Build outgoing request to OCR.space
-      const ocrForm = new FormData();
-      const base64Image = formData.get('base64Image');
-      if (!base64Image) {
-        return jsonResponse(
-          { IsErroredOnProcessing: true, ErrorMessage: 'Missing base64Image field' },
-          400
-        );
-      }
-      ocrForm.append('base64Image', base64Image);
-      ocrForm.append('language', formData.get('language') || 'eng');
-      ocrForm.append('isOverlayRequired', formData.get('isOverlayRequired') || 'false');
-      ocrForm.append('OCREngine', formData.get('OCREngine') || '2');
-      ocrForm.append('scale', formData.get('scale') || 'true');
-      if (formData.get('isTable') === 'true') {
-        ocrForm.append('isTable', 'true');
-      }
-
-      const ocrResponse = await fetch(OCR_SPACE_URL, {
-        method: 'POST',
-        headers: { apikey: apiKey },
-        body: ocrForm,
-      });
-
-      const result = await ocrResponse.json();
-
-      return jsonResponse(result, ocrResponse.status);
-    } catch (err) {
-      return jsonResponse(
-        { IsErroredOnProcessing: true, ErrorMessage: err.message || 'Internal worker error' },
-        500
-      );
-    }
-  },
-};
