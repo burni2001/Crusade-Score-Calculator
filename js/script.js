@@ -2228,7 +2228,9 @@ async function fetchEventList() {
 
     try {
         let data;
-        const isDiscord = (window.discordIntegration && window.discordIntegration.isInDiscord()) || typeof DiscordSDK !== 'undefined';
+        const isDiscord = (window.OCRApi && window.OCRApi._isDiscordActivity()) ||
+            (window.discordIntegration && window.discordIntegration.isInDiscord()) ||
+            typeof DiscordSDK !== 'undefined';
 
         // Strategy 1: Local file fetch (works in most environments including Discord)
         // Use ./data/ prefix for consistency with service worker cache paths
