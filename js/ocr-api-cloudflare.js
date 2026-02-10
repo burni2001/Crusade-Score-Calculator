@@ -55,15 +55,6 @@ const OCRApi = {
     },
 
     /**
-     * Get the appropriate API URL based on environment.
-     * Discord Activities block external fetches via CSP — route through proxy.
-     * @returns {string} The URL to use for OCR API calls
-     */
-    getApiUrl() {
-        return this._isDiscordActivity() ? this.discordProxyPath : this.workerUrl;
-    },
-    
-    /**
      * Split image into left (mission header) and right (stats) halves
      * Right half is upscaled for better number recognition
      * @param {string} dataUrl - Base64 image data URL
@@ -128,42 +119,43 @@ const OCRApi = {
 
     /**
      * Build the request body for the OCR API call.
-     * Uses URLSearchParams for Discord proxy (more reliable than multipart through proxies)
-     * and FormData for direct Cloudflare Worker calls.
+     * Always uses FormData (multipart/form-data) which the Cloudflare Worker accepts
+     * and avoids the size inflation of URL-encoding base64 data.
      * @param {string} base64Image - Base64 encoded image
      * @param {number} keyIndex - Which API key to use
      * @param {boolean} useTable - Enable table detection
-     * @param {boolean} viaProxy - Whether the request goes through Discord's proxy
-     * @returns {{body: FormData|URLSearchParams, headers: Object|undefined}}
+     * @returns {{body: FormData, headers: undefined}}
      */
-    _buildRequestBody(base64Image, keyIndex, useTable, viaProxy) {
-        if (viaProxy) {
-            // URLSearchParams sends as application/x-www-form-urlencoded
-            // which is more reliably forwarded by Discord's URL mapping proxy
-            const params = new URLSearchParams();
-            params.append("base64Image", base64Image);
-            params.append("language", "eng");
-            params.append("isOverlayRequired", "false");
-            params.append("OCREngine", "2");
-            params.append("scale", "true");
-            params.append("keyIndex", keyIndex.toString());
-            if (useTable) params.append("isTable", "true");
-            return { body: params, headers: { "Content-Type": "application/x-www-form-urlencoded" } };
-        } else {
-            const formData = new FormData();
-            formData.append("base64Image", base64Image);
-            formData.append("language", "eng");
-            formData.append("isOverlayRequired", "false");
-            formData.append("OCREngine", "2");
-            formData.append("scale", "true");
-            formData.append("keyIndex", keyIndex.toString());
-            if (useTable) formData.append("isTable", "true");
-            return { body: formData, headers: undefined };
-        }
+    _buildRequestBody(base64Image, keyIndex, useTable) {
+        const formData = new FormData();
+        formData.append("base64Image", base64Image);
+        formData.append("language", "eng");
+        formData.append("isOverlayRequired", "false");
+        formData.append("OCREngine", "2");
+        formData.append("scale", "true");
+        formData.append("keyIndex", keyIndex.toString());
+        if (useTable) formData.append("isTable", "true");
+        return { body: formData, headers: undefined };
     },
 
     /**
-     * Call OCR API via Cloudflare Worker proxy
+     * Attempt a single fetch to the given URL.
+     * @param {string} url - Endpoint to call
+     * @param {string} base64Image - Base64 encoded image
+     * @param {number} keyIndex - Which API key to use
+     * @param {boolean} useTable - Enable table detection
+     * @returns {Promise<Response>} fetch Response
+     */
+    async _fetchOCR(url, base64Image, keyIndex, useTable) {
+        const { body } = this._buildRequestBody(base64Image, keyIndex, useTable);
+        return fetch(url, { method: "POST", body });
+    },
+
+    /**
+     * Call OCR API via Cloudflare Worker proxy.
+     * In Discord Activities, tries the proxy path first, then falls back to the
+     * direct Worker URL (which succeeds if CSP connect-src allows it).
+     * Outside Discord, tries the direct Worker URL first, then the proxy as fallback.
      * @param {string} base64Image - Base64 encoded image
      * @param {number} keyIndex - Which API key to use (0 or 1)
      * @param {boolean} useTable - Enable table detection
@@ -171,40 +163,49 @@ const OCRApi = {
      * @returns {Promise<string>} Parsed text from image
      */
     async callAPI(base64Image, keyIndex = 0, useTable = false, isRetry = false) {
-        // Call Cloudflare Worker (via Discord proxy when in Activity iframe)
-        const viaProxy = this._isDiscordActivity();
-        const apiUrl = this.getApiUrl();
-        const { body, headers } = this._buildRequestBody(base64Image, keyIndex, useTable, viaProxy);
+        const inDiscord = this._isDiscordActivity();
+
+        // Build ordered list of URLs to try
+        // In Discord: proxy first (same-origin, CSP-safe), then direct Worker
+        // Outside Discord: direct Worker first, then proxy as fallback
+        const urls = inDiscord
+            ? [this.discordProxyPath, this.workerUrl]
+            : [this.workerUrl, this.discordProxyPath];
 
         let response;
-        try {
-            const fetchOptions = { method: "POST", body };
-            if (headers) fetchOptions.headers = headers;
-            response = await fetch(apiUrl, fetchOptions);
-        } catch (networkError) {
-            // CSP or network block — if we used the direct URL, fall back to Discord proxy
-            if (apiUrl === this.workerUrl) {
-                console.warn('Direct OCR fetch blocked (likely CSP), retrying via Discord proxy...');
-                try {
-                    const proxyReq = this._buildRequestBody(base64Image, keyIndex, useTable, true);
-                    const proxyOptions = { method: "POST", body: proxyReq.body };
-                    if (proxyReq.headers) proxyOptions.headers = proxyReq.headers;
-                    response = await fetch(this.discordProxyPath, proxyOptions);
-                } catch (proxyError) {
-                    throw new Error('OCR request blocked by Discord. Verify the /ocr-proxy URL mapping is configured in the Discord Developer Portal.');
-                }
-            } else {
-                throw new Error('OCR request blocked by Discord. Verify the /ocr-proxy URL mapping is configured in the Discord Developer Portal.');
+        let lastError;
+
+        for (const url of urls) {
+            try {
+                response = await this._fetchOCR(url, base64Image, keyIndex, useTable);
+            } catch (networkError) {
+                // Network / CSP block — try the next URL
+                console.warn(`OCR fetch to ${url} blocked (${networkError.message}), trying next...`);
+                lastError = networkError;
+                response = null;
+                continue;
             }
+
+            if (response.ok) {
+                // Successful response — stop trying
+                break;
+            }
+
+            // Non-OK status (e.g. 405 from Discord proxy) — try the next URL
+            console.warn(`OCR HTTP ${response.status} from ${url}, trying next...`);
+            lastError = new Error(`OCR service returned HTTP ${response.status} from ${url}`);
+            response = null;
         }
 
-        if (!response.ok) {
-            const statusText = response.statusText || '';
-            console.error(`OCR HTTP ${response.status} ${statusText} from ${apiUrl}`);
-            if (response.status === 405 && viaProxy) {
-                throw new Error('OCR proxy returned 405 Method Not Allowed. Ensure the Cloudflare Worker accepts POST with application/x-www-form-urlencoded. Check Discord Developer Portal URL mapping for /ocr-proxy.');
+        if (!response || !response.ok) {
+            if (inDiscord) {
+                throw new Error(
+                    'OCR unavailable in Discord. The /ocr-proxy URL mapping may not be configured ' +
+                    'in the Discord Developer Portal, and direct Worker access is blocked by CSP. ' +
+                    'Add URL mapping: /ocr-proxy → crusade-ocr-proxy.burni2001.workers.dev'
+                );
             }
-            throw new Error(`OCR service returned HTTP ${response.status}`);
+            throw lastError || new Error('OCR service unavailable');
         }
 
         const result = await response.json();
