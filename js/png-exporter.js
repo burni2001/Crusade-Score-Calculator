@@ -31,7 +31,7 @@ const PNGExporter = {
      * @param {string} buttonSelector - CSS selector for the export button (for feedback)
      * @returns {Promise<void>}
      */
-    async exportMissionScreen(buttonSelector = 'button[onclick="exportTopSectionPNG()"]') {
+    async exportMissionScreen(buttonSelector = null) {
         return this._exportScreen({
             sectionSelectors: [
                 { 
@@ -175,7 +175,7 @@ const PNGExporter = {
      * @param {string} buttonSelector - CSS selector for the export button (for feedback)
      * @returns {Promise<void>}
      */
-    async exportAggregatedScreen(buttonSelector = 'button[onclick="saveAsPNG()"]') {
+    async exportAggregatedScreen(buttonSelector = '#btn-record-png') {
         return this._exportScreen({
             sectionSelectors: [
                 { 

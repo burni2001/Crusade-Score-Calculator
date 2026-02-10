@@ -104,15 +104,25 @@ class DiscordIntegration {
         const userBadge = document.createElement('div');
         userBadge.id = 'discord-user-badge';
         userBadge.className = 'discord-badge';
-        userBadge.innerHTML = `
-            <img src="https://cdn.discordapp.com/avatars/${user.id}/${user.avatar}.png" 
-                 alt="${user.username}" 
-                 class="discord-avatar"
-                 onerror="this.style.display='none'">
-            <span class="discord-username">${user.username}</span>
-            <span class="discord-discriminator">#${user.discriminator}</span>
-        `;
-        
+
+        const avatar = document.createElement('img');
+        avatar.src = `https://cdn.discordapp.com/avatars/${user.id}/${user.avatar}.png`;
+        avatar.alt = user.username;
+        avatar.className = 'discord-avatar';
+        avatar.addEventListener('error', function() { this.style.display = 'none'; });
+
+        const username = document.createElement('span');
+        username.className = 'discord-username';
+        username.textContent = user.username;
+
+        const discriminator = document.createElement('span');
+        discriminator.className = 'discord-discriminator';
+        discriminator.textContent = '#' + user.discriminator;
+
+        userBadge.appendChild(avatar);
+        userBadge.appendChild(username);
+        userBadge.appendChild(discriminator);
+
         // Insert into header (after the title)
         const header = document.querySelector('header');
         if (header) {
@@ -226,58 +236,18 @@ class DiscordIntegration {
      */
     fixDiscordInteractions() {
         if (!this.isDiscordEnvironment) return;
-        
+
         console.log('🔧 Applying Discord iframe interaction fixes...');
-        
-        // Force all elements to be interactive
+
+        // Force all elements to be interactive in Discord iframe
         document.body.style.pointerEvents = 'auto';
-        
-        // Apply to all interactive elements
+
         const selectors = 'button, a, input, select, textarea, .btn, .nav-btn, .modal-overlay';
         document.querySelectorAll(selectors).forEach(el => {
             el.style.pointerEvents = 'auto';
             el.style.touchAction = 'manipulation';
         });
-        
-        // IMPROVED: Handle onclick attributes for Discord CSP
-        // Find all elements with onclick attributes and convert them to proper event listeners
-        document.querySelectorAll('[onclick]').forEach(element => {
-            const onclickCode = element.getAttribute('onclick');
-            if (!onclickCode) return;
-            
-            // Remove the onclick attribute to prevent CSP errors
-            element.removeAttribute('onclick');
-            
-            // Add a proper event listener that executes the code
-            element.addEventListener('click', function(e) {
-                try {
-                    // Create a function from the onclick code and execute it
-                    // 'this' will refer to the element, just like native onclick
-                    const func = new Function('event', onclickCode);
-                    func.call(this, e);
-                } catch (error) {
-                    console.warn('Failed to execute click handler:', error, 'Code:', onclickCode);
-                }
-            });
-        });
-        
-        // Do the same for onchange attributes
-        document.querySelectorAll('[onchange]').forEach(element => {
-            const onchangeCode = element.getAttribute('onchange');
-            if (!onchangeCode) return;
-            
-            element.removeAttribute('onchange');
-            
-            element.addEventListener('change', function(e) {
-                try {
-                    const func = new Function('event', onchangeCode);
-                    func.call(this, e);
-                } catch (error) {
-                    console.warn('Failed to execute change handler:', error);
-                }
-            });
-        });
-        
+
         console.log('✅ Discord interaction fixes applied');
     }
 }
