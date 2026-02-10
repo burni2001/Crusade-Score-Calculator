@@ -9,6 +9,23 @@
 const OCRApi = {
     // Your Cloudflare Worker URL (replace with your actual worker URL)
     workerUrl: "https://crusade-ocr-proxy.burni2001.workers.dev/",
+
+    // Discord Activity proxy path (must match URL mapping in Discord Developer Portal)
+    // Configure in Developer Portal → Activities → URL Mappings:
+    //   Prefix: /ocr-proxy  →  Target: crusade-ocr-proxy.burni2001.workers.dev
+    discordProxyPath: "/.proxy/ocr-proxy/",
+
+    /**
+     * Get the appropriate API URL based on environment.
+     * Discord Activities block external fetches via CSP — route through proxy.
+     * @returns {string} The URL to use for OCR API calls
+     */
+    getApiUrl() {
+        const isDiscord = (typeof window !== 'undefined' &&
+            window.discordIntegration && window.discordIntegration.isInDiscord()) ||
+            (typeof DiscordSDK !== 'undefined');
+        return isDiscord ? this.discordProxyPath : this.workerUrl;
+    },
     
     /**
      * Split image into left (mission header) and right (stats) halves
@@ -91,11 +108,26 @@ const OCRApi = {
         formData.append("keyIndex", keyIndex.toString()); // Tell worker which key to use
         if (useTable) formData.append("isTable", "true");
 
-        // Call Cloudflare Worker instead of OCR.space directly
-        const response = await fetch(this.workerUrl, {
-            method: "POST",
-            body: formData,
-        });
+        // Call Cloudflare Worker (via Discord proxy when in Activity iframe)
+        const apiUrl = this.getApiUrl();
+        let response;
+        try {
+            response = await fetch(apiUrl, {
+                method: "POST",
+                body: formData,
+            });
+        } catch (networkError) {
+            // CSP or network block — common in Discord Activities if proxy is misconfigured
+            const isDiscord = apiUrl === this.discordProxyPath;
+            if (isDiscord) {
+                throw new Error('OCR request blocked by Discord. Verify the /ocr-proxy URL mapping is configured in the Discord Developer Portal.');
+            }
+            throw new Error('Network error contacting OCR service. Please check your connection.');
+        }
+
+        if (!response.ok) {
+            throw new Error(`OCR service returned HTTP ${response.status}`);
+        }
 
         const result = await response.json();
 
