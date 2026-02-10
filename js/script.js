@@ -1404,10 +1404,9 @@ function handleDrop(e) {
         savedSlots.push(null);
     }
 
-    // Swap the two slots
-    const temp = savedSlots[srcIndex];
-    savedSlots[srcIndex] = savedSlots[destIndex];
-    savedSlots[destIndex] = temp;
+    // Remove from source and insert at destination (displaces subsequent slots)
+    const [movedSlot] = savedSlots.splice(srcIndex, 1);
+    savedSlots.splice(destIndex, 0, movedSlot);
 
     // Remove trailing nulls
     while (savedSlots.length > 0 && savedSlots[savedSlots.length - 1] === null) {
@@ -1564,9 +1563,9 @@ function handleTouchEnd(e) {
             while (savedSlots.length <= Math.max(touchDragSrcIndex, destIndex)) {
                 savedSlots.push(null);
             }
-            const temp = savedSlots[touchDragSrcIndex];
-            savedSlots[touchDragSrcIndex] = savedSlots[destIndex];
-            savedSlots[destIndex] = temp;
+            // Remove from source and insert at destination (displaces subsequent slots)
+            const [movedSlot] = savedSlots.splice(touchDragSrcIndex, 1);
+            savedSlots.splice(destIndex, 0, movedSlot);
             while (savedSlots.length > 0 && savedSlots[savedSlots.length - 1] === null) {
                 savedSlots.pop();
             }
