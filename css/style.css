@@ -1927,8 +1927,22 @@ select.validation-error {
 
 /* Discord mode adjustments (when embedded in Discord) */
 body.discord-mode {
-    /* Optional: Adjust UI for Discord embedding */
     --page-max-width: 100%;
+    --discord-overlay-height: 52px;
+}
+
+/* Offset content below the Discord Activity overlay bar */
+body.discord-mode .cogitator-frame {
+    top: calc(var(--space-lg) + var(--discord-overlay-height));
+    height: calc(100dvh - 2 * var(--space-lg) - var(--discord-overlay-height));
+}
+
+@media (max-width: 768px) {
+    body.discord-mode .cogitator-frame {
+        top: calc(var(--space-xs) + var(--discord-overlay-height));
+        height: auto;
+        bottom: calc(var(--space-xs) + env(safe-area-inset-bottom, 0px));
+    }
 }
 
 /* Discord share button (if added later) */
