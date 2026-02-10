@@ -2492,6 +2492,12 @@ document.addEventListener('keydown', function(event) {
             creditsModal.classList.remove('active');
         }
 
+        const pngModal = document.getElementById('png-export-modal');
+        if (pngModal && pngModal.classList.contains('active')) {
+            pngModal.classList.remove('active');
+            PNGExporter._pendingImages = [];
+        }
+
         closeEventMenu();
     }
 });
@@ -2684,6 +2690,9 @@ async function recordAllDataScreens() {
                 if (btn) btn.innerText = originalText;
             }, 2000);
         }
+
+        // In Discord, programmatic downloads don't work — show images in a modal instead
+        PNGExporter.showExportModal();
 
     } catch (error) {
         console.error('Error recording data screens:', error);

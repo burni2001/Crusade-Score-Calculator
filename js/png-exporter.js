@@ -22,6 +22,9 @@ const PNGExporter = {
         settleDelay: 150           // ms to wait for DOM settling after modifications
     },
 
+    // Pending images collected in Discord mode (programmatic downloads don't work in iframe)
+    _pendingImages: [],
+
     // ========================================================================
     // PUBLIC API
     // ========================================================================
@@ -404,11 +407,91 @@ const PNGExporter = {
      * @param {string} filenamePrefix - Prefix for filename
      */
     _downloadCanvas(canvas, filenamePrefix) {
-        const link = document.createElement('a');
         const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);
-        link.download = `${filenamePrefix}_${timestamp}.png`;
-        link.href = canvas.toDataURL('image/png');
-        link.click();
+        const filename = `${filenamePrefix}_${timestamp}.png`;
+        const dataUrl = canvas.toDataURL('image/png');
+
+        if (this._isDiscord()) {
+            // In Discord's iframe, programmatic downloads are silently blocked.
+            // Collect images to display in a modal where users can long-press/right-click to save.
+            this._pendingImages.push({ dataUrl, filename });
+        } else {
+            const link = document.createElement('a');
+            link.download = filename;
+            link.href = dataUrl;
+            link.click();
+        }
+    },
+
+    /**
+     * Check if running inside Discord's embedded webview
+     * @private
+     * @returns {boolean}
+     */
+    _isDiscord() {
+        return !!(window.discordIntegration && window.discordIntegration.isDiscordEnvironment);
+    },
+
+    /**
+     * Show a modal with all pending export images.
+     * Used in Discord where programmatic downloads don't work.
+     * Users can long-press (mobile) or right-click (desktop) to save each image.
+     * No-op if there are no pending images (i.e., not in Discord or nothing captured).
+     */
+    showExportModal() {
+        if (this._pendingImages.length === 0) return;
+
+        let modal = document.getElementById('png-export-modal');
+        if (!modal) {
+            modal = document.createElement('div');
+            modal.id = 'png-export-modal';
+            modal.className = 'modal-overlay';
+            document.body.appendChild(modal);
+        }
+
+        const images = this._pendingImages;
+
+        let imagesHtml = '';
+        images.forEach((img) => {
+            imagesHtml += `
+                <div class="png-export-item">
+                    <div class="png-export-filename">${this._escapeHtml(img.filename)}</div>
+                    <img src="${img.dataUrl}" alt="${this._escapeHtml(img.filename)}" class="png-export-image" />
+                </div>
+            `;
+        });
+
+        modal.innerHTML = `
+            <div class="modal-content png-export-modal-content">
+                <h3 class="text-center text-primary border-bottom pb-10 mt-0 uppercase letter-spacing-2 glow">
+                    CAPTURED DATA SCREENS
+                </h3>
+                <p class="png-export-instructions">
+                    Long-press or right-click each image to save
+                </p>
+                <div class="png-export-gallery">
+                    ${imagesHtml}
+                </div>
+                <div class="modal-buttons">
+                    <button id="btn-close-png-modal" class="btn btn-danger">Close</button>
+                </div>
+            </div>
+        `;
+
+        const self = this;
+        modal.querySelector('#btn-close-png-modal').addEventListener('click', function() {
+            modal.classList.remove('active');
+            self._pendingImages = [];
+        });
+
+        modal.addEventListener('click', function(e) {
+            if (e.target === modal) {
+                modal.classList.remove('active');
+                self._pendingImages = [];
+            }
+        });
+
+        requestAnimationFrame(function() { modal.classList.add('active'); });
     },
 
     /**

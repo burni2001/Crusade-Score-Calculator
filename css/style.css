@@ -998,6 +998,46 @@ select option {
     flex-wrap: wrap;
 }
 
+/* PNG Export Modal (Discord) */
+.png-export-modal-content {
+    max-width: 95vw;
+}
+
+.png-export-instructions {
+    text-align: center;
+    color: var(--pip-green);
+    font-size: 0.9rem;
+    margin: var(--space-sm) 0;
+    opacity: 0.7;
+}
+
+.png-export-gallery {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-md);
+    padding: var(--space-sm) 0;
+}
+
+.png-export-item {
+    border: 1px solid var(--border-color);
+    padding: var(--space-sm);
+    background: rgba(0, 10, 0, 0.4);
+}
+
+.png-export-filename {
+    color: var(--pip-green);
+    font-size: 0.85rem;
+    margin-bottom: var(--space-xs);
+    word-break: break-all;
+    opacity: 0.6;
+}
+
+.png-export-image {
+    width: 100%;
+    height: auto;
+    display: block;
+}
+
 /* === 17. OCR MODAL === */
 #ocr-detected-grid {
     display: grid;
