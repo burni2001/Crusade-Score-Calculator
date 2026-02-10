@@ -1,4 +1,4 @@
-const CACHE_NAME = "mission-debrief-v7.55"; // Increment this version number when you make changes to cached assets
+const CACHE_NAME = "mission-debrief-v7.56"; // Increment this version number when you make changes to cached assets
 const urlsToCache = [
     "./", // Caches the root, i.e., index.html
     "./index.html",
@@ -38,7 +38,12 @@ self.addEventListener("install", (event) => {
 self.addEventListener("fetch", (event) => {
     // Skip chrome-extension and non-http(s) requests
     if (!event.request.url.startsWith('http')) {
-        return; // ← Make sure this line is there
+        return;
+    }
+    // Skip Discord proxy requests — these must go directly to the network
+    // (.proxy paths are handled by Discord's URL mapping infrastructure)
+    if (event.request.url.includes('/.proxy/')) {
+        return;
     }
     event.respondWith(
         caches.match(event.request).then((response) => {

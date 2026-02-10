@@ -12,44 +12,90 @@ class DiscordIntegration {
     }
 
     /**
+     * Detect if running inside a Discord Activity iframe using multiple signals.
+     * The Discord SDK global may not be available due to CSP restrictions,
+     * so we check URL parameters, hostname, and iframe context as well.
+     * @returns {boolean}
+     */
+    _detectDiscordEnvironment() {
+        if (typeof window === 'undefined') return false;
+
+        // Signal 1: Discord SDK global exists (loaded successfully)
+        if (typeof DiscordSDK !== 'undefined') return true;
+
+        // Signal 2: Discord Activity iframe query parameters
+        try {
+            const params = new URLSearchParams(window.location.search);
+            if (params.has('frame_id') && params.has('instance_id')) return true;
+        } catch (_) { /* ignore */ }
+
+        // Signal 3: Discord Activity proxy hostname
+        try {
+            if (window.location.hostname.endsWith('.discordsays.com')) return true;
+        } catch (_) { /* ignore */ }
+
+        // Signal 4: Cross-origin iframe (Discord Activities are always cross-origin)
+        try {
+            if (window.self !== window.top) {
+                // Accessing parent will throw SecurityError if cross-origin
+                void window.top.location.href;
+            }
+        } catch (_) {
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
      * Initialize Discord SDK
      * @returns {Promise<boolean>} Success status
      */
     async initialize() {
         try {
-            // Check if running in Discord
-            if (typeof DiscordSDK === 'undefined') {
+            // Check if running in Discord using multiple signals
+            if (!this._detectDiscordEnvironment()) {
                 console.log('📱 Not running in Discord environment - standard web mode');
                 this.isDiscordEnvironment = false;
                 return false;
             }
 
             console.log('🎮 Discord environment detected - initializing Activity...');
-            
-            this.discordSDK = new DiscordSDK(this.clientId);
-            
-            // Add timeout to prevent hanging
-            const readyPromise = this.discordSDK.ready();
-            const timeoutPromise = new Promise((_, reject) => 
-                setTimeout(() => reject(new Error('Discord SDK timeout')), 5000)
-            );
-            
-            await Promise.race([readyPromise, timeoutPromise]);
-
-            console.log('✅ Discord SDK initialized');
             this.isDiscordEnvironment = true;
 
-            // Authenticate user
-            await this.authenticate();
+            // Try to initialize the SDK if it loaded successfully
+            if (typeof DiscordSDK !== 'undefined') {
+                this.discordSDK = new DiscordSDK(this.clientId);
 
-            // Setup Discord-specific features
-            this.setupDiscordFeatures();
+                // Add timeout to prevent hanging
+                const readyPromise = this.discordSDK.ready();
+                const timeoutPromise = new Promise((_, reject) =>
+                    setTimeout(() => reject(new Error('Discord SDK timeout')), 5000)
+                );
+
+                await Promise.race([readyPromise, timeoutPromise]);
+
+                console.log('✅ Discord SDK initialized');
+
+                // Authenticate user
+                await this.authenticate();
+
+                // Setup Discord-specific features
+                this.setupDiscordFeatures();
+            } else {
+                console.warn('⚠️ Discord SDK not loaded (blocked by CSP) - running in limited Discord mode');
+                // Still apply interaction fixes even without full SDK
+                setTimeout(() => this.fixDiscordInteractions(), 500);
+            }
 
             return true;
         } catch (error) {
-            console.error('❌ Discord initialization failed:', error);
-            this.isDiscordEnvironment = false;
-            return false;
+            console.error('❌ Discord SDK initialization failed:', error);
+            // Still mark as Discord environment even if SDK init fails
+            // (detection was positive, only SDK features are unavailable)
+            console.log('🎮 Running in Discord without SDK features');
+            setTimeout(() => this.fixDiscordInteractions(), 500);
+            return true;
         }
     }
 
