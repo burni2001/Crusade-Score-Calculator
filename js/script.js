@@ -1666,11 +1666,15 @@ function openSlotOverlay(index) {
             ${statsTable}
 
             <div class="modal-actions">
-                <button onclick="downloadSlotCSV(${index})" class="btn btn-sm">DOWNLOAD CSV</button>
-                <button onclick="closeSlotModal()" class="btn btn-sm">CLOSE</button>
+                <button id="btn-slot-download-csv" class="btn btn-sm">DOWNLOAD CSV</button>
+                <button id="btn-slot-close" class="btn btn-sm">CLOSE</button>
             </div>
         </div>
     `;
+
+    // Bind event listeners for dynamically created buttons (CSP-compliant)
+    modal.querySelector('#btn-slot-download-csv').addEventListener('click', function() { downloadSlotCSV(index); });
+    modal.querySelector('#btn-slot-close').addEventListener('click', function() { closeSlotModal(); });
 
     requestAnimationFrame(() => modal.classList.add('active'));
 }
@@ -2555,7 +2559,7 @@ async function recordAllDataScreens() {
             return;
         }
 
-        const btn = document.querySelector('button[onclick="recordAllDataScreens()"]');
+        const btn = document.getElementById('btn-record-png');
         const originalText = btn ? btn.innerText : '';
 
         // Export each saved mission individually from its CSV data
@@ -2606,7 +2610,105 @@ async function recordAllDataScreens() {
 }
 
 // ============================================================================
-// SECTION 15: PAGE INITIALIZATION
+// SECTION 15: EVENT HANDLER INITIALIZATION (CSP-compliant)
+// ============================================================================
+
+/**
+ * Wire up all event handlers via addEventListener instead of inline HTML attributes.
+ * This is required for Discord's Content Security Policy which blocks inline handlers.
+ */
+function initializeEventHandlers() {
+    // Helper to bind click handler by element ID
+    function bindClick(id, handler) {
+        const el = document.getElementById(id);
+        if (el) el.addEventListener('click', handler);
+    }
+
+    // ====== PAGE 1: NAVIGATION & CONFIG ======
+    bindClick('btn-event-menu', function() { toggleEventMenu(); });
+    document.getElementById('label-event-menu').addEventListener('click', function() { toggleEventMenu(); });
+    bindClick('btn-enter-manually', function() { navigateToPage(2); });
+
+    // Custom rules toggle
+    bindClick('btn-custom-rules', function() { toggleCustomRules(); });
+
+    // ====== PAGE 2: NAVIGATION ======
+    bindClick('btn-back-to-page1', function() { navigateToPage(1); });
+    bindClick('btn-next-to-page3', function() { navigateToPage(3); });
+
+    // ====== PAGE 2: ACTION BUTTONS ======
+    bindClick('btn-save-mission', function() { saveMissionInternal(); });
+    bindClick('btn-purge-mission', function() { clearData(); });
+
+    // ====== PAGE 3: NAVIGATION & ACTIONS ======
+    bindClick('btn-back-to-page2', function() { navigateToPage(2); });
+    bindClick('btn-aggregate', function() { aggregateInternalData(); });
+    bindClick('btn-copy-modal', function() { openCopyModal(); });
+    bindClick('btn-record-png', function() { recordAllDataScreens(); });
+    bindClick('btn-purge-aggregate', function() { resetImport(); });
+
+    // ====== CREDITS MODAL ======
+    bindClick('btn-credits', function() { toggleCreditsModal(); });
+    document.getElementById('credits-modal').addEventListener('click', function(e) { closeCreditsOnBackdrop(e); });
+    bindClick('btn-close-credits', function() { toggleCreditsModal(); });
+
+    // ====== OCR MODAL ======
+    bindClick('btn-apply-ocr', function() { applyOCRResults(); });
+    bindClick('btn-export-debug', function() { exportOCRDebug(); });
+    bindClick('btn-close-ocr', function() { closeOCRModal(); });
+
+    // ====== COPY/TRANSMISSION LOG MODAL ======
+    bindClick('btn-copy-summary', function() { copySummaryText(); });
+    bindClick('btn-download-log', function() { downloadTransmissionLog(); });
+    bindClick('btn-close-copy-modal', function() {
+        document.getElementById('copy-modal').classList.remove('active');
+    });
+
+    // ====== MODIFIER INPUTS (onchange) ======
+    var modifierIds = ['mod-kills', 'mod-elite', 'mod-tasks', 'mod-death',
+                       'mod-damage', 'mod-gene', 'mod-armoury', 'mod-obj', 'mod-waves'];
+    modifierIds.forEach(function(id) {
+        var el = document.getElementById(id);
+        if (el) el.addEventListener('change', function() { calculate(); saveData(); checkCustomModifiers(); });
+    });
+
+    // ====== MISSION PARAMETER INPUTS (onchange) ======
+    document.getElementById('mission-name').addEventListener('change', function() { handleMissionSelect(); saveData(); });
+    document.getElementById('mission-name-custom').addEventListener('change', function() { saveData(); });
+    document.getElementById('mission-difficulty').addEventListener('change', function() { calculate(); saveData(); });
+    document.getElementById('global-objective').addEventListener('change', function() { calculate(); saveData(); });
+    document.getElementById('global-geneseed').addEventListener('change', function() { calculate(); saveData(); });
+    document.getElementById('global-armoury').addEventListener('change', function() { calculate(); saveData(); });
+    document.getElementById('global-waves').addEventListener('change', function() { calculate(); saveData(); });
+
+    // ====== PLAYER NAME INPUTS (onchange + oninput) ======
+    ['p1-name', 'p2-name', 'p3-name'].forEach(function(id) {
+        var el = document.getElementById(id);
+        if (el) {
+            el.addEventListener('change', function() { saveData(); updateAdditionalStatsHeaders(); });
+            el.addEventListener('input', function() { updateAdditionalStatsHeaders(); });
+        }
+    });
+
+    // ====== PLAYER CLASS SELECTS (onchange) ======
+    ['p1-class', 'p2-class', 'p3-class'].forEach(function(id) {
+        var el = document.getElementById(id);
+        if (el) el.addEventListener('change', function() { saveData(); });
+    });
+
+    // ====== PLAYER STAT INPUTS (onchange) ======
+    var statTypes = ['kills', 'elite', 'death', 'damage', 'tasks', 'melee', 'ranged', 'items', 'revived'];
+    var players = ['p1', 'p2', 'p3'];
+    statTypes.forEach(function(stat) {
+        players.forEach(function(player) {
+            var el = document.getElementById(player + '-' + stat);
+            if (el) el.addEventListener('change', function() { calculate(); saveData(); });
+        });
+    });
+}
+
+// ============================================================================
+// SECTION 16: PAGE INITIALIZATION
 // ============================================================================
 
 // Global variable to store Imperial Date interval ID
@@ -2614,7 +2716,10 @@ let imperialDateIntervalId = null;
 
 window.addEventListener('DOMContentLoaded', async function() {
     console.log('🚀 Initializing Crusade Score Calculator...');
-    
+
+    // Wire up all event handlers via JS (CSP-compliant, required for Discord)
+    initializeEventHandlers();
+
     // Initialize Discord if in Discord environment
     if (typeof discordIntegration !== 'undefined') {
         try {
