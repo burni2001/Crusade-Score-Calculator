@@ -191,18 +191,20 @@ const OCRApi = {
                 break;
             }
 
-            // Non-OK status (e.g. 405 from Discord proxy) — try the next URL
-            console.warn(`OCR HTTP ${response.status} from ${url}, trying next...`);
-            lastError = new Error(`OCR service returned HTTP ${response.status} from ${url}`);
+            // Non-OK status — log details and try the next URL
+            let errorBody = '';
+            try { errorBody = await response.text(); } catch (_) { /* ignore */ }
+            console.warn(`OCR HTTP ${response.status} from ${url} — body: ${errorBody.slice(0, 200)}`);
+            lastError = new Error(`OCR service returned HTTP ${response.status}`);
             response = null;
         }
 
         if (!response || !response.ok) {
             if (inDiscord) {
                 throw new Error(
-                    'OCR unavailable in Discord. The /ocr-proxy URL mapping may not be configured ' +
-                    'in the Discord Developer Portal, and direct Worker access is blocked by CSP. ' +
-                    'Add URL mapping: /ocr-proxy → crusade-ocr-proxy.burni2001.workers.dev'
+                    'OCR unavailable in Discord. Ensure the Cloudflare Worker is deployed ' +
+                    '(see cloudflare-worker/ in this repo) and the Discord URL mapping is set: ' +
+                    '/ocr-proxy → crusade-ocr-proxy.burni2001.workers.dev'
                 );
             }
             throw lastError || new Error('OCR service unavailable');
