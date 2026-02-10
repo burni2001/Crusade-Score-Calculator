@@ -507,8 +507,8 @@
     </div>
 
     <!-- ========== SCRIPTS ========== -->
-    <!-- html2canvas: loaded from CDN outside Discord; blocked by CSP in Discord (not needed for OCR) -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <!-- html2canvas: bundled locally so it loads under Discord Activity CSP -->
+    <script src="js/lib/html2canvas.min.js"></script>
     <!-- tesseract.js: loaded from CDN outside Discord; OCR uses Cloudflare Worker proxy instead -->
     <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
     <!-- Discord Embedded App SDK: try proxy path first (CSP-safe), fall back to direct URL -->

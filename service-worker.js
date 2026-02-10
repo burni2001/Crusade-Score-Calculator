@@ -1,4 +1,4 @@
-const CACHE_NAME = "mission-debrief-v7.57"; // Increment this version number when you make changes to cached assets
+const CACHE_NAME = "mission-debrief-v7.58"; // Increment this version number when you make changes to cached assets
 const urlsToCache = [
     "./", // Caches the root, i.e., index.html
     "./index.html",
@@ -10,6 +10,7 @@ const urlsToCache = [
     "./js/input-validator.js",
     "./js/csv-handler.js",
     "./js/calculation-engine.js",
+    "./js/lib/html2canvas.min.js",
     "./js/png-exporter.js",
     "./js/discord-integration.js",
     "./fonts/vt323/VT323-Regular.ttf",
