@@ -242,7 +242,7 @@ class DiscordIntegration {
         // Force all elements to be interactive in Discord iframe
         document.body.style.pointerEvents = 'auto';
 
-        const selectors = 'button, a, input, select, textarea, .btn, .nav-btn, .modal-overlay';
+        const selectors = 'button, a, input, select, textarea, .btn, .nav-btn, .modal-overlay, .event-item, .cycle-header, .dropdown, .gear-btn';
         document.querySelectorAll(selectors).forEach(el => {
             el.style.pointerEvents = 'auto';
             el.style.touchAction = 'manipulation';

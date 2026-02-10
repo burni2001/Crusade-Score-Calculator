@@ -2198,10 +2198,24 @@ async function fetchEventList() {
     status.style.color = "#cccc00";
 
     try {
-        const response = await fetch(DB_URL);
-        if (!response.ok) throw new Error("Network response was not ok");
-        
-        const data = await response.json();
+        let data;
+        const isDiscord = typeof DiscordSDK !== 'undefined';
+
+        if (!isDiscord) {
+            try {
+                const response = await fetch(DB_URL);
+                if (!response.ok) throw new Error("Network response was not ok");
+                data = await response.json();
+            } catch (remoteError) {
+                console.warn("Remote fetch failed, trying local fallback:", remoteError);
+            }
+        }
+
+        if (!data) {
+            const localResponse = await fetch('data/events.json');
+            if (!localResponse.ok) throw new Error("Failed to load event data");
+            data = await localResponse.json();
+        }
         
         cachedEvents = []; 
         container.innerHTML = "";
@@ -2278,6 +2292,11 @@ async function fetchEventList() {
         });
 
         status.innerText = "";
+
+        // Reapply Discord interaction fixes for dynamically created elements
+        if (window.discordIntegration && window.discordIntegration.isInDiscord()) {
+            window.discordIntegration.fixDiscordInteractions();
+        }
 
     } catch (error) {
         console.error("Fetch error:", error);
