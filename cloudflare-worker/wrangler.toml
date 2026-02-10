@@ -1,0 +1,11 @@
+name = "crusade-ocr-proxy"
+main = "worker.js"
+compatibility_date = "2024-09-01"
+
+# API keys must be set as secrets (never commit them):
+#   npx wrangler secret put OCR_API_KEY_1
+#   npx wrangler secret put OCR_API_KEY_2
+#
+# Deploy with:
+#   cd cloudflare-worker
+#   npx wrangler deploy
