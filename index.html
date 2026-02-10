@@ -507,9 +507,52 @@
     </div>
 
     <!-- ========== SCRIPTS ========== -->
+    <!-- html2canvas: loaded from CDN outside Discord; blocked by CSP in Discord (not needed for OCR) -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <!-- tesseract.js: loaded from CDN outside Discord; OCR uses Cloudflare Worker proxy instead -->
     <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
-    <script src="https://discord.com/api/v10/applications/1470106608687255623/embedded-sdk.js"></script>
+    <!-- Discord Embedded App SDK: try proxy path first (CSP-safe), fall back to direct URL -->
+    <script>
+    (function() {
+        // In Discord Activities, external scripts are blocked by CSP.
+        // Try loading the SDK through the Discord proxy (same-origin, CSP-safe).
+        var proxyUrl = '/.proxy/discord-sdk/api/v10/applications/1470106608687255623/embedded-sdk.js';
+        var directUrl = 'https://discord.com/api/v10/applications/1470106608687255623/embedded-sdk.js';
+
+        function tryLoad(url, fallbackUrl) {
+            var s = document.createElement('script');
+            s.src = url;
+            s.onload = function() { console.log('Discord SDK loaded from: ' + url); };
+            s.onerror = function() {
+                console.warn('Discord SDK failed to load from: ' + url);
+                if (fallbackUrl) {
+                    tryLoad(fallbackUrl, null);
+                } else {
+                    console.warn('Discord SDK unavailable - SDK features disabled');
+                }
+            };
+            document.head.appendChild(s);
+        }
+
+        // Detect Discord environment to choose loading strategy
+        var isDiscord = false;
+        try {
+            var params = new URLSearchParams(window.location.search);
+            isDiscord = params.has('frame_id') && params.has('instance_id');
+        } catch(e) {}
+        if (!isDiscord) {
+            try { isDiscord = window.location.hostname.endsWith('.discordsays.com'); } catch(e) {}
+        }
+
+        if (isDiscord) {
+            // In Discord: try proxy path first (CSP-safe), then direct
+            tryLoad(proxyUrl, directUrl);
+        } else {
+            // Outside Discord: load directly
+            tryLoad(directUrl, null);
+        }
+    })();
+    </script>
     <script src="js/imperialDate.js"></script>
     <script src="js/ocr-parser.js"></script>
     <script src="js/ocr-api-cloudflare.js"></script>
