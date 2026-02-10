@@ -2187,10 +2187,40 @@ function toggleEventMenu() {
     }
 }
 
+// Embedded fallback event data — used when all fetch strategies fail (e.g. Discord iframe restrictions)
+const FALLBACK_EVENTS = {
+    cycles: [
+        {
+            name: "Global Rules",
+            events: [{
+                id: "standard_v1",
+                name: "Standard Rules (Default)",
+                modifiers: { kills: 1, elite: 20, tasks: 25, death: -100, damage: -0.1, gene: 100, armoury: 25, obj: 100, waves: 250 }
+            }]
+        },
+        {
+            name: "Cycle 1",
+            events: [
+                { id: "c1_w1", name: "Week 1: RECLAMATION", modifiers: { kills: 1, elite: 20, tasks: 0, death: -100, damage: -0.1, gene: 200, armoury: 50, obj: 100, waves: 0 } },
+                { id: "c1_w2", name: "Week 2: EXFILTRATION", modifiers: { kills: 1, elite: 20, tasks: 0, death: -100, damage: -0.1, gene: 100, armoury: 75, obj: 100, waves: 0 } },
+                { id: "c1_w3", name: "Week 3: BALLISTIC ENGINE", modifiers: { kills: 1, elite: 20, tasks: 0, death: -100, damage: -0.1, gene: 100, armoury: 25, obj: 100, waves: 0 } },
+                { id: "c1_w4", name: "Week 4: SIEGE", modifiers: { kills: 1, elite: 20, tasks: 25, death: -100, damage: -0.1, gene: 100, armoury: 25, obj: 100, waves: 250 } }
+            ]
+        },
+        {
+            name: "Cycle 2",
+            events: [
+                { id: "c2_w1", name: "Week 1: INFERNO", modifiers: { kills: 1, elite: 20, tasks: 0, death: -100, damage: -0.1, gene: 100, armoury: 25, obj: 100, waves: 0 } },
+                { id: "c2_w2", name: "Week 2: DECAPITATION", modifiers: { kills: 1, elite: 100, tasks: 0, death: -100, damage: -0.1, gene: 100, armoury: 25, obj: 100, waves: 0 } }
+            ]
+        }
+    ]
+};
+
 async function fetchEventList() {
     const container = document.getElementById('event-list-container');
     const status = document.getElementById('event-status');
-    
+
     if (cachedEvents.length > 0 && container.children.length > 1) return;
 
     status.innerText = "Connecting...";
@@ -2198,25 +2228,61 @@ async function fetchEventList() {
 
     try {
         let data;
-        const isDiscord = typeof DiscordSDK !== 'undefined';
+        const isDiscord = (window.discordIntegration && window.discordIntegration.isInDiscord()) || typeof DiscordSDK !== 'undefined';
 
-        if (!isDiscord) {
+        // Strategy 1: Local file fetch (works in most environments including Discord)
+        // Use ./data/ prefix for consistency with service worker cache paths
+        if (!data) {
             try {
-                const response = await fetch(DB_URL);
-                if (!response.ok) throw new Error("Network response was not ok");
-                data = await response.json();
-            } catch (remoteError) {
-                console.warn("Remote fetch failed, trying local fallback:", remoteError);
+                const localResponse = await fetch('./data/events.json');
+                if (localResponse.ok) {
+                    data = await localResponse.json();
+                    console.log('Events loaded from local file');
+                }
+            } catch (localError) {
+                console.warn("Local fetch failed:", localError);
             }
         }
 
-        if (!data) {
-            const localResponse = await fetch('data/events.json');
-            if (!localResponse.ok) throw new Error("Failed to load event data");
-            data = await localResponse.json();
+        // Strategy 2: Remote GitHub fetch (fallback, skipped in Discord due to CORS/CSP)
+        if (!data && !isDiscord) {
+            try {
+                const response = await fetch(DB_URL);
+                if (response.ok) {
+                    data = await response.json();
+                    console.log('Events loaded from remote');
+                }
+            } catch (remoteError) {
+                console.warn("Remote fetch failed:", remoteError);
+            }
         }
-        
-        cachedEvents = []; 
+
+        // Strategy 3: Absolute URL fetch (another attempt for Discord proxy environments)
+        if (!data) {
+            try {
+                const absoluteUrl = new URL('./data/events.json', window.location.href).href;
+                const absResponse = await fetch(absoluteUrl);
+                if (absResponse.ok) {
+                    data = await absResponse.json();
+                    console.log('Events loaded from absolute URL');
+                }
+            } catch (absError) {
+                console.warn("Absolute URL fetch failed:", absError);
+            }
+        }
+
+        // Strategy 4: Embedded fallback data (always works, never fails)
+        if (!data) {
+            console.warn("All fetch strategies failed — using embedded fallback event data");
+            data = FALLBACK_EVENTS;
+        }
+
+        // Validate data structure
+        if (!data || !data.cycles || !Array.isArray(data.cycles)) {
+            throw new Error("Invalid event data structure");
+        }
+
+        cachedEvents = [];
         container.innerHTML = "";
 
         // Find the highest cycle number (most recent)
@@ -2231,37 +2297,37 @@ async function fetchEventList() {
             // Create cycle wrapper
             const cycleWrapper = document.createElement('div');
             cycleWrapper.className = 'cycle-wrapper';
-            
+
             // Create header with collapse indicator
             const header = document.createElement('div');
             header.className = 'cycle-header collapsible';
-            
+
             const headerText = document.createElement('span');
             headerText.textContent = cycle.name;
-            
+
             const indicator = document.createElement('span');
             indicator.className = 'collapse-indicator';
             indicator.innerHTML = '&#9664;'; // Left-pointing triangle (closed)
-            
+
             header.appendChild(headerText);
             header.appendChild(indicator);
-            
+
             // Create events container
             const eventsContainer = document.createElement('div');
             eventsContainer.className = 'cycle-events';
-            
+
             // Open the highest cycle number (most recent) by default
             if (cycleIndex === highestCycleIndex) {
                 eventsContainer.classList.add('expanded');
                 indicator.classList.add('expanded');
                 indicator.innerHTML = '&#9660;'; // Down-pointing triangle
             }
-            
+
             // Add click handler to toggle
             header.onclick = function() {
                 eventsContainer.classList.toggle('expanded');
                 indicator.classList.toggle('expanded');
-                
+
                 if (indicator.classList.contains('expanded')) {
                     indicator.innerHTML = '&#9660;'; // Down-pointing triangle
                 } else {
@@ -2277,14 +2343,14 @@ async function fetchEventList() {
                 const item = document.createElement('div');
                 item.className = 'event-item';
                 item.innerText = event.name;
-                item.onclick = function(e) { 
+                item.onclick = function(e) {
                     e.stopPropagation(); // Prevent header toggle
-                    selectEvent(event.id); 
+                    selectEvent(event.id);
                 };
 
                 eventsContainer.appendChild(item);
             });
-            
+
             cycleWrapper.appendChild(header);
             cycleWrapper.appendChild(eventsContainer);
             container.appendChild(cycleWrapper);
