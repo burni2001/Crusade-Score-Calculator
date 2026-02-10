@@ -16,15 +16,51 @@ const OCRApi = {
     discordProxyPath: "/.proxy/ocr-proxy/",
 
     /**
+     * Detect if running inside a Discord Activity iframe.
+     * Uses multiple signals since the Discord SDK global may not be available.
+     * @returns {boolean}
+     */
+    _isDiscordActivity() {
+        if (typeof window === 'undefined') return false;
+
+        // Signal 1: Discord integration already initialized successfully
+        if (window.discordIntegration && window.discordIntegration.isInDiscord()) return true;
+
+        // Signal 2: Discord SDK global exists
+        if (typeof DiscordSDK !== 'undefined') return true;
+
+        // Signal 3: Discord Activity iframe passes these query params
+        try {
+            const params = new URLSearchParams(window.location.search);
+            if (params.has('frame_id') && params.has('instance_id')) return true;
+        } catch (_) { /* ignore */ }
+
+        // Signal 4: Hostname matches Discord's Activity proxy domain
+        try {
+            if (window.location.hostname.endsWith('.discordsays.com')) return true;
+        } catch (_) { /* ignore */ }
+
+        // Signal 5: Running in a cross-origin iframe (Discord Activities are always cross-origin)
+        try {
+            if (window.self !== window.top) {
+                // Try accessing parent — will throw SecurityError if cross-origin
+                void window.top.location.href;
+            }
+        } catch (_) {
+            // SecurityError means cross-origin iframe — likely Discord
+            return true;
+        }
+
+        return false;
+    },
+
+    /**
      * Get the appropriate API URL based on environment.
      * Discord Activities block external fetches via CSP — route through proxy.
      * @returns {string} The URL to use for OCR API calls
      */
     getApiUrl() {
-        const isDiscord = (typeof window !== 'undefined' &&
-            window.discordIntegration && window.discordIntegration.isInDiscord()) ||
-            (typeof DiscordSDK !== 'undefined');
-        return isDiscord ? this.discordProxyPath : this.workerUrl;
+        return this._isDiscordActivity() ? this.discordProxyPath : this.workerUrl;
     },
     
     /**
@@ -117,12 +153,20 @@ const OCRApi = {
                 body: formData,
             });
         } catch (networkError) {
-            // CSP or network block — common in Discord Activities if proxy is misconfigured
-            const isDiscord = apiUrl === this.discordProxyPath;
-            if (isDiscord) {
+            // CSP or network block — if we used the direct URL, fall back to Discord proxy
+            if (apiUrl === this.workerUrl) {
+                console.warn('Direct OCR fetch blocked (likely CSP), retrying via Discord proxy...');
+                try {
+                    response = await fetch(this.discordProxyPath, {
+                        method: "POST",
+                        body: formData,
+                    });
+                } catch (proxyError) {
+                    throw new Error('OCR request blocked by Discord. Verify the /ocr-proxy URL mapping is configured in the Discord Developer Portal.');
+                }
+            } else {
                 throw new Error('OCR request blocked by Discord. Verify the /ocr-proxy URL mapping is configured in the Discord Developer Portal.');
             }
-            throw new Error('Network error contacting OCR service. Please check your connection.');
         }
 
         if (!response.ok) {
