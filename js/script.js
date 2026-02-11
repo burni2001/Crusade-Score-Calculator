@@ -2091,10 +2091,11 @@ function _execCommandCopyFallback(el) {
 }
 
 function _showCopyFeedback(btn, originalText, success) {
+    var isDiscord = !!(window.discordIntegration && window.discordIntegration.isDiscordEnvironment);
     if (success) {
         if (btn) {
-            btn.innerText = 'Copied!';
-            setTimeout(function() { btn.innerText = originalText; }, 2000);
+            btn.innerText = isDiscord ? 'Copied! Paste in chat' : 'Copied!';
+            setTimeout(function() { btn.innerText = originalText; }, 3000);
         }
     } else {
         // Text is already selected — prompt user to copy manually
@@ -2112,34 +2113,8 @@ function downloadTransmissionLog() {
         return;
     }
 
-    var isDiscord = !!(window.discordIntegration && window.discordIntegration.isDiscordEnvironment);
-
-    if (isDiscord) {
-        // In Discord iframe, file downloads are silently blocked.
-        // Fall back to selecting + copying the text content.
-        var el = document.getElementById('copy-text');
-        var btn = document.getElementById('btn-download-log');
-        var originalText = btn ? btn.innerText : '';
-        el.focus();
-        el.select();
-        el.setSelectionRange(0, 99999);
-
-        var copied = false;
-        if (navigator.clipboard && navigator.clipboard.writeText) {
-            navigator.clipboard.writeText(el.value).then(function() {
-                _showCopyFeedback(btn, originalText, true);
-            }).catch(function() {
-                copied = _execCommandCopyFallback(el);
-                _showCopyFeedback(btn, originalText, copied);
-            });
-        } else {
-            copied = _execCommandCopyFallback(el);
-            _showCopyFeedback(btn, originalText, copied);
-        }
-        return;
-    }
-
     // Standard browser: download as file
+    // (In Discord mode, this button is hidden via CSS — clipboard copy is handled by btn-copy-summary)
     var timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);
     var filename = "Transmission_Log_" + timestamp + ".txt";
 
@@ -2887,10 +2862,6 @@ window.addEventListener('DOMContentLoaded', async function() {
             if (isDiscord) {
                 console.log('🎮 Running as Discord Activity');
                 document.body.classList.add('discord-mode');
-
-                // Update export button labels for Discord environment
-                var dlBtn = document.getElementById('btn-download-log');
-                if (dlBtn) dlBtn.innerText = 'Copy to Clipboard';
             }
         } catch (error) {
             // Silently handle Discord initialization errors (not in Discord environment)

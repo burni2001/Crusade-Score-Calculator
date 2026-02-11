@@ -1988,6 +1988,11 @@ body.discord-mode .cogitator-frame {
     }
 }
 
+/* Hide "Save to Data Slate" button in Discord (downloads don't work in iframe) */
+body.discord-mode #btn-download-log {
+    display: none !important;
+}
+
 /* Discord share button (if added later) */
 .discord-share-btn {
     background: linear-gradient(135deg, #5865f2 0%, #4752c4 100%);
