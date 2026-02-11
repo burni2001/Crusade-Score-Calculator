@@ -435,7 +435,7 @@ const PNGExporter = {
     /**
      * Show a modal with all pending export images.
      * Used in Discord where programmatic downloads don't work.
-     * Users can long-press (mobile) or right-click (desktop) to save each image.
+     * Provides per-image "Copy Image" buttons with clipboard API + fallback instructions.
      * No-op if there are no pending images (i.e., not in Discord or nothing captured).
      */
     showExportModal() {
@@ -450,25 +450,37 @@ const PNGExporter = {
         }
 
         const images = this._pendingImages;
+        const total = images.length;
+        const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
 
         let imagesHtml = '';
-        images.forEach((img) => {
+        images.forEach((img, idx) => {
+            const escapedFilename = this._escapeHtml(img.filename);
             imagesHtml += `
                 <div class="png-export-item">
-                    <div class="png-export-filename">${this._escapeHtml(img.filename)}</div>
-                    <img src="${img.dataUrl}" alt="${this._escapeHtml(img.filename)}" class="png-export-image" />
+                    <div class="png-export-item-header">
+                        <span class="png-export-counter">${idx + 1} / ${total}</span>
+                        <span class="png-export-filename">${escapedFilename}</span>
+                    </div>
+                    <img src="${img.dataUrl}" alt="${escapedFilename}" class="png-export-image" />
+                    <div class="png-export-item-actions">
+                        <button class="btn btn-primary btn-sm btn-copy-image" data-index="${idx}">Copy Image</button>
+                        <span class="png-copy-feedback" data-feedback-index="${idx}"></span>
+                    </div>
                 </div>
             `;
         });
+
+        const fallbackTip = isMobile
+            ? 'Tap "Copy Image" to copy, or long-press an image to save directly.'
+            : 'Click "Copy Image" to copy, or right-click an image to save directly.';
 
         modal.innerHTML = `
             <div class="modal-content png-export-modal-content">
                 <h3 class="text-center text-primary border-bottom pb-10 mt-0 uppercase letter-spacing-2 glow">
                     CAPTURED DATA SCREENS
                 </h3>
-                <p class="png-export-instructions">
-                    Long-press or right-click each image to save
-                </p>
+                <p class="png-export-instructions">${total} image${total !== 1 ? 's' : ''} captured. ${fallbackTip}</p>
                 <div class="png-export-gallery">
                     ${imagesHtml}
                 </div>
@@ -478,7 +490,15 @@ const PNGExporter = {
             </div>
         `;
 
+        // Bind per-image copy buttons
         const self = this;
+        modal.querySelectorAll('.btn-copy-image').forEach(function(btn) {
+            btn.addEventListener('click', function() {
+                const idx = parseInt(btn.getAttribute('data-index'), 10);
+                self._copyImageToClipboard(images[idx].dataUrl, idx);
+            });
+        });
+
         modal.querySelector('#btn-close-png-modal').addEventListener('click', function() {
             modal.classList.remove('active');
             self._pendingImages = [];
@@ -492,6 +512,56 @@ const PNGExporter = {
         });
 
         requestAnimationFrame(function() { modal.classList.add('active'); });
+    },
+
+    /**
+     * Copy a PNG data URL to clipboard as an image blob.
+     * Falls back to selecting the image element if Clipboard API is unavailable.
+     * @private
+     * @param {string} dataUrl - PNG data URL
+     * @param {number} index - Image index (for feedback element)
+     */
+    async _copyImageToClipboard(dataUrl, index) {
+        const feedbackEl = document.querySelector(`[data-feedback-index="${index}"]`);
+        const btnEl = document.querySelector(`.btn-copy-image[data-index="${index}"]`);
+
+        const showFeedback = function(message, success) {
+            if (feedbackEl) {
+                feedbackEl.textContent = message;
+                feedbackEl.className = 'png-copy-feedback ' + (success ? 'feedback-success' : 'feedback-error');
+                setTimeout(function() {
+                    feedbackEl.textContent = '';
+                    feedbackEl.className = 'png-copy-feedback';
+                }, 2500);
+            }
+        };
+
+        try {
+            // Convert data URL to blob
+            const response = await fetch(dataUrl);
+            const blob = await response.blob();
+
+            // Try Clipboard API with ClipboardItem
+            if (navigator.clipboard && typeof ClipboardItem !== 'undefined') {
+                await navigator.clipboard.write([
+                    new ClipboardItem({ 'image/png': blob })
+                ]);
+                showFeedback('Copied!', true);
+                return;
+            }
+
+            // Fallback: try copying the data URL as text (can be pasted in some apps)
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                await navigator.clipboard.writeText(dataUrl);
+                showFeedback('URL copied (paste in browser)', true);
+                return;
+            }
+
+            showFeedback('Long-press image to save', false);
+        } catch (err) {
+            console.warn('Image copy failed:', err);
+            showFeedback('Long-press image to save', false);
+        }
     },
 
     /**

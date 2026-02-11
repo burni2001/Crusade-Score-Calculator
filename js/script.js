@@ -2058,32 +2058,96 @@ function openCopyModal() {
 }
 
 function copySummaryText() {
-    const el = document.getElementById('copy-text');
+    var el = document.getElementById('copy-text');
+    var btn = document.getElementById('btn-copy-summary');
+    var originalText = btn ? btn.innerText : '';
     el.select();
     el.setSelectionRange(0, 99999);
-    navigator.clipboard.writeText(el.value).then(() => {
-        alert("Copied to clipboard!");
-    }).catch(err => {
-        console.error('Failed to copy:', err);
-        alert("Failed to copy to clipboard. Please select and copy manually.");
-    });
+
+    // Try Clipboard API first, then execCommand fallback
+    var copied = false;
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(el.value).then(function() {
+            _showCopyFeedback(btn, originalText, true);
+        }).catch(function() {
+            copied = _execCommandCopyFallback(el);
+            _showCopyFeedback(btn, originalText, copied);
+        });
+    } else {
+        copied = _execCommandCopyFallback(el);
+        _showCopyFeedback(btn, originalText, copied);
+    }
+}
+
+function _execCommandCopyFallback(el) {
+    try {
+        el.focus();
+        el.select();
+        el.setSelectionRange(0, 99999);
+        return document.execCommand('copy');
+    } catch (e) {
+        return false;
+    }
+}
+
+function _showCopyFeedback(btn, originalText, success) {
+    if (success) {
+        if (btn) {
+            btn.innerText = 'Copied!';
+            setTimeout(function() { btn.innerText = originalText; }, 2000);
+        }
+    } else {
+        // Text is already selected — prompt user to copy manually
+        if (btn) {
+            btn.innerText = 'Select All + Copy manually';
+            setTimeout(function() { btn.innerText = originalText; }, 3000);
+        }
+    }
 }
 
 function downloadTransmissionLog() {
-    const text = document.getElementById('copy-text').value;
+    var text = document.getElementById('copy-text').value;
     if (!text) {
         alert("No transmission data to save.");
         return;
     }
 
-    const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);
-    const filename = `Transmission_Log_${timestamp}.txt`;
+    var isDiscord = !!(window.discordIntegration && window.discordIntegration.isDiscordEnvironment);
 
-    const blob = new Blob([text], { type: 'text/plain' });
-    const link = document.createElement('a');
+    if (isDiscord) {
+        // In Discord iframe, file downloads are silently blocked.
+        // Fall back to selecting + copying the text content.
+        var el = document.getElementById('copy-text');
+        var btn = document.getElementById('btn-download-log');
+        var originalText = btn ? btn.innerText : '';
+        el.focus();
+        el.select();
+        el.setSelectionRange(0, 99999);
+
+        var copied = false;
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(el.value).then(function() {
+                _showCopyFeedback(btn, originalText, true);
+            }).catch(function() {
+                copied = _execCommandCopyFallback(el);
+                _showCopyFeedback(btn, originalText, copied);
+            });
+        } else {
+            copied = _execCommandCopyFallback(el);
+            _showCopyFeedback(btn, originalText, copied);
+        }
+        return;
+    }
+
+    // Standard browser: download as file
+    var timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);
+    var filename = "Transmission_Log_" + timestamp + ".txt";
+
+    var blob = new Blob([text], { type: 'text/plain' });
+    var link = document.createElement('a');
     link.href = URL.createObjectURL(blob);
     link.download = filename;
-    
+
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -2823,6 +2887,10 @@ window.addEventListener('DOMContentLoaded', async function() {
             if (isDiscord) {
                 console.log('🎮 Running as Discord Activity');
                 document.body.classList.add('discord-mode');
+
+                // Update export button labels for Discord environment
+                var dlBtn = document.getElementById('btn-download-log');
+                if (dlBtn) dlBtn.innerText = 'Copy to Clipboard';
             }
         } catch (error) {
             // Silently handle Discord initialization errors (not in Discord environment)
