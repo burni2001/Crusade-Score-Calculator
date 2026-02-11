@@ -451,7 +451,7 @@ const PNGExporter = {
 
         const images = this._pendingImages;
         const total = images.length;
-        const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+        const isDiscord = this._isDiscord();
 
         let imagesHtml = '';
         images.forEach((img, idx) => {
@@ -471,16 +471,22 @@ const PNGExporter = {
             `;
         });
 
-        const fallbackTip = isMobile
-            ? 'Tap "Copy Image" to copy, or long-press an image to save directly.'
-            : 'Click "Copy Image" to copy, or right-click an image to save directly.';
+        let instructionText;
+        if (isDiscord) {
+            instructionText = `${total} image${total !== 1 ? 's' : ''} captured. Tap "Copy Image" then paste into Discord chat.`;
+        } else {
+            const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+            instructionText = isMobile
+                ? `${total} image${total !== 1 ? 's' : ''} captured. Tap "Copy Image" to copy, or long-press an image to save directly.`
+                : `${total} image${total !== 1 ? 's' : ''} captured. Click "Copy Image" to copy, or right-click an image to save directly.`;
+        }
 
         modal.innerHTML = `
             <div class="modal-content png-export-modal-content">
                 <h3 class="text-center text-primary border-bottom pb-10 mt-0 uppercase letter-spacing-2 glow">
                     CAPTURED DATA SCREENS
                 </h3>
-                <p class="png-export-instructions">${total} image${total !== 1 ? 's' : ''} captured. ${fallbackTip}</p>
+                <p class="png-export-instructions">${instructionText}</p>
                 <div class="png-export-gallery">
                     ${imagesHtml}
                 </div>
@@ -524,6 +530,7 @@ const PNGExporter = {
     async _copyImageToClipboard(dataUrl, index) {
         const feedbackEl = document.querySelector(`[data-feedback-index="${index}"]`);
         const btnEl = document.querySelector(`.btn-copy-image[data-index="${index}"]`);
+        const isDiscord = this._isDiscord();
 
         const showFeedback = function(message, success) {
             if (feedbackEl) {
@@ -532,7 +539,7 @@ const PNGExporter = {
                 setTimeout(function() {
                     feedbackEl.textContent = '';
                     feedbackEl.className = 'png-copy-feedback';
-                }, 2500);
+                }, 3000);
             }
         };
 
@@ -546,7 +553,7 @@ const PNGExporter = {
                 await navigator.clipboard.write([
                     new ClipboardItem({ 'image/png': blob })
                 ]);
-                showFeedback('Copied!', true);
+                showFeedback(isDiscord ? 'Copied! Paste in chat' : 'Copied!', true);
                 return;
             }
 
@@ -557,10 +564,10 @@ const PNGExporter = {
                 return;
             }
 
-            showFeedback('Long-press image to save', false);
+            showFeedback(isDiscord ? 'Copy not supported here' : 'Long-press image to save', false);
         } catch (err) {
             console.warn('Image copy failed:', err);
-            showFeedback('Long-press image to save', false);
+            showFeedback(isDiscord ? 'Copy not supported here' : 'Long-press image to save', false);
         }
     },
 
