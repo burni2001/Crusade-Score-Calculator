@@ -1596,19 +1596,24 @@ document.addEventListener('touchcancel', function() {
 function csvToHtmlTable(csvText, sectionTitle) {
     const lines = csvText.split('\n');
     const startIdx = lines.findIndex(line => line.includes(sectionTitle));
-    
+
     if (startIdx === -1) return `<p>Data not found for ${sectionTitle}</p>`;
 
+    // Use RFC 4180 parsing to handle quoted fields with commas
+    const parseRow = (typeof CSVHandler !== 'undefined' && CSVHandler.parseRow)
+        ? function(row) { return CSVHandler.parseRow(row); }
+        : function(row) { return row.split(',').map(function(s) { return s.trim(); }); };
+
     let html = '<table class="csv-modal-table">';
-    
+
     const headerLine = lines[startIdx + 1];
     if (headerLine) {
-        const headers = headerLine.split(',');
+        const headers = parseRow(headerLine);
         html += '<thead class="csv-modal-thead">';
         html += '<tr>';
         html += `<th class="csv-modal-th-left">METRIC</th>`;
         for (let i = 1; i < headers.length; i++) {
-            html += `<th class="csv-modal-th-center">${escapeHtml(headers[i].trim())}</th>`;
+            html += `<th class="csv-modal-th-center">${escapeHtml(headers[i])}</th>`;
         }
         html += '</tr></thead>';
     }
@@ -1618,19 +1623,19 @@ function csvToHtmlTable(csvText, sectionTitle) {
         const line = lines[i].trim();
         if (!line || line === "ADDITIONAL STATISTICS" || line === "MODIFIERS") break;
 
-        const cols = line.split(',');
+        const cols = parseRow(line);
         html += '<tr class="csv-modal-tr">';
-        html += `<td class="csv-modal-td-label">${escapeHtml(cols[0].trim())}</td>`;
-        
+        html += `<td class="csv-modal-td-label">${escapeHtml(cols[0])}</td>`;
+
         for (let j = 1; j < cols.length; j++) {
             const isTotal = j === cols.length - 1;
             const tdClass = isTotal ? "csv-modal-td-total" : "csv-modal-td-value";
-            html += `<td class="${tdClass}">${escapeHtml(cols[j].trim())}</td>`;
+            html += `<td class="${tdClass}">${escapeHtml(cols[j])}</td>`;
         }
         html += '</tr>';
     }
     html += '</tbody></table>';
-    
+
     return html;
 }
 
@@ -1665,6 +1670,7 @@ function openSlotOverlay(index) {
             ${statsTable}
 
             <div class="modal-actions">
+                <button id="btn-slot-export-png" class="btn btn-primary btn-sm">EXPORT PNG</button>
                 <button id="btn-slot-download-csv" class="btn btn-sm">DOWNLOAD CSV</button>
                 <button id="btn-slot-close" class="btn btn-sm">CLOSE</button>
             </div>
@@ -1672,6 +1678,23 @@ function openSlotOverlay(index) {
     `;
 
     // Bind event listeners for dynamically created buttons (CSP-compliant)
+    modal.querySelector('#btn-slot-export-png').addEventListener('click', async function() {
+        var pngBtn = this;
+        var origText = pngBtn.innerText;
+        pngBtn.innerText = 'CAPTURING...';
+        try {
+            // Clear pending images so only this mission's image shows in the modal
+            PNGExporter._pendingImages = [];
+            await PNGExporter.exportMissionFromCSV(slot, index);
+            pngBtn.innerText = '✓ CAPTURED';
+            setTimeout(function() { pngBtn.innerText = origText; }, 2000);
+            // In Discord, show the export modal with the captured image
+            PNGExporter.showExportModal();
+        } catch (err) {
+            pngBtn.innerText = origText;
+            console.error('Slot PNG export failed:', err);
+        }
+    });
     modal.querySelector('#btn-slot-download-csv').addEventListener('click', function() { downloadSlotCSV(index); });
     modal.querySelector('#btn-slot-close').addEventListener('click', function() { closeSlotModal(); });
 
@@ -2700,7 +2723,8 @@ function toggleCustomRules() {
 
 /**
  * Record data screens as PNG (for Page 3)
- * Captures each individual saved mission and the aggregated tables
+ * Captures each individual saved mission and the aggregated tables.
+ * In Discord, images are collected and displayed in a paginated modal.
  */
 async function recordAllDataScreens() {
     try {
@@ -2717,6 +2741,9 @@ async function recordAllDataScreens() {
 
         const btn = document.getElementById('btn-record-png');
         const originalText = btn ? btn.innerText : '';
+
+        // Clear any previously pending images before batch export
+        PNGExporter._pendingImages = [];
 
         // Export each saved mission individually from its CSV data
         for (let i = 0; i < savedSlots.length; i++) {
@@ -2739,7 +2766,8 @@ async function recordAllDataScreens() {
         }
         if (btn) btn.innerText = 'CAPTURING AGGREGATED...';
 
-        await PNGExporter.exportAggregatedScreen();
+        // Pass skipButtonFeedback to prevent _exportScreen from interfering with our button text
+        await PNGExporter.exportAggregatedScreen('#btn-record-png', { skipButtonFeedback: true });
 
         if (statusEl) {
             statusEl.textContent = `${savedSlots.length} mission(s) + aggregated data captured!`;
@@ -2891,6 +2919,10 @@ window.addEventListener('DOMContentLoaded', async function() {
                 // Update export button labels for Discord environment
                 var dlBtn = document.getElementById('btn-download-log');
                 if (dlBtn) dlBtn.innerText = 'Copy to Clipboard';
+
+                // Update PNG export button label for Discord (images shown in modal, not downloaded)
+                var pngBtn = document.getElementById('btn-record-png');
+                if (pngBtn) pngBtn.innerText = 'Capture Data Screens';
             }
         } catch (error) {
             // Silently handle Discord initialization errors (not in Discord environment)

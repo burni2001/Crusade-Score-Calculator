@@ -1001,6 +1001,9 @@ select option {
 /* PNG Export Modal (Discord) */
 .png-export-modal-content {
     max-width: 95vw;
+    max-height: 90vh;
+    display: flex;
+    flex-direction: column;
 }
 
 .png-export-instructions {
@@ -1010,6 +1013,7 @@ select option {
     margin: var(--space-sm) 0 var(--space-md) 0;
     opacity: 0.7;
     line-height: 1.4;
+    flex-shrink: 0;
 }
 
 .png-export-gallery {
@@ -1017,12 +1021,16 @@ select option {
     flex-direction: column;
     gap: var(--space-lg);
     padding: var(--space-sm) 0;
+    overflow-y: auto;
+    flex: 1;
+    min-height: 0;
 }
 
 .png-export-item {
     border: 1px solid var(--border-color);
     padding: var(--space-sm);
     background: rgba(0, 10, 0, 0.4);
+    flex-shrink: 0;
 }
 
 .png-export-item-header {
@@ -1051,6 +1059,13 @@ select option {
     width: 100%;
     height: auto;
     display: block;
+    cursor: pointer;
+    border: 1px solid transparent;
+    transition: border-color 0.2s;
+}
+
+.png-export-image:hover {
+    border-color: var(--pip-green);
 }
 
 .png-export-item-actions {
@@ -1078,6 +1093,21 @@ select option {
 
 .png-copy-feedback.feedback-error {
     color: #cc8844;
+    opacity: 0.8;
+}
+
+.png-export-nav {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-md);
+    padding: var(--space-sm) 0;
+    flex-shrink: 0;
+}
+
+.png-export-nav-info {
+    color: var(--pip-green);
+    font-size: 0.9rem;
     opacity: 0.8;
 }
 

@@ -176,16 +176,18 @@ const PNGExporter = {
     /**
      * Export aggregated data screen (Aggregated Squad Matrix + Aggregated Statistics)
      * @param {string} buttonSelector - CSS selector for the export button (for feedback)
+     * @param {Object} [opts] - Additional options
+     * @param {boolean} [opts.skipButtonFeedback] - Skip button text management (for batch exports)
      * @returns {Promise<void>}
      */
-    async exportAggregatedScreen(buttonSelector = '#btn-record-png') {
+    async exportAggregatedScreen(buttonSelector = '#btn-record-png', opts = {}) {
         return this._exportScreen({
             sectionSelectors: [
-                { 
+                {
                     containerSelector: '#page-3 .section',
                     titleMatch: 'AGGREGATED SQUAD MATRIX'
                 },
-                { 
+                {
                     containerSelector: '#page-3 .section',
                     titleMatch: 'AGGREGATED STATISTICS'
                 }
@@ -197,8 +199,8 @@ const PNGExporter = {
                 success: '✓ CAPTURED',
                 fallback: 'Record Aggregated Data'
             },
-            // Match mission screen width for consistency
-            useStandardWidth: true
+            useStandardWidth: true,
+            skipButtonFeedback: !!opts.skipButtonFeedback
         });
     },
 
@@ -215,27 +217,30 @@ const PNGExporter = {
      * @param {string} options.buttonSelector - CSS selector for feedback button
      * @param {Object} options.buttonText - Button text states
      * @param {boolean} options.useStandardWidth - Force standard width (default: false)
+     * @param {boolean} options.skipButtonFeedback - Skip button text management (for batch exports)
      * @returns {Promise<void>}
      */
     async _exportScreen(options) {
-        const { sectionSelectors, filenamePrefix, buttonSelector, buttonText, useStandardWidth = false } = options;
-        
+        const { sectionSelectors, filenamePrefix, buttonSelector, buttonText, useStandardWidth = false, skipButtonFeedback = false } = options;
+
         let btn = null;
         let originalText = "";
         let captureContainer = null;
         let originalBodyWidth = "";
 
         try {
-            // 1. Setup button feedback
-            btn = document.querySelector(buttonSelector) || 
-                  document.getElementById('export-png-btn');
-            
-            originalText = btn ? btn.innerText : buttonText.fallback;
-            if (btn) btn.innerText = buttonText.processing;
+            // 1. Setup button feedback (skip if caller manages button state)
+            if (!skipButtonFeedback) {
+                btn = document.querySelector(buttonSelector) ||
+                      document.getElementById('export-png-btn');
+
+                originalText = btn ? btn.innerText : buttonText.fallback;
+                if (btn) btn.innerText = buttonText.processing;
+            }
 
             // 2. Find target sections
             const sections = this._findSections(sectionSelectors);
-            
+
             if (sections.length !== sectionSelectors.length) {
                 throw new Error(`Required sections not found. Found ${sections.length}/${sectionSelectors.length}`);
             }
@@ -268,8 +273,8 @@ const PNGExporter = {
             // 8. Download image
             this._downloadCanvas(canvas, filenamePrefix);
 
-            // 9. Success feedback
-            if (btn) {
+            // 9. Success feedback (skip if caller manages button state)
+            if (!skipButtonFeedback && btn) {
                 btn.innerText = buttonText.success;
                 setTimeout(() => {
                     if (btn) btn.innerText = originalText;
@@ -280,8 +285,8 @@ const PNGExporter = {
             // Error handling
             this._handleError(err, 'PNG Export');
             alert("Failed to capture screen. Please try again or check your browser permissions.");
-            if (btn) btn.innerText = originalText || buttonText.fallback;
-            
+            if (!skipButtonFeedback && btn) btn.innerText = originalText || buttonText.fallback;
+
         } finally {
             // Cleanup
             this._cleanup(captureContainer, originalBodyWidth);
@@ -433,7 +438,7 @@ const PNGExporter = {
     },
 
     /**
-     * Show a modal with all pending export images.
+     * Show a modal with all pending export images (paginated one-at-a-time).
      * Used in Discord where programmatic downloads don't work.
      * Provides per-image "Copy Image" buttons with clipboard API + fallback instructions.
      * No-op if there are no pending images (i.e., not in Discord or nothing captured).
@@ -452,78 +457,107 @@ const PNGExporter = {
         const images = this._pendingImages;
         const total = images.length;
         const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+        const self = this;
+        let currentIndex = 0;
 
-        let imagesHtml = '';
-        images.forEach((img, idx) => {
-            const escapedFilename = this._escapeHtml(img.filename);
-            imagesHtml += `
-                <div class="png-export-item">
-                    <div class="png-export-item-header">
-                        <span class="png-export-counter">${idx + 1} / ${total}</span>
-                        <span class="png-export-filename">${escapedFilename}</span>
+        const fallbackTip = isMobile
+            ? 'Tap "Copy Image" to copy, or long-press the image to save directly.'
+            : 'Click "Copy Image" to copy, or right-click the image to save directly.';
+
+        function renderCurrentImage() {
+            const img = images[currentIndex];
+            const escapedFilename = self._escapeHtml(img.filename);
+
+            const navHtml = total > 1 ? `
+                <div class="png-export-nav">
+                    <button class="btn btn-sm" id="btn-png-prev" ${currentIndex === 0 ? 'disabled' : ''}>&#9664; Prev</button>
+                    <span class="png-export-nav-info">${currentIndex + 1} / ${total}</span>
+                    <button class="btn btn-sm" id="btn-png-next" ${currentIndex === total - 1 ? 'disabled' : ''}>Next &#9654;</button>
+                </div>
+            ` : '';
+
+            modal.innerHTML = `
+                <div class="modal-content png-export-modal-content">
+                    <h3 class="text-center text-primary border-bottom pb-10 mt-0 uppercase letter-spacing-2 glow">
+                        CAPTURED DATA SCREENS
+                    </h3>
+                    <p class="png-export-instructions">${total} image${total !== 1 ? 's' : ''} captured. ${fallbackTip}</p>
+                    ${navHtml}
+                    <div class="png-export-gallery">
+                        <div class="png-export-item">
+                            <div class="png-export-item-header">
+                                <span class="png-export-counter">${currentIndex + 1} / ${total}</span>
+                                <span class="png-export-filename">${escapedFilename}</span>
+                            </div>
+                            <img src="${img.dataUrl}" alt="${escapedFilename}" class="png-export-image" />
+                            <div class="png-export-item-actions">
+                                <button class="btn btn-primary btn-sm btn-copy-image" data-index="${currentIndex}">Copy Image</button>
+                                <span class="png-copy-feedback" data-feedback-index="${currentIndex}"></span>
+                            </div>
+                        </div>
                     </div>
-                    <img src="${img.dataUrl}" alt="${escapedFilename}" class="png-export-image" />
-                    <div class="png-export-item-actions">
-                        <button class="btn btn-primary btn-sm btn-copy-image" data-index="${idx}">Copy Image</button>
-                        <span class="png-copy-feedback" data-feedback-index="${idx}"></span>
+                    <div class="modal-buttons">
+                        <button id="btn-close-png-modal" class="btn btn-danger">Close</button>
                     </div>
                 </div>
             `;
-        });
 
-        const fallbackTip = isMobile
-            ? 'Tap "Copy Image" to copy, or long-press an image to save directly.'
-            : 'Click "Copy Image" to copy, or right-click an image to save directly.';
+            // Bind copy button
+            var copyBtn = modal.querySelector('.btn-copy-image');
+            if (copyBtn) {
+                copyBtn.addEventListener('click', function() {
+                    self._copyImageToClipboard(images[currentIndex].dataUrl, currentIndex);
+                });
+            }
 
-        modal.innerHTML = `
-            <div class="modal-content png-export-modal-content">
-                <h3 class="text-center text-primary border-bottom pb-10 mt-0 uppercase letter-spacing-2 glow">
-                    CAPTURED DATA SCREENS
-                </h3>
-                <p class="png-export-instructions">${total} image${total !== 1 ? 's' : ''} captured. ${fallbackTip}</p>
-                <div class="png-export-gallery">
-                    ${imagesHtml}
-                </div>
-                <div class="modal-buttons">
-                    <button id="btn-close-png-modal" class="btn btn-danger">Close</button>
-                </div>
-            </div>
-        `;
+            // Bind navigation buttons
+            var prevBtn = modal.querySelector('#btn-png-prev');
+            var nextBtn = modal.querySelector('#btn-png-next');
+            if (prevBtn) {
+                prevBtn.addEventListener('click', function() {
+                    if (currentIndex > 0) {
+                        currentIndex--;
+                        renderCurrentImage();
+                    }
+                });
+            }
+            if (nextBtn) {
+                nextBtn.addEventListener('click', function() {
+                    if (currentIndex < total - 1) {
+                        currentIndex++;
+                        renderCurrentImage();
+                    }
+                });
+            }
 
-        // Bind per-image copy buttons
-        const self = this;
-        modal.querySelectorAll('.btn-copy-image').forEach(function(btn) {
-            btn.addEventListener('click', function() {
-                const idx = parseInt(btn.getAttribute('data-index'), 10);
-                self._copyImageToClipboard(images[idx].dataUrl, idx);
-            });
-        });
-
-        modal.querySelector('#btn-close-png-modal').addEventListener('click', function() {
-            modal.classList.remove('active');
-            self._pendingImages = [];
-        });
-
-        modal.addEventListener('click', function(e) {
-            if (e.target === modal) {
+            // Bind close button
+            modal.querySelector('#btn-close-png-modal').addEventListener('click', function() {
                 modal.classList.remove('active');
                 self._pendingImages = [];
-            }
-        });
+            });
 
+            // Close on backdrop click (re-bind since innerHTML was replaced)
+            modal.onclick = function(e) {
+                if (e.target === modal) {
+                    modal.classList.remove('active');
+                    self._pendingImages = [];
+                }
+            };
+        }
+
+        renderCurrentImage();
         requestAnimationFrame(function() { modal.classList.add('active'); });
     },
 
     /**
      * Copy a PNG data URL to clipboard as an image blob.
-     * Falls back to selecting the image element if Clipboard API is unavailable.
+     * Uses multiple fallback strategies for Discord iframe restrictions.
      * @private
      * @param {string} dataUrl - PNG data URL
      * @param {number} index - Image index (for feedback element)
      */
     async _copyImageToClipboard(dataUrl, index) {
         const feedbackEl = document.querySelector(`[data-feedback-index="${index}"]`);
-        const btnEl = document.querySelector(`.btn-copy-image[data-index="${index}"]`);
 
         const showFeedback = function(message, success) {
             if (feedbackEl) {
@@ -532,7 +566,7 @@ const PNGExporter = {
                 setTimeout(function() {
                     feedbackEl.textContent = '';
                     feedbackEl.className = 'png-copy-feedback';
-                }, 2500);
+                }, 3000);
             }
         };
 
@@ -541,26 +575,57 @@ const PNGExporter = {
             const response = await fetch(dataUrl);
             const blob = await response.blob();
 
-            // Try Clipboard API with ClipboardItem
+            // Strategy 1: Clipboard API with ClipboardItem (modern browsers)
             if (navigator.clipboard && typeof ClipboardItem !== 'undefined') {
-                await navigator.clipboard.write([
-                    new ClipboardItem({ 'image/png': blob })
-                ]);
-                showFeedback('Copied!', true);
-                return;
+                try {
+                    await navigator.clipboard.write([
+                        new ClipboardItem({ 'image/png': blob })
+                    ]);
+                    showFeedback('Copied!', true);
+                    return;
+                } catch (clipErr) {
+                    console.warn('ClipboardItem write failed:', clipErr);
+                    // Fall through to next strategy
+                }
             }
 
-            // Fallback: try copying the data URL as text (can be pasted in some apps)
+            // Strategy 2: Open image in new tab/window for manual save
+            // This works better in Discord than programmatic downloads
+            try {
+                var newWindow = window.open('');
+                if (newWindow) {
+                    newWindow.document.write(
+                        '<html><head><title>Data Screen Export</title>' +
+                        '<style>body{margin:0;background:#000;display:flex;justify-content:center;align-items:start;}' +
+                        'img{max-width:100%;height:auto;}</style></head>' +
+                        '<body><img src="' + dataUrl + '"/></body></html>'
+                    );
+                    newWindow.document.close();
+                    showFeedback('Opened in new tab - save from there', true);
+                    return;
+                }
+            } catch (winErr) {
+                console.warn('New window fallback failed:', winErr);
+            }
+
+            // Strategy 3: Copy data URL as text (can be pasted in some apps)
             if (navigator.clipboard && navigator.clipboard.writeText) {
-                await navigator.clipboard.writeText(dataUrl);
-                showFeedback('URL copied (paste in browser)', true);
-                return;
+                try {
+                    await navigator.clipboard.writeText(dataUrl);
+                    showFeedback('URL copied (paste in browser)', true);
+                    return;
+                } catch (textErr) {
+                    console.warn('Text clipboard copy failed:', textErr);
+                }
             }
 
-            showFeedback('Long-press image to save', false);
+            // Final fallback message
+            var isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+            showFeedback(isMobile ? 'Long-press image to save' : 'Right-click image to save', false);
         } catch (err) {
             console.warn('Image copy failed:', err);
-            showFeedback('Long-press image to save', false);
+            var isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+            showFeedback(isMobile ? 'Long-press image to save' : 'Right-click image to save', false);
         }
     },
 
@@ -592,24 +657,80 @@ const PNGExporter = {
     },
 
     /**
-     * Parse mission parameters from CSV lines
+     * Parse mission parameters from CSV lines using RFC 4180 parsing.
+     * Extracts key-value pairs from the MISSION PARAMETERS section.
      * @private
      * @param {Array<string>} lines - CSV lines
      * @returns {Object} - Mission parameters
      */
     _parseMissionParams(lines) {
         const params = { difficulty: '-', waves: '-', objective: '-', geneseed: '-', armoury: '-' };
+        const keyMap = {
+            'difficulty': 'difficulty',
+            'waves reached': 'waves',
+            'objective completion': 'objective',
+            'geneseed retrieved': 'geneseed',
+            'armoury data retrieved': 'armoury'
+        };
         for (let i = 0; i < Math.min(lines.length, 30); i++) {
             const line = lines[i].trim();
             if (!line) continue;
-            const matchVal = (regex) => { const m = line.match(regex); return m ? m[1].trim() : null; };
-            params.difficulty = matchVal(/Difficulty[:,\s]+(.+)/i) || params.difficulty;
-            params.waves = matchVal(/Waves Reached[:,\s]+(.+)/i) || params.waves;
-            params.objective = matchVal(/Objective Completion[:,\s]+(.+)/i) || params.objective;
-            params.geneseed = matchVal(/Geneseed Retrieved[:,\s]+(.+)/i) || params.geneseed;
-            params.armoury = matchVal(/Armoury Data Retrieved[:,\s]+(.+)/i) || params.armoury;
+            // Stop if we reach a data section
+            if (line === 'MODIFIERS' || line === 'SQUAD PERFORMANCE MATRIX') break;
+            const cols = this._parseCSVRow(line);
+            if (cols.length >= 2) {
+                const key = cols[0].replace(/:$/, '').trim().toLowerCase();
+                for (var pattern in keyMap) {
+                    if (key === pattern) {
+                        params[keyMap[pattern]] = cols[1];
+                        break;
+                    }
+                }
+            }
         }
         return params;
+    },
+
+    /**
+     * Parse a CSV row using RFC 4180 rules (respects quoted fields with commas).
+     * Uses CSVHandler.parseRow() if available, otherwise falls back to a local implementation.
+     * @private
+     * @param {string} rowStr - CSV row string
+     * @returns {string[]} - Array of parsed field values
+     */
+    _parseCSVRow(rowStr) {
+        // Use the shared CSVHandler if available (preferred - single source of truth)
+        if (typeof CSVHandler !== 'undefined' && CSVHandler.parseRow) {
+            return CSVHandler.parseRow(rowStr);
+        }
+        // Fallback: local RFC 4180 parsing (handles quoted fields with commas/quotes)
+        const res = [];
+        let cur = '';
+        let inQuotes = false;
+        let i = 0;
+        while (i < rowStr.length) {
+            const c = rowStr[i];
+            if (c === '"') {
+                if (inQuotes && rowStr[i + 1] === '"') {
+                    cur += '"';
+                    i += 2;
+                    continue;
+                }
+                inQuotes = !inQuotes;
+                i++;
+                continue;
+            }
+            if (c === ',' && !inQuotes) {
+                res.push(cur.trim());
+                cur = '';
+                i++;
+                continue;
+            }
+            cur += c;
+            i++;
+        }
+        res.push(cur.trim());
+        return res;
     },
 
     /**
@@ -631,12 +752,12 @@ const PNGExporter = {
 
         const headerLine = lines[startIdx + 1];
         if (headerLine) {
-            const headers = headerLine.split(',');
+            const headers = this._parseCSVRow(headerLine);
             html += '<thead><tr>';
             html += `<th style="${headerBase}text-align:right;width:180px;padding-right:15px;">METRIC</th>`;
             for (let i = 1; i < headers.length; i++) {
                 const isTotal = i === headers.length - 1;
-                html += `<th style="${headerBase}text-align:center;${isTotal ? 'width:120px;' : ''}">${this._escapeHtml(headers[i].trim())}</th>`;
+                html += `<th style="${headerBase}text-align:center;${isTotal ? 'width:120px;' : ''}">${this._escapeHtml(headers[i])}</th>`;
             }
             html += '</tr></thead>';
         }
@@ -646,8 +767,8 @@ const PNGExporter = {
             const line = lines[i].trim();
             if (!line || line === "ADDITIONAL STATISTICS" || line === "MODIFIERS") break;
 
-            const cols = line.split(',');
-            const metricName = cols[0].trim();
+            const cols = this._parseCSVRow(line);
+            const metricName = cols[0];
             const isFinalScore = metricName.toLowerCase().includes('final score');
             const isScoreRow = metricName.toLowerCase().includes('base score') || metricName.toLowerCase().includes('modifier score');
 
@@ -661,13 +782,13 @@ const PNGExporter = {
             for (let j = 1; j < cols.length; j++) {
                 const isTotal = j === cols.length - 1;
                 if (isFinalScore) {
-                    html += `<td style="${cellBase}text-align:center;font-weight:bold;font-size:1.5rem;color:#80cc80;text-shadow:0 0 8px #20c020;border-top:2px solid #20c020;border-bottom:2px double #20c020;${isTotal ? 'background-color:#000;width:120px;' : ''}">${this._escapeHtml(cols[j].trim())}</td>`;
+                    html += `<td style="${cellBase}text-align:center;font-weight:bold;font-size:1.5rem;color:#80cc80;text-shadow:0 0 8px #20c020;border-top:2px solid #20c020;border-bottom:2px double #20c020;${isTotal ? 'background-color:#000;width:120px;' : ''}">${this._escapeHtml(cols[j])}</td>`;
                 } else if (isTotal) {
-                    html += `<td style="${cellBase}text-align:center;font-weight:bold;background-color:#000;width:120px;">${this._escapeHtml(cols[j].trim())}</td>`;
+                    html += `<td style="${cellBase}text-align:center;font-weight:bold;background-color:#000;width:120px;">${this._escapeHtml(cols[j])}</td>`;
                 } else if (isScoreRow) {
-                    html += `<td style="${cellBase}text-align:center;font-weight:bold;">${this._escapeHtml(cols[j].trim())}</td>`;
+                    html += `<td style="${cellBase}text-align:center;font-weight:bold;">${this._escapeHtml(cols[j])}</td>`;
                 } else {
-                    html += `<td style="${cellBase}text-align:center;">${this._escapeHtml(cols[j].trim())}</td>`;
+                    html += `<td style="${cellBase}text-align:center;">${this._escapeHtml(cols[j])}</td>`;
                 }
             }
             html += '</tr>';
