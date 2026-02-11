@@ -1650,6 +1650,9 @@ function openSlotOverlay(index) {
     const matrixTable = csvToHtmlTable(slot.csv, "SQUAD PERFORMANCE MATRIX");
     const statsTable = csvToHtmlTable(slot.csv, "ADDITIONAL STATISTICS");
 
+    var isDiscord = !!(window.discordIntegration && window.discordIntegration.isDiscordEnvironment);
+    var csvBtnLabel = isDiscord ? 'COPY CSV' : 'DOWNLOAD CSV';
+
     modal.innerHTML = `
         <div class="modal-content">
             <div class="modal-header">
@@ -1665,7 +1668,7 @@ function openSlotOverlay(index) {
             ${statsTable}
 
             <div class="modal-actions">
-                <button id="btn-slot-download-csv" class="btn btn-sm">DOWNLOAD CSV</button>
+                <button id="btn-slot-download-csv" class="btn btn-sm">${csvBtnLabel}</button>
                 <button id="btn-slot-close" class="btn btn-sm">CLOSE</button>
             </div>
         </div>
@@ -1688,6 +1691,29 @@ function downloadSlotCSV(index) {
     const slot = savedSlots[index];
     if (!slot) return;
 
+    var isDiscord = !!(window.discordIntegration && window.discordIntegration.isDiscordEnvironment);
+    var btn = document.getElementById('btn-slot-download-csv');
+    var originalText = btn ? btn.innerText : '';
+
+    if (isDiscord) {
+        // In Discord iframe, file downloads are silently blocked.
+        // Fall back to copying the CSV content to clipboard.
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(slot.csv).then(function() {
+                if (btn) {
+                    btn.innerText = 'Copied!';
+                    setTimeout(function() { btn.innerText = originalText; }, 2000);
+                }
+            }).catch(function() {
+                _slotCSVCopyFallback(slot.csv, btn, originalText);
+            });
+        } else {
+            _slotCSVCopyFallback(slot.csv, btn, originalText);
+        }
+        return;
+    }
+
+    // Standard browser: download as file
     const blob = new Blob([slot.csv], { type: 'text/csv;charset=utf-8;' });
     const safeName = slot.name.replace(/[^a-z0-9]/gi, '_').toLowerCase();
     const filename = `Run_${index+1}_${safeName}.csv`;
@@ -1702,6 +1728,25 @@ function downloadSlotCSV(index) {
         link.click();
         document.body.removeChild(link);
         URL.revokeObjectURL(url);
+    }
+}
+
+function _slotCSVCopyFallback(csvText, btn, originalText) {
+    // Fallback: create a temporary textarea for copy
+    var textarea = document.createElement('textarea');
+    textarea.value = csvText;
+    textarea.style.cssText = 'position:fixed;top:-9999px;left:-9999px;';
+    document.body.appendChild(textarea);
+    textarea.focus();
+    textarea.select();
+    textarea.setSelectionRange(0, 99999);
+    var copied = false;
+    try { copied = document.execCommand('copy'); } catch (e) { /* ignore */ }
+    document.body.removeChild(textarea);
+
+    if (btn) {
+        btn.innerText = copied ? 'Copied!' : 'Copy failed';
+        setTimeout(function() { btn.innerText = originalText; }, 2000);
     }
 }
 
@@ -2739,7 +2784,8 @@ async function recordAllDataScreens() {
         }
         if (btn) btn.innerText = 'CAPTURING AGGREGATED...';
 
-        await PNGExporter.exportAggregatedScreen();
+        // Pass null buttonSelector to prevent inner _exportScreen from hijacking btn-record-png
+        await PNGExporter.exportAggregatedScreen(null);
 
         if (statusEl) {
             statusEl.textContent = `${savedSlots.length} mission(s) + aggregated data captured!`;
@@ -2891,6 +2937,9 @@ window.addEventListener('DOMContentLoaded', async function() {
                 // Update export button labels for Discord environment
                 var dlBtn = document.getElementById('btn-download-log');
                 if (dlBtn) dlBtn.innerText = 'Copy to Clipboard';
+
+                var recordBtn = document.getElementById('btn-record-png');
+                if (recordBtn) recordBtn.innerText = 'Capture Data Screens (PNG)';
             }
         } catch (error) {
             // Silently handle Discord initialization errors (not in Discord environment)

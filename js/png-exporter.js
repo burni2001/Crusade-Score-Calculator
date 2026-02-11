@@ -226,10 +226,12 @@ const PNGExporter = {
         let originalBodyWidth = "";
 
         try {
-            // 1. Setup button feedback
-            btn = document.querySelector(buttonSelector) || 
-                  document.getElementById('export-png-btn');
-            
+            // 1. Setup button feedback (skip if buttonSelector is explicitly null)
+            if (buttonSelector !== null) {
+                btn = document.querySelector(buttonSelector) ||
+                      document.getElementById('export-png-btn');
+            }
+
             originalText = btn ? btn.innerText : buttonText.fallback;
             if (btn) btn.innerText = buttonText.processing;
 
@@ -279,7 +281,17 @@ const PNGExporter = {
         } catch (err) {
             // Error handling
             this._handleError(err, 'PNG Export');
-            alert("Failed to capture screen. Please try again or check your browser permissions.");
+            // Use status element feedback instead of alert() which may be blocked in Discord iframe
+            if (this._isDiscord()) {
+                var statusEl = document.getElementById('import-status');
+                if (statusEl) {
+                    statusEl.textContent = 'PNG capture failed. Please try again.';
+                    statusEl.style.color = '#cc4444';
+                    setTimeout(function() { statusEl.textContent = ''; }, 4000);
+                }
+            } else {
+                alert("Failed to capture screen. Please try again or check your browser permissions.");
+            }
             if (btn) btn.innerText = originalText || buttonText.fallback;
             
         } finally {
