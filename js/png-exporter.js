@@ -538,10 +538,10 @@ const PNGExporter = {
                     </div>
                     <img src="${img.dataUrl}" alt="${escapedFilename}" class="png-export-image" id="png-img-${idx}" />
                     <div class="png-export-item-actions">
-                        <button class="btn btn-primary btn-sm btn-download" data-index="${idx}">Download</button>
-                        <button class="btn btn-secondary btn-sm btn-copy-image" data-index="${idx}">Copy Image</button>
-                        <button class="btn btn-secondary btn-sm btn-open-browser" data-index="${idx}">${isMobile ? 'Full Screen' : 'New Tab'}</button>
-                        <span class="png-copy-feedback" data-feedback-index="${idx}"></span>
+                        ${isDiscord 
+                            ? '<p class="png-save-hint">💾 Right-click the image → <strong>Save Image As...</strong></p>'
+                            : `<button class="btn btn-primary btn-sm btn-download" data-index="${idx}">Download</button>`
+                        }
                     </div>
                 </div>
             `;
@@ -550,9 +550,9 @@ const PNGExporter = {
         let instructionText;
         if (isDiscord) {
             if (isMobile) {
-                instructionText = `${total} image${total !== 1 ? 's' : ''} captured. Tap "Download" to save, or "Copy Image" then paste in Discord chat.`;
+                instructionText = `${total} image${total !== 1 ? 's' : ''} captured. Long-press the image to save it.`;
             } else {
-                instructionText = `${total} image${total !== 1 ? 's' : ''} captured. Click "Download" to save directly, or right-click the image → "Save Image As..." and attach to Discord chat.`;
+                instructionText = `${total} image${total !== 1 ? 's' : ''} captured. Right-click → "Save Image As..." then attach to Discord chat.`;
             }
         } else {
             if (isMobile) {
