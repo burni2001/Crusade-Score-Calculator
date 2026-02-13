@@ -1060,6 +1060,16 @@ select option {
     margin-top: var(--space-sm);
     padding-top: var(--space-sm);
     border-top: 1px solid var(--border-color);
+    flex-wrap: wrap;
+    justify-content: flex-start;
+}
+
+.png-export-item-actions .btn-open-new-tab {
+    flex: 0 0 auto;
+}
+
+.png-export-item-actions .btn-copy-image {
+    flex: 0 0 auto;
 }
 
 .btn-sm {

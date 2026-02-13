@@ -464,7 +464,8 @@ const PNGExporter = {
                     </div>
                     <img src="${img.dataUrl}" alt="${escapedFilename}" class="png-export-image" />
                     <div class="png-export-item-actions">
-                        <button class="btn btn-primary btn-sm btn-copy-image" data-index="${idx}">Copy Image</button>
+                        <button class="btn btn-primary btn-sm btn-open-new-tab" data-index="${idx}">Open in New Tab</button>
+                        <button class="btn btn-secondary btn-sm btn-copy-image" data-index="${idx}">Copy Image</button>
                         <span class="png-copy-feedback" data-feedback-index="${idx}"></span>
                     </div>
                 </div>
@@ -473,12 +474,12 @@ const PNGExporter = {
 
         let instructionText;
         if (isDiscord) {
-            instructionText = `${total} image${total !== 1 ? 's' : ''} captured. Tap "Copy Image" then paste into Discord chat.`;
+            instructionText = `${total} image${total !== 1 ? 's' : ''} captured. Click "Open in New Tab", then right-click → "Save Image As..." and attach to Discord chat.`;
         } else {
             const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
             instructionText = isMobile
-                ? `${total} image${total !== 1 ? 's' : ''} captured. Tap "Copy Image" to copy, or long-press an image to save directly.`
-                : `${total} image${total !== 1 ? 's' : ''} captured. Click "Copy Image" to copy, or right-click an image to save directly.`;
+                ? `${total} image${total !== 1 ? 's' : ''} captured. Tap "Open in New Tab" to save, or tap "Copy Image" to copy.`
+                : `${total} image${total !== 1 ? 's' : ''} captured. Click "Open in New Tab" to save, or click "Copy Image" to copy.`;
         }
 
         modal.innerHTML = `
@@ -496,8 +497,24 @@ const PNGExporter = {
             </div>
         `;
 
-        // Bind per-image copy buttons
+        // Bind per-image buttons
         const self = this;
+        
+        // "Open in New Tab" button handler
+        modal.querySelectorAll('.btn-open-new-tab').forEach(function(btn) {
+            btn.addEventListener('click', function() {
+                const idx = parseInt(btn.getAttribute('data-index'), 10);
+                const image = images[idx];
+                // Open image in new tab - works in Discord where downloads are blocked
+                const newTab = window.open('', '_blank');
+                if (newTab) {
+                    newTab.document.write('<html><head><title>' + self._escapeHtml(image.filename) + '</title></head><body style="margin:0;background:#000;display:flex;justify-content:center;align-items:center;min-height:100vh;"><img src="' + image.dataUrl + '" style="max-width:100%;height:auto;"></body></html>');
+                    newTab.document.close();
+                }
+            });
+        });
+        
+        // "Copy Image" button handler
         modal.querySelectorAll('.btn-copy-image').forEach(function(btn) {
             btn.addEventListener('click', function() {
                 const idx = parseInt(btn.getAttribute('data-index'), 10);
