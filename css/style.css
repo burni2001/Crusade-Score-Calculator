@@ -1091,6 +1091,17 @@ select option {
     opacity: 0.8;
 }
 
+.png-save-hint {
+    color: var(--pip-green);
+    font-size: 1rem;
+    margin: 0;
+    text-align: center;
+    width: 100%;
+}
+.png-save-hint strong {
+    color: var(--pip-light);
+}
+
 /* === 17. OCR MODAL === */
 #ocr-detected-grid {
     display: grid;
