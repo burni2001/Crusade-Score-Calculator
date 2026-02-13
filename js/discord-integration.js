@@ -210,8 +210,12 @@ class DiscordIntegration {
         try {
             this.discordSDK.commands.setActivity({
                 activity: {
-                    type: 0, // Playing
-                    details: details,
+                    type: 4, // Custom
+                    name: "Crusade Score Calculator",
+                    emoji: {
+                        name: "⚙️"
+                    },
+                    details: "Using",
                     state: state,
                     timestamps: {
                         start: Date.now()
