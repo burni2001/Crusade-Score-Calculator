@@ -515,7 +515,7 @@ const PNGExporter = {
                 
                 try {
                     // Check if we're in Discord with SDK available
-                    if (window.discordIntegration && window.discordIntegration.discordSDK) {
+                    if (false) { // Discord SDK openExternalLink disabled - use window.open fallback instead
                         // Use Discord's openExternalLink command
                         const url = 'data:image/png;base64,' + image.dataUrl.split(',')[1];
                         await window.discordIntegration.discordSDK.commands.openExternalLink({
@@ -550,7 +550,7 @@ const PNGExporter = {
                 } catch (err) {
                     console.error('Failed to open in browser:', err);
                     if (feedbackEl) {
-                        feedbackEl.textContent = 'Failed - popup blocked?';
+                        feedbackEl.textContent = 'Failed - try right-click on image';
                         feedbackEl.className = 'png-copy-feedback feedback-error';
                         setTimeout(() => {
                             feedbackEl.textContent = '';
