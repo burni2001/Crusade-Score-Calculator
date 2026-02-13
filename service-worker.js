@@ -4,6 +4,7 @@ const urlsToCache = [
     "./index.html",
     "./css/style.css",
     "./js/script.js",
+    "./js/storage-manager.js",
     "./js/imperialDate.js",
     "./js/ocr-parser.js",
     "./js/ocr-api-cloudflare.js",

@@ -1,6 +1,6 @@
 // ============================================================================
 // CRUSADE SCORE CALCULATOR - Main Application Script
-// Version: 7.66
+// Version: 7.67
 // 
 // A complete scoring system for Warhammer 40K Space Marine 2 missions
 // with OCR capabilities, data persistence, and export functionality
@@ -949,7 +949,7 @@ function updateGeneseedField(missionName) {
 }
 
 // ============================================================================
-// SECTION 7: DATA PERSISTENCE (LocalStorage)
+// SECTION 7: DATA PERSISTENCE (StorageManager with IndexedDB + localStorage fallback)
 // ============================================================================
 
 const STORAGE_KEY = "missionDebriefData";
@@ -972,7 +972,11 @@ const inputIds = [
     "p1-tasks", "p2-tasks", "p3-tasks"
 ];
 
-function saveData() {
+/**
+ * Save mission data using StorageManager (IndexedDB with localStorage fallback)
+ * This works reliably on Discord mobile (iOS/Android) where localStorage is restricted
+ */
+async function saveData() {
     try {
         const data = {};
         let savedCount = 0;
@@ -997,16 +1001,11 @@ function saveData() {
             return false;
         }
         
-        localStorage.setItem(STORAGE_KEY, jsonStr);
+        // Use StorageManager for cross-platform persistence
+        await StorageManager.set(STORAGE_KEY, jsonStr);
         
-        const verification = localStorage.getItem(STORAGE_KEY);
-        if (verification === jsonStr) {
-            if (window.DEBUG_MODE) console.log(`✅ Saved ${savedCount} fields`);
-            return true;
-        } else {
-            console.error('Save verification failed');
-            return false;
-        }
+        if (window.DEBUG_MODE) console.log(`✅ Saved ${savedCount} fields`);
+        return true;
         
     } catch (e) {
         ErrorHandler.handle(e, 'Save Data', false);
@@ -1019,9 +1018,13 @@ function saveData() {
     }
 }
 
-function loadData() {
+/**
+ * Load mission data using StorageManager (IndexedDB with localStorage fallback)
+ */
+async function loadData() {
     try {
-        const saved = localStorage.getItem(STORAGE_KEY);
+        // Use StorageManager for cross-platform data loading
+        const saved = await StorageManager.get(STORAGE_KEY);
         
         if (!saved) {
             console.log('💾 No saved data (first visit)');
@@ -1034,13 +1037,13 @@ function loadData() {
         } catch (parseError) {
             ErrorHandler.handle(parseError, 'Parse Saved Data', false);
             console.error('Corrupted data, clearing');
-            localStorage.removeItem(STORAGE_KEY);
+            await StorageManager.remove(STORAGE_KEY);
             return false;
         }
         
         if (typeof data !== 'object' || data === null) {
             console.error('Invalid data format');
-            localStorage.removeItem(STORAGE_KEY);
+            await StorageManager.remove(STORAGE_KEY);
             return false;
         }
         
@@ -1068,7 +1071,7 @@ function loadData() {
 
         // Restore active event display and week selector
         try {
-            const savedEvent = localStorage.getItem('cogitator_active_event');
+            const savedEvent = await StorageManager.get('cogitator_active_event');
             if (savedEvent) {
                 const eventInfo = JSON.parse(savedEvent);
                 updateWeekSelector(eventInfo);
@@ -1088,39 +1091,39 @@ function loadData() {
 }
 
 // ============================================================================
-// Aggregated State Persistence
+// Aggregated State Persistence (using StorageManager for mobile compatibility)
 // ============================================================================
 
 const AGGREGATED_STATE_KEY = 'cogitator_aggregated_state';
 
 /**
- * Saves the current importAppState to localStorage so aggregated tables
- * persist across app restarts.
+ * Saves the current importAppState to StorageManager so aggregated tables
+ * persist across app restarts (works on Discord mobile).
  */
-function saveAggregatedState() {
+async function saveAggregatedState() {
     try {
         if (!importAppState.playerOrder || importAppState.playerOrder.length === 0) {
-            localStorage.removeItem(AGGREGATED_STATE_KEY);
+            await StorageManager.remove(AGGREGATED_STATE_KEY);
             return;
         }
-        localStorage.setItem(AGGREGATED_STATE_KEY, JSON.stringify(importAppState));
+        await StorageManager.set(AGGREGATED_STATE_KEY, JSON.stringify(importAppState));
     } catch (e) {
         ErrorHandler.handle(e, 'Save Aggregated State', false);
     }
 }
 
 /**
- * Restores importAppState from localStorage and re-renders the aggregated
+ * Restores importAppState from StorageManager and re-renders the aggregated
  * tables if data was previously saved.
  */
-function loadAggregatedState() {
+async function loadAggregatedState() {
     try {
-        const saved = localStorage.getItem(AGGREGATED_STATE_KEY);
+        const saved = await StorageManager.get(AGGREGATED_STATE_KEY);
         if (!saved) return false;
 
         const parsed = JSON.parse(saved);
         if (!parsed || !Array.isArray(parsed.playerOrder) || parsed.playerOrder.length === 0) {
-            localStorage.removeItem(AGGREGATED_STATE_KEY);
+            await StorageManager.remove(AGGREGATED_STATE_KEY);
             return false;
         }
 
@@ -1137,7 +1140,7 @@ function loadAggregatedState() {
         return true;
     } catch (e) {
         ErrorHandler.handle(e, 'Load Aggregated State', false);
-        localStorage.removeItem(AGGREGATED_STATE_KEY);
+        await StorageManager.remove(AGGREGATED_STATE_KEY);
         return false;
     }
 }
