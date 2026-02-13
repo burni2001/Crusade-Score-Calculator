@@ -425,17 +425,67 @@ const PNGExporter = {
 
     /**
      * Check if running inside Discord's embedded webview
+     * Uses multiple detection methods for better reliability across Discord Desktop/iOS/browser
      * @private
      * @returns {boolean}
      */
     _isDiscord() {
-        return !!(window.discordIntegration && window.discordIntegration.isDiscordEnvironment);
+        // Method 1: Check DiscordIntegration flag (set during SDK initialization)
+        if (window.discordIntegration && window.discordIntegration.isDiscordEnvironment) {
+            return true;
+        }
+
+        // Method 2: Check for Discord SDK global
+        if (typeof DiscordSDK !== 'undefined') {
+            return true;
+        }
+
+        // Method 3: Check URL parameters (Discord Activity iframe)
+        try {
+            const params = new URLSearchParams(window.location.search);
+            if (params.has('frame_id') && params.has('instance_id')) {
+                return true;
+            }
+        } catch (_) { /* ignore */ }
+
+        // Method 4: Check Discord Activity proxy hostname
+        try {
+            if (window.location.hostname.endsWith('.discordsays.com')) {
+                return true;
+            }
+        } catch (_) { /* ignore */ }
+
+        // Method 5: Check for cross-origin iframe (Discord Activities are always cross-origin)
+        try {
+            if (window.self !== window.top) {
+                // Accessing parent will throw SecurityError if cross-origin
+                void window.top.location.href;
+                // If we get here, same-origin - check if parent is Discord
+                try {
+                    if (window.parent && window.parent.location) {
+                        const parentHref = window.parent.location.href;
+                        if (parentHref && (parentHref.includes('discord') || parentHref.includes('discordsays'))) {
+                            return true;
+                        }
+                    }
+                } catch (_) { /* ignore */ }
+            }
+        } catch (_) {
+            // Cross-origin iframe detected - likely Discord
+            // Additional check: user agent patterns common in Discord apps
+            const ua = navigator.userAgent;
+            if (ua.includes('Discord') || ua.includes('Mobile')) {
+                return true;
+            }
+        }
+
+        return false;
     },
 
     /**
      * Show a modal with all pending export images.
      * Used in Discord where programmatic downloads don't work.
-     * Provides per-image "Copy Image" buttons with clipboard API + fallback instructions.
+     * Provides multiple ways to save: direct download, copy to clipboard, and open in new tab.
      * No-op if there are no pending images (i.e., not in Discord or nothing captured).
      */
     showExportModal() {
@@ -452,6 +502,7 @@ const PNGExporter = {
         const images = this._pendingImages;
         const total = images.length;
         const isDiscord = this._isDiscord();
+        const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
 
         let imagesHtml = '';
         images.forEach((img, idx) => {
@@ -462,10 +513,11 @@ const PNGExporter = {
                         <span class="png-export-counter">${idx + 1} / ${total}</span>
                         <span class="png-export-filename">${escapedFilename}</span>
                     </div>
-                    <img src="${img.dataUrl}" alt="${escapedFilename}" class="png-export-image" />
+                    <img src="${img.dataUrl}" alt="${escapedFilename}" class="png-export-image" id="png-img-${idx}" />
                     <div class="png-export-item-actions">
-                        <button class="btn btn-primary btn-sm btn-open-browser" data-index="${idx}">${isDiscord ? 'Open in Browser' : 'Open in New Tab'}</button>
+                        <button class="btn btn-primary btn-sm btn-download" data-index="${idx}">Download</button>
                         <button class="btn btn-secondary btn-sm btn-copy-image" data-index="${idx}">Copy Image</button>
+                        <button class="btn btn-secondary btn-sm btn-open-browser" data-index="${idx}">${isMobile ? 'Full Screen' : 'New Tab'}</button>
                         <span class="png-copy-feedback" data-feedback-index="${idx}"></span>
                     </div>
                 </div>
@@ -474,12 +526,17 @@ const PNGExporter = {
 
         let instructionText;
         if (isDiscord) {
-            instructionText = `${total} image${total !== 1 ? 's' : ''} captured. Click "Open in Browser", then right-click the image → "Save Image As..." and attach to Discord chat.`;
+            if (isMobile) {
+                instructionText = `${total} image${total !== 1 ? 's' : ''} captured. Tap "Download" to save, or "Copy Image" then paste in Discord chat.`;
+            } else {
+                instructionText = `${total} image${total !== 1 ? 's' : ''} captured. Click "Download" to save directly, or right-click the image → "Save Image As..." and attach to Discord chat.`;
+            }
         } else {
-            const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
-            instructionText = isMobile
-                ? `${total} image${total !== 1 ? 's' : ''} captured. Tap "Open in New Tab" to save, or tap "Copy Image" to copy.`
-                : `${total} image${total !== 1 ? 's' : ''} captured. Click "Open in New Tab" to save, or click "Copy Image" to copy.`;
+            if (isMobile) {
+                instructionText = `${total} image${total !== 1 ? 's' : ''} captured. Tap "Download" to save, or tap "Copy Image" to copy.`;
+            } else {
+                instructionText = `${total} image${total !== 1 ? 's' : ''} captured. Click "Download" to save, or click "Copy Image" to copy.`;
+            }
         }
 
         modal.innerHTML = `
@@ -500,7 +557,75 @@ const PNGExporter = {
         // Bind per-image buttons
         const self = this;
         
-        // "Open in Browser" button handler - uses Discord SDK in Discord, falls back to window.open otherwise
+        // "Download" button - tries multiple methods to download the image
+        modal.querySelectorAll('.btn-download').forEach(function(btn) {
+            btn.addEventListener('click', async function() {
+                const idx = parseInt(btn.getAttribute('data-index'), 10);
+                const image = images[idx];
+                const feedbackEl = document.querySelector(`[data-feedback-index="${idx}"]`);
+                
+                const showFeedback = function(message, success) {
+                    if (feedbackEl) {
+                        feedbackEl.textContent = message;
+                        feedbackEl.className = 'png-copy-feedback ' + (success ? 'feedback-success' : 'feedback-error');
+                        setTimeout(() => {
+                            feedbackEl.textContent = '';
+                            feedbackEl.className = 'png-copy-feedback';
+                        }, 3000);
+                    }
+                };
+
+                // Try method 1: Create blob URL and use anchor download
+                try {
+                    const blob = await (await fetch(image.dataUrl)).blob();
+                    const blobUrl = URL.createObjectURL(blob);
+                    const link = document.createElement('a');
+                    link.href = blobUrl;
+                    link.download = image.filename;
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                    URL.revokeObjectURL(blobUrl);
+                    showFeedback(isDiscord ? 'Downloaded! Attach to Discord' : 'Downloaded!', true);
+                    return;
+                } catch (e) {
+                    console.warn('Download method 1 failed:', e);
+                }
+
+                // Try method 2: Direct data URL download
+                try {
+                    const link = document.createElement('a');
+                    link.href = image.dataUrl;
+                    link.download = image.filename;
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                    showFeedback(isDiscord ? 'Downloaded! Attach to Discord' : 'Downloaded!', true);
+                    return;
+                } catch (e) {
+                    console.warn('Download method 2 failed:', e);
+                }
+
+                // Try method 3: Clipboard copy as fallback
+                try {
+                    const blob = await (await fetch(image.dataUrl)).blob();
+                    if (navigator.clipboard && typeof ClipboardItem !== 'undefined') {
+                        await navigator.clipboard.write([
+                            new ClipboardItem({ 'image/png': blob })
+                        ]);
+                        showFeedback(isDiscord ? 'Copied! Paste in chat' : 'Copied to clipboard!', true);
+                        return;
+                    }
+                } catch (e) {
+                    console.warn('Download method 3 failed:', e);
+                }
+
+                // All methods failed - instruct user to use screenshot
+                showFeedback('Long-press image to save', false);
+            });
+        });
+        
+        // "Open in Browser/New Tab" button handler
         modal.querySelectorAll('.btn-open-browser').forEach(function(btn) {
             btn.addEventListener('click', async function() {
                 const idx = parseInt(btn.getAttribute('data-index'), 10);
@@ -514,43 +639,26 @@ const PNGExporter = {
                 }
                 
                 try {
-                    // Check if we're in Discord with SDK available
-                    if (false) { // Discord SDK openExternalLink disabled - use window.open fallback instead
-                        // Use Discord's openExternalLink command
-                        const url = 'data:image/png;base64,' + image.dataUrl.split(',')[1];
-                        await window.discordIntegration.discordSDK.commands.openExternalLink({
-                            url: url
-                        });
+                    // Try to open in new tab
+                    const newTab = window.open('', '_blank');
+                    if (newTab) {
+                        newTab.document.write('<!DOCTYPE html><html><head><title>' + self._escapeHtml(image.filename) + '</title></head><body style="margin:0;background:#000;display:flex;justify-content:center;align-items:center;min-height:100vh;"><img src="' + image.dataUrl + '" style="max-width:100%;height:auto;"></body></html>');
+                        newTab.document.close();
                         if (feedbackEl) {
-                            feedbackEl.textContent = 'Opened! Save & attach to Discord';
+                            feedbackEl.textContent = isMobile ? 'Tap & hold to save' : 'Right-click to save';
                             feedbackEl.className = 'png-copy-feedback feedback-success';
                             setTimeout(() => {
                                 feedbackEl.textContent = '';
                                 feedbackEl.className = 'png-copy-feedback';
-                            }, 5000);
+                            }, 4000);
                         }
                     } else {
-                        // Fallback: regular browser window.open
-                        const newTab = window.open('', '_blank');
-                        if (newTab) {
-                            newTab.document.write('<html><head><title>' + self._escapeHtml(image.filename) + '</title></head><body style="margin:0;background:#000;display:flex;justify-content:center;align-items:center;min-height:100vh;"><img src="' + image.dataUrl + '" style="max-width:100%;height:auto;"></body></html>');
-                            newTab.document.close();
-                            if (feedbackEl) {
-                                feedbackEl.textContent = 'Opened! Right-click to save';
-                                feedbackEl.className = 'png-copy-feedback feedback-success';
-                                setTimeout(() => {
-                                    feedbackEl.textContent = '';
-                                    feedbackEl.className = 'png-copy-feedback';
-                                }, 3000);
-                            }
-                        } else {
-                            throw new Error('Popup blocked');
-                        }
+                        throw new Error('Popup blocked');
                     }
                 } catch (err) {
                     console.error('Failed to open in browser:', err);
                     if (feedbackEl) {
-                        feedbackEl.textContent = 'Failed - try right-click on image';
+                        feedbackEl.textContent = 'Failed - try Download button';
                         feedbackEl.className = 'png-copy-feedback feedback-error';
                         setTimeout(() => {
                             feedbackEl.textContent = '';
@@ -568,6 +676,36 @@ const PNGExporter = {
                 self._copyImageToClipboard(images[idx].dataUrl, idx);
             });
         });
+
+        // Add long-press handling for mobile devices
+        if (isMobile) {
+            images.forEach((img, idx) => {
+                const imgEl = document.getElementById(`png-img-${idx}`);
+                if (imgEl) {
+                    let pressTimer;
+                    imgEl.addEventListener('touchstart', function(e) {
+                        pressTimer = setTimeout(function() {
+                            // Show save options
+                            const feedbackEl = document.querySelector(`[data-feedback-index="${idx}"]`);
+                            if (feedbackEl) {
+                                feedbackEl.textContent = 'Tap "Download" to save';
+                                feedbackEl.className = 'png-copy-feedback feedback-success';
+                                setTimeout(() => {
+                                    feedbackEl.textContent = '';
+                                    feedbackEl.className = 'png-copy-feedback';
+                                }, 2000);
+                            }
+                        }, 800);
+                    });
+                    imgEl.addEventListener('touchend', function() {
+                        clearTimeout(pressTimer);
+                    });
+                    imgEl.addEventListener('touchmove', function() {
+                        clearTimeout(pressTimer);
+                    });
+                }
+            });
+        }
 
         modal.querySelector('#btn-close-png-modal').addEventListener('click', function() {
             modal.classList.remove('active');
