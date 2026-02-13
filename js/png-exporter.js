@@ -464,7 +464,7 @@ const PNGExporter = {
                     </div>
                     <img src="${img.dataUrl}" alt="${escapedFilename}" class="png-export-image" />
                     <div class="png-export-item-actions">
-                        <button class="btn btn-primary btn-sm btn-open-new-tab" data-index="${idx}">Open in New Tab</button>
+                        <button class="btn btn-primary btn-sm btn-open-browser" data-index="${idx}">${isDiscord ? 'Open in Browser' : 'Open in New Tab'}</button>
                         <button class="btn btn-secondary btn-sm btn-copy-image" data-index="${idx}">Copy Image</button>
                         <span class="png-copy-feedback" data-feedback-index="${idx}"></span>
                     </div>
@@ -474,7 +474,7 @@ const PNGExporter = {
 
         let instructionText;
         if (isDiscord) {
-            instructionText = `${total} image${total !== 1 ? 's' : ''} captured. Click "Open in New Tab", then right-click → "Save Image As..." and attach to Discord chat.`;
+            instructionText = `${total} image${total !== 1 ? 's' : ''} captured. Click "Open in Browser", then right-click the image → "Save Image As..." and attach to Discord chat.`;
         } else {
             const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
             instructionText = isMobile
@@ -500,16 +500,63 @@ const PNGExporter = {
         // Bind per-image buttons
         const self = this;
         
-        // "Open in New Tab" button handler
-        modal.querySelectorAll('.btn-open-new-tab').forEach(function(btn) {
-            btn.addEventListener('click', function() {
+        // "Open in Browser" button handler - uses Discord SDK in Discord, falls back to window.open otherwise
+        modal.querySelectorAll('.btn-open-browser').forEach(function(btn) {
+            btn.addEventListener('click', async function() {
                 const idx = parseInt(btn.getAttribute('data-index'), 10);
                 const image = images[idx];
-                // Open image in new tab - works in Discord where downloads are blocked
-                const newTab = window.open('', '_blank');
-                if (newTab) {
-                    newTab.document.write('<html><head><title>' + self._escapeHtml(image.filename) + '</title></head><body style="margin:0;background:#000;display:flex;justify-content:center;align-items:center;min-height:100vh;"><img src="' + image.dataUrl + '" style="max-width:100%;height:auto;"></body></html>');
-                    newTab.document.close();
+                const feedbackEl = document.querySelector(`[data-feedback-index="${idx}"]`);
+                
+                // Show feedback while opening
+                if (feedbackEl) {
+                    feedbackEl.textContent = 'Opening...';
+                    feedbackEl.className = 'png-copy-feedback';
+                }
+                
+                try {
+                    // Check if we're in Discord with SDK available
+                    if (window.discordIntegration && window.discordIntegration.discordSDK) {
+                        // Use Discord's openExternalLink command
+                        const url = 'data:image/png;base64,' + image.dataUrl.split(',')[1];
+                        await window.discordIntegration.discordSDK.commands.openExternalLink({
+                            url: url
+                        });
+                        if (feedbackEl) {
+                            feedbackEl.textContent = 'Opened! Save & attach to Discord';
+                            feedbackEl.className = 'png-copy-feedback feedback-success';
+                            setTimeout(() => {
+                                feedbackEl.textContent = '';
+                                feedbackEl.className = 'png-copy-feedback';
+                            }, 5000);
+                        }
+                    } else {
+                        // Fallback: regular browser window.open
+                        const newTab = window.open('', '_blank');
+                        if (newTab) {
+                            newTab.document.write('<html><head><title>' + self._escapeHtml(image.filename) + '</title></head><body style="margin:0;background:#000;display:flex;justify-content:center;align-items:center;min-height:100vh;"><img src="' + image.dataUrl + '" style="max-width:100%;height:auto;"></body></html>');
+                            newTab.document.close();
+                            if (feedbackEl) {
+                                feedbackEl.textContent = 'Opened! Right-click to save';
+                                feedbackEl.className = 'png-copy-feedback feedback-success';
+                                setTimeout(() => {
+                                    feedbackEl.textContent = '';
+                                    feedbackEl.className = 'png-copy-feedback';
+                                }, 3000);
+                            }
+                        } else {
+                            throw new Error('Popup blocked');
+                        }
+                    }
+                } catch (err) {
+                    console.error('Failed to open in browser:', err);
+                    if (feedbackEl) {
+                        feedbackEl.textContent = 'Failed - popup blocked?';
+                        feedbackEl.className = 'png-copy-feedback feedback-error';
+                        setTimeout(() => {
+                            feedbackEl.textContent = '';
+                            feedbackEl.className = 'png-copy-feedback';
+                        }, 3000);
+                    }
                 }
             });
         });
