@@ -2733,8 +2733,9 @@ async function recordAllDataScreens() {
             }, 2000);
         }
 
-        // In Discord, programmatic downloads don't work — show images in a modal instead
-        PNGExporter.showExportModal();
+        // In Discord, images are opened directly in browser tab (via _downloadCanvas).
+        // showExportModal() is only a fallback if window.open() was blocked.
+        // No explicit call needed here.
 
     } catch (error) {
         console.error('Error recording data screens:', error);
