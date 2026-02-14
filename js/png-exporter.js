@@ -3,8 +3,8 @@
 // Handles screenshot generation for mission data and aggregated statistics
 // Uses html2canvas to capture DOM sections and export as downloadable images
 //
-// Discord flow: PNG → upload to Cloudflare Worker → open directly in browser + copy URLs
-// Web flow:     PNG → direct download via anchor tag
+// Discord flow: PNGs → composite image → upload to Cloudflare Worker → open download URL + copy PNG to clipboard
+// Web flow:     PNGs → composite image → direct download via anchor tag + copy PNG to clipboard
 // ============================================================================
 
 "use strict";
@@ -70,26 +70,22 @@ const PNGExporter = {
     },
 
     /**
-     * Export a single mission's data from its stored CSV string.
-     * Builds off-screen DOM with mission parameters and tables, then captures as PNG.
+     * Capture a single mission's data as an HTMLCanvasElement (without downloading).
+     * Builds off-screen DOM with mission parameters and tables, then captures via html2canvas.
      * @param {Object} slot - Mission slot object {name, difficulty, csv, ...}
-     * @param {number} index - Mission index (for filename)
-     * @returns {Promise<void>}
+     * @param {number} index - Mission index (for header label)
+     * @returns {Promise<HTMLCanvasElement>}
      */
-    async exportMissionFromCSV(slot, index) {
+    async _captureMissionCanvas(slot, index) {
         let captureContainer = null;
         let originalBodyWidth = "";
 
         try {
-            // 1. Build mission parameter info from CSV
             const lines = slot.csv.split('\n');
             const missionParams = this._parseMissionParams(lines);
-
-            // 2. Build HTML tables from CSV
             const matrixHtml = this._csvSectionToHtml(lines, "SQUAD PERFORMANCE MATRIX");
             const statsHtml = this._csvSectionToHtml(lines, "ADDITIONAL STATISTICS");
 
-            // 3. Create off-screen container
             captureContainer = document.createElement('div');
             captureContainer.style.cssText = `
                 position: fixed;
@@ -106,7 +102,6 @@ const PNGExporter = {
                 color: #80cc80;
             `;
 
-            // 4. Add mission header
             const header = document.createElement('div');
             header.style.cssText = `
                 background-color: #040a04;
@@ -121,7 +116,6 @@ const PNGExporter = {
             header.textContent = `RUN ${index + 1}: ${(slot.name || 'Unknown Mission').toUpperCase()}`;
             captureContainer.appendChild(header);
 
-            // 5. Add mission parameters
             const paramsDiv = document.createElement('div');
             paramsDiv.style.cssText = `
                 margin-bottom: 15px;
@@ -140,30 +134,24 @@ const PNGExporter = {
             `;
             captureContainer.appendChild(paramsDiv);
 
-            // 6. Add Squad Performance Matrix section
             const matrixSection = this._buildTableSection('SQUAD PERFORMANCE MATRIX', matrixHtml);
             captureContainer.appendChild(matrixSection);
 
-            // 7. Add Additional Statistics section
             const statsSection = this._buildTableSection('ADDITIONAL STATISTICS', statsHtml);
             statsSection.style.marginTop = '15px';
             captureContainer.appendChild(statsSection);
 
             document.body.appendChild(captureContainer);
 
-            // 8. Temporarily adjust body width
             originalBodyWidth = document.body.style.width;
             document.body.style.width = `${this.config.bodyWidth}px`;
 
-            // 9. Wait for DOM to settle
             await this._delay(this.config.settleDelay);
 
-            // 10. Verify html2canvas
             if (typeof html2canvas === 'undefined') {
                 throw new Error('Screenshot library not loaded. Please refresh the page.');
             }
 
-            // 11. Capture
             const canvas = await html2canvas(captureContainer, {
                 scale: this.config.scale,
                 backgroundColor: this.config.backgroundColor,
@@ -172,16 +160,174 @@ const PNGExporter = {
                 logging: false
             });
 
-            // 12. Download (awaits upload in Discord mode)
-            const safeName = (slot.name || 'mission').replace(/[^a-z0-9]/gi, '_').toLowerCase();
-            await this._downloadCanvas(canvas, `Run_${index + 1}_${safeName}`);
+            return canvas;
 
-        } catch (err) {
-            this._handleError(err, `PNG Export Mission ${index + 1}`);
-            throw err;
         } finally {
             this._cleanup(captureContainer, originalBodyWidth);
         }
+    },
+
+    /**
+     * Export a single mission's data from its stored CSV string.
+     * Builds off-screen DOM with mission parameters and tables, then captures as PNG.
+     * @param {Object} slot - Mission slot object {name, difficulty, csv, ...}
+     * @param {number} index - Mission index (for filename)
+     * @returns {Promise<void>}
+     */
+    async exportMissionFromCSV(slot, index) {
+        try {
+            const canvas = await this._captureMissionCanvas(slot, index);
+            const safeName = (slot.name || 'mission').replace(/[^a-z0-9]/gi, '_').toLowerCase();
+            await this._downloadCanvas(canvas, `Run_${index + 1}_${safeName}`);
+        } catch (err) {
+            this._handleError(err, `PNG Export Mission ${index + 1}`);
+            throw err;
+        }
+    },
+
+    /**
+     * Capture the aggregated data screen as an HTMLCanvasElement (without downloading).
+     * Targets AGGREGATED SQUAD MATRIX and AGGREGATED STATISTICS on page 3.
+     * @returns {Promise<HTMLCanvasElement>}
+     */
+    async _captureAggregatedCanvas() {
+        let captureContainer = null;
+        let originalBodyWidth = "";
+
+        try {
+            const sectionSelectors = [
+                { containerSelector: '#page-3 .section', titleMatch: 'AGGREGATED SQUAD MATRIX' },
+                { containerSelector: '#page-3 .section', titleMatch: 'AGGREGATED STATISTICS' }
+            ];
+
+            const sections = this._findSections(sectionSelectors);
+            if (sections.length !== sectionSelectors.length) {
+                throw new Error('Aggregated sections not found. Found ' + sections.length + '/2');
+            }
+
+            captureContainer = this._createCaptureContainer(sections, true);
+            document.body.appendChild(captureContainer);
+
+            originalBodyWidth = document.body.style.width;
+            document.body.style.width = `${this.config.bodyWidth}px`;
+
+            await this._delay(this.config.settleDelay);
+
+            if (typeof html2canvas === 'undefined') {
+                throw new Error('Screenshot library not loaded. Please refresh the page.');
+            }
+
+            const canvas = await html2canvas(captureContainer, {
+                scale: this.config.scale,
+                backgroundColor: this.config.backgroundColor,
+                windowWidth: this.config.windowWidth,
+                useCORS: true,
+                logging: false
+            });
+
+            return canvas;
+
+        } finally {
+            this._cleanup(captureContainer, originalBodyWidth);
+        }
+    },
+
+    /**
+     * Export all saved missions + aggregated data as a single composite PNG.
+     * Captures each mission and aggregated screen individually, stitches them
+     * vertically into one image, copies to clipboard, and uploads/opens a single URL.
+     * @param {Object[]} savedSlots - Array of mission slot objects from localStorage
+     * @param {Object} [callbacks] - Optional progress callbacks
+     * @param {function} [callbacks.onProgress] - Called with (message) for status updates
+     * @returns {Promise<{copied: boolean, opened: boolean, hostedUrl: string|null}>}
+     */
+    async exportAllAsComposite(savedSlots, callbacks) {
+        var onProgress = (callbacks && callbacks.onProgress) || function() {};
+        var canvases = [];
+
+        // 1. Capture each mission into a canvas
+        for (var i = 0; i < savedSlots.length; i++) {
+            var slot = savedSlots[i];
+            if (!slot || !slot.csv) continue;
+
+            onProgress('Capturing Run ' + (i + 1) + ' of ' + savedSlots.length + '...');
+            var canvas = await this._captureMissionCanvas(slot, i);
+            canvases.push(canvas);
+        }
+
+        // 2. Capture aggregated screen
+        onProgress('Capturing aggregated data...');
+        var aggCanvas = await this._captureAggregatedCanvas();
+        canvases.push(aggCanvas);
+
+        // 3. Stitch all canvases into one composite
+        onProgress('Compositing images...');
+        var composite = this._stitchCanvases(canvases, 40);
+
+        // 4. Convert to blob
+        var compositeBlob = await this._canvasToBlob(composite);
+
+        // 5. Copy composite to clipboard
+        var copied = false;
+        onProgress('Copying to clipboard...');
+        copied = await this._copyImageBlobsToClipboard([compositeBlob]);
+
+        // 6. Upload and open / download
+        var hostedUrl = null;
+        var opened = false;
+
+        if (this._isDiscord()) {
+            // Upload composite to Cloudflare Worker
+            onProgress('Uploading composite image...');
+            var result = await this._uploadImage(compositeBlob);
+            if (result && result.url) {
+                hostedUrl = result.url;
+                // Open single URL with ?dl=1 to trigger browser download
+                var downloadUrl = hostedUrl + '?dl=1';
+                onProgress('Opening download in browser...');
+                var sdk = window.discordIntegration && window.discordIntegration.discordSDK;
+                try {
+                    if (sdk && sdk.commands && sdk.commands.openExternalLink) {
+                        await sdk.commands.openExternalLink({ url: downloadUrl });
+                        opened = true;
+                    } else {
+                        var win = window.open(downloadUrl, '_blank');
+                        if (win) opened = true;
+                    }
+                } catch (err) {
+                    console.warn('Failed to open composite image:', err);
+                }
+            }
+
+            // If clipboard copy failed, fall back to URL text copy
+            if (!copied && hostedUrl) {
+                try {
+                    if (navigator.clipboard && navigator.clipboard.writeText) {
+                        await navigator.clipboard.writeText(hostedUrl);
+                        copied = true;
+                    }
+                } catch (_) { /* ignore */ }
+                if (!copied) copied = this._execCopy(hostedUrl);
+            }
+            // If all clipboard methods failed, show manual copy modal
+            if (!copied && hostedUrl) {
+                this._showUrlCopyFallback([hostedUrl]);
+            }
+        } else {
+            // Non-Discord: direct download via anchor tag
+            onProgress('Downloading composite image...');
+            var timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);
+            var link = document.createElement('a');
+            link.download = 'Crusade_Composite_' + timestamp + '.png';
+            link.href = composite.toDataURL('image/png');
+            link.click();
+            opened = true;
+        }
+
+        // 7. Clear pending images
+        this._pendingImages = [];
+
+        return { copied: copied, opened: opened, hostedUrl: hostedUrl };
     },
 
     /**
@@ -788,6 +934,60 @@ const PNGExporter = {
      */
     _delay(ms) {
         return new Promise(resolve => setTimeout(resolve, ms));
+    },
+
+    /**
+     * Promise wrapper around canvas.toBlob for async/await usage.
+     * @private
+     * @param {HTMLCanvasElement} canvas
+     * @returns {Promise<Blob>}
+     */
+    _canvasToBlob(canvas) {
+        return new Promise(function(resolve, reject) {
+            canvas.toBlob(function(blob) {
+                if (blob) resolve(blob);
+                else reject(new Error('Canvas toBlob returned null'));
+            }, 'image/png');
+        });
+    },
+
+    /**
+     * Stitch multiple canvases into a single vertically-stacked composite canvas.
+     * Each sub-image is drawn at its original resolution with a gap between them.
+     * @private
+     * @param {HTMLCanvasElement[]} canvases - Array of canvases to stitch
+     * @param {number} [gap=40] - Pixel gap between images
+     * @returns {HTMLCanvasElement} Composite canvas
+     */
+    _stitchCanvases(canvases, gap) {
+        if (typeof gap === 'undefined') gap = 40;
+        if (canvases.length === 0) return document.createElement('canvas');
+        if (canvases.length === 1) return canvases[0];
+
+        var maxWidth = 0;
+        var totalHeight = 0;
+        for (var i = 0; i < canvases.length; i++) {
+            if (canvases[i].width > maxWidth) maxWidth = canvases[i].width;
+            totalHeight += canvases[i].height;
+            if (i < canvases.length - 1) totalHeight += gap;
+        }
+
+        var composite = document.createElement('canvas');
+        composite.width = maxWidth;
+        composite.height = totalHeight;
+        var ctx = composite.getContext('2d');
+
+        ctx.fillStyle = this.config.backgroundColor;
+        ctx.fillRect(0, 0, maxWidth, totalHeight);
+
+        var y = 0;
+        for (var j = 0; j < canvases.length; j++) {
+            var x = Math.floor((maxWidth - canvases[j].width) / 2);
+            ctx.drawImage(canvases[j], x, y);
+            y += canvases[j].height + gap;
+        }
+
+        return composite;
     },
 
     /**

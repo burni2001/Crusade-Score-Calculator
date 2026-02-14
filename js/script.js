@@ -2690,73 +2690,33 @@ async function recordAllDataScreens() {
         const btn = document.getElementById('btn-record-png');
         const originalText = btn ? btn.innerText : '';
 
-        // Export each saved mission individually from its CSV data
-        for (let i = 0; i < savedSlots.length; i++) {
-            const slot = savedSlots[i];
-            if (!slot || !slot.csv) continue;
-
-            if (statusEl) {
-                statusEl.textContent = `Capturing Run ${i + 1} of ${savedSlots.length}...`;
-                statusEl.style.color = 'var(--pip-green)';
+        const result = await PNGExporter.exportAllAsComposite(savedSlots, {
+            onProgress: function(msg) {
+                if (statusEl) {
+                    statusEl.textContent = msg;
+                    statusEl.style.color = 'var(--pip-green)';
+                }
+                if (btn) btn.innerText = msg.toUpperCase();
             }
-            if (btn) btn.innerText = `CAPTURING RUN ${i + 1}/${savedSlots.length}...`;
+        });
 
-            await PNGExporter.exportMissionFromCSV(slot, i);
+        // Build status message
+        let msg = '';
+        if (result.opened) {
+            msg = PNGExporter._isDiscord() ? 'Composite image opened in browser' : 'Composite image downloaded';
+        }
+        if (result.copied) {
+            msg += msg ? ' — PNG copied to clipboard!' : 'PNG copied to clipboard!';
         }
 
-        // Export aggregated data from page 3 (Aggregated Squad Matrix + Aggregated Statistics)
         if (statusEl) {
-            statusEl.textContent = 'Capturing aggregated data...';
-            statusEl.style.color = 'var(--pip-green)';
+            statusEl.textContent = msg || (savedSlots.length + ' mission(s) + aggregated data captured!');
+            statusEl.style.color = '#80cc80';
+            setTimeout(() => { statusEl.textContent = ''; }, 5000);
         }
-        if (btn) btn.innerText = 'CAPTURING AGGREGATED...';
-
-        await PNGExporter.exportAggregatedScreen('#btn-record-png', { skipModal: true });
-
-        // In Discord, open all images directly in the browser (no modal)
-        if (PNGExporter._isDiscord() && PNGExporter._pendingImages.length > 0) {
-            if (statusEl) {
-                statusEl.textContent = 'Opening images in browser...';
-                statusEl.style.color = 'var(--pip-green)';
-            }
-            if (btn) btn.innerText = 'OPENING IN BROWSER...';
-
-            const result = await PNGExporter.openAllDirectly();
-
-            // Build status message
-            let msg = '';
-            if (result.opened > 0) {
-                msg = `${result.opened} image${result.opened !== 1 ? 's' : ''} opened in browser`;
-            }
-            if (result.copiedImages) {
-                msg += msg ? ' — PNGs copied to clipboard!' : 'PNGs copied to clipboard!';
-            } else if (result.copied) {
-                msg += msg ? ' — URLs copied to clipboard' : 'URLs copied to clipboard';
-            } else if (result.opened === 0 && result.urls.length > 0) {
-                msg = 'Could not open images. Try copying the URLs manually.';
-            } else if (result.urls.length > 0) {
-                msg += msg ? ' — copy URLs from popup' : 'Copy URLs from popup';
-            }
-
-            if (statusEl) {
-                statusEl.textContent = msg || `${savedSlots.length} mission(s) + aggregated data captured!`;
-                statusEl.style.color = '#80cc80';
-                setTimeout(() => { statusEl.textContent = ''; }, 5000);
-            }
-            if (btn) {
-                btn.innerText = '✓ OPENED';
-                setTimeout(() => { if (btn) btn.innerText = originalText; }, 3000);
-            }
-        } else {
-            if (statusEl) {
-                statusEl.textContent = `${savedSlots.length} mission(s) + aggregated data captured!`;
-                statusEl.style.color = '#80cc80';
-                setTimeout(() => { statusEl.textContent = ''; }, 3000);
-            }
-            if (btn) {
-                btn.innerText = '✓ CAPTURED';
-                setTimeout(() => { if (btn) btn.innerText = originalText; }, 2000);
-            }
+        if (btn) {
+            btn.innerText = '✓ CAPTURED';
+            setTimeout(() => { if (btn) btn.innerText = originalText; }, 3000);
         }
 
     } catch (error) {
@@ -2765,10 +2725,6 @@ async function recordAllDataScreens() {
         if (statusEl) {
             statusEl.textContent = 'Error capturing screens. Please try again.';
             statusEl.style.color = '#cc4444';
-        }
-        // If some images were captured before the error, try to open them directly
-        if (PNGExporter._pendingImages.length > 0) {
-            PNGExporter.openAllDirectly();
         }
     }
 }
