@@ -412,32 +412,16 @@ const PNGExporter = {
         const dataUrl = canvas.toDataURL('image/png');
 
         if (this._isDiscord()) {
-            // In Discord, open the image directly in the system browser (like Wordle hints).
-            // This bypasses Discord's iframe restrictions entirely.
-            const newTab = window.open('', '_blank');
-            if (newTab) {
-                newTab.document.write(
-                    '<!DOCTYPE html><html>' +
-                    '<head><title>' + this._escapeHtml(filename) + '</title>' +
-                    '<meta name="viewport" content="width=device-width, initial-scale=1">' +
-                    '<style>body{margin:0;background:#0a150a;display:flex;flex-direction:column;' +
-                    'justify-content:center;align-items:center;min-height:100vh;font-family:monospace;}' +
-                    'img{max-width:100%;height:auto;border:2px solid #20c020;}' +
-                    'p{color:#20c020;font-size:14px;margin-top:12px;text-align:center;}' +
-                    'a{color:#20c020;}' +
-                    '</style></head>' +
-                    '<body>' +
-                    '<img src="' + dataUrl + '" alt="' + this._escapeHtml(filename) + '">' +
-                    '<p>Long-press / right-click the image to save it<br>' +
-                    '<a href="' + dataUrl + '" download="' + this._escapeHtml(filename) + '">or click here to download</a></p>' +
-                    '</body></html>'
-                );
-                newTab.document.close();
-            } else {
-                // Popup blocked - fall back to modal
-                this._pendingImages.push({ dataUrl, filename });
+            // Convert canvas to blob (CSP-safe, no fetch needed)
+            canvas.toBlob((blob) => {
+                // Store both blob and dataUrl for flexibility
+                this._pendingImages.push({ 
+                    dataUrl: dataUrl,  // For displaying the image
+                    blob: blob,        // For sharing/copying
+                    filename: filename 
+                });
                 this.showExportModal();
-            }
+            }, 'image/png');
         } else {
             const link = document.createElement('a');
             link.download = filename;
@@ -665,8 +649,7 @@ const PNGExporter = {
                 };
 
                 try {
-                    const response = await fetch(image.dataUrl);
-                    const blob = await response.blob();
+                    const blob = image.blob;  // Use stored blob instead of fetch
                     const file = new File([blob], image.filename, { type: 'image/png' });
 
                     // Method 1: Web Share API with file (like Wordle)
