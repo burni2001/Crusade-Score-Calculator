@@ -148,15 +148,12 @@ export default {
             }
         }
 
-        // GET / — health check
+         // GET / — info
         if (request.method === "GET" && url.pathname === "/") {
-            return jsonResponse(200, {
-                service: "Crusade Score Calculator — Image Host",
-                endpoints: {
-                    upload: "POST /upload (image/png body or multipart/form-data)",
-                    serve: "GET /i/:id"
-                }
-            });
+            return new Response(
+                "Method not allowed", 
+                { status: 200, headers: { "Content-Type": "text/plain", ...CORS_HEADERS } }
+            );
         }
 
         return jsonResponse(404, { error: "Not found" });
