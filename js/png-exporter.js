@@ -538,10 +538,8 @@ const PNGExporter = {
                     </div>
                     <img src="${img.dataUrl}" alt="${escapedFilename}" class="png-export-image" id="png-img-${idx}" />
                     <div class="png-export-item-actions">
-                        ${isDiscord 
-                            ? '<p class="png-save-hint">💾 Right-click the image → <strong>Save Image As...</strong></p>'
-                            : `<button class="btn btn-primary btn-sm btn-download" data-index="${idx}">Download</button>`
-                        }
+                        <button class="btn btn-primary btn-sm btn-share-image" data-index="${idx}">Share ↗</button>
+                        <span class="png-copy-feedback" data-feedback-index="${idx}"></span>
                     </div>
                 </div>
             `;
@@ -550,9 +548,9 @@ const PNGExporter = {
         let instructionText;
         if (isDiscord) {
             if (isMobile) {
-                instructionText = `${total} image${total !== 1 ? 's' : ''} captured. Long-press the image to save it.`;
+                instructionText = `${total} image${total !== 1 ? 's' : ''} captured. Tap Share to save or send.`;
             } else {
-                instructionText = `${total} image${total !== 1 ? 's' : ''} captured. Right-click → "Save Image As..." then attach to Discord chat.`;
+                instructionText = `${total} image${total !== 1 ? 's' : ''} captured. Click Share to copy or download.`;
             }
         } else {
             if (isMobile) {
@@ -645,6 +643,62 @@ const PNGExporter = {
 
                 // All methods failed - instruct user to use screenshot
                 showFeedback('Long-press image to save', false);
+            });
+        });
+
+        // "Share" button handler - Web Share API like Wordle
+        modal.querySelectorAll('.btn-share-image').forEach(function(btn) {
+            btn.addEventListener('click', async function() {
+                const idx = parseInt(btn.getAttribute('data-index'), 10);
+                const image = images[idx];
+                const feedbackEl = document.querySelector(`[data-feedback-index="${idx}"]`);
+
+                const showFeedback = function(message, success) {
+                    if (feedbackEl) {
+                        feedbackEl.textContent = message;
+                        feedbackEl.className = 'png-copy-feedback ' + (success ? 'feedback-success' : 'feedback-error');
+                        setTimeout(function() {
+                            feedbackEl.textContent = '';
+                            feedbackEl.className = 'png-copy-feedback';
+                        }, 3000);
+                    }
+                };
+
+                try {
+                    const response = await fetch(image.dataUrl);
+                    const blob = await response.blob();
+                    const file = new File([blob], image.filename, { type: 'image/png' });
+
+                    // Method 1: Web Share API with file (like Wordle)
+                    if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
+                        await navigator.share({ files: [file], title: 'Crusade Score' });
+                        showFeedback('Shared!', true);
+                        return;
+                    }
+
+                    // Method 2: Web Share API text only
+                    if (navigator.share) {
+                        await navigator.share({ title: 'Crusade Score', text: image.filename });
+                        showFeedback('Shared!', true);
+                        return;
+                    }
+
+                    // Method 3: Clipboard copy
+                    if (navigator.clipboard && typeof ClipboardItem !== 'undefined') {
+                        await navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })]);
+                        showFeedback('Copied! Paste in chat', true);
+                        return;
+                    }
+
+                    showFeedback('📸 Screenshot to save', false);
+                } catch (err) {
+                    if (err.name === 'AbortError') {
+                        showFeedback('Cancelled', false);
+                    } else {
+                        console.warn('Share failed:', err);
+                        showFeedback('📸 Screenshot to save', false);
+                    }
+                }
             });
         });
 
