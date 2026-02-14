@@ -2690,7 +2690,7 @@ async function recordAllDataScreens() {
         const btn = document.getElementById('btn-record-png');
         const originalText = btn ? btn.innerText : '';
 
-        const result = await PNGExporter.exportAllAsComposite(savedSlots, {
+        const result = await PNGExporter.exportAllAsSeparate(savedSlots, {
             onProgress: function(msg) {
                 if (statusEl) {
                     statusEl.textContent = msg;
@@ -2700,19 +2700,12 @@ async function recordAllDataScreens() {
             }
         });
 
-        // Build status message
-        let msg = '';
-        if (result.opened) {
-            msg = PNGExporter._isDiscord() ? 'Composite image opened in browser' : 'Composite image downloaded';
-        }
-        if (result.copied) {
-            msg += msg ? ' — PNG copied to clipboard!' : 'PNG copied to clipboard!';
-        }
+        // Show simple info popup
+        var missionCount = savedSlots.filter(function(s) { return s && s.csv; }).length;
+        PNGExporter._showSaveConfirmation(missionCount + 1); // +1 for aggregated
 
         if (statusEl) {
-            statusEl.textContent = msg || (savedSlots.length + ' mission(s) + aggregated data captured!');
-            statusEl.style.color = '#80cc80';
-            setTimeout(() => { statusEl.textContent = ''; }, 5000);
+            statusEl.textContent = '';
         }
         if (btn) {
             btn.innerText = '✓ CAPTURED';

@@ -3,8 +3,8 @@
 // Handles screenshot generation for mission data and aggregated statistics
 // Uses html2canvas to capture DOM sections and export as downloadable images
 //
-// Discord flow: PNGs → composite image → upload to Cloudflare Worker → open download URL + copy PNG to clipboard
-// Web flow:     PNGs → composite image → direct download via anchor tag + copy PNG to clipboard
+// Discord flow: separate PNGs → upload each to Cloudflare Worker → open download URLs + copy to clipboard
+// Web flow:     separate PNGs → direct download via anchor tag + copy to clipboard
 // ============================================================================
 
 "use strict";
@@ -233,101 +233,67 @@ const PNGExporter = {
     },
 
     /**
-     * Export all saved missions + aggregated data as a single composite PNG.
-     * Captures each mission and aggregated screen individually, stitches them
-     * vertically into one image, copies to clipboard, and uploads/opens a single URL.
+     * Export all saved missions + aggregated data as separate PNGs.
+     * Each mission and the aggregated screen are saved as individual files.
+     * Discord: uploads each PNG to Cloudflare Worker, opens download URLs.
+     * Web: direct download via anchor tags.
      * @param {Object[]} savedSlots - Array of mission slot objects from localStorage
      * @param {Object} [callbacks] - Optional progress callbacks
      * @param {function} [callbacks.onProgress] - Called with (message) for status updates
-     * @returns {Promise<{copied: boolean, opened: boolean, hostedUrl: string|null}>}
+     * @returns {Promise<{opened: number, count: number}>}
      */
-    async exportAllAsComposite(savedSlots, callbacks) {
+    async exportAllAsSeparate(savedSlots, callbacks) {
         var onProgress = (callbacks && callbacks.onProgress) || function() {};
-        var canvases = [];
+        this._pendingImages = [];
 
-        // 1. Capture each mission into a canvas
+        // 1. Capture and save each mission as a separate PNG
         for (var i = 0; i < savedSlots.length; i++) {
             var slot = savedSlots[i];
             if (!slot || !slot.csv) continue;
 
             onProgress('Capturing Run ' + (i + 1) + ' of ' + savedSlots.length + '...');
             var canvas = await this._captureMissionCanvas(slot, i);
-            canvases.push(canvas);
+            var safeName = (slot.name || 'mission').replace(/[^a-z0-9]/gi, '_').toLowerCase();
+            await this._downloadCanvas(canvas, 'Run_' + (i + 1) + '_' + safeName);
         }
 
-        // 2. Capture aggregated screen
+        // 2. Capture and save aggregated data as a separate PNG
         onProgress('Capturing aggregated data...');
         var aggCanvas = await this._captureAggregatedCanvas();
-        canvases.push(aggCanvas);
+        await this._downloadCanvas(aggCanvas, 'Aggregated_Data');
 
-        // 3. Stitch all canvases into one composite
-        onProgress('Compositing images...');
-        var composite = this._stitchCanvases(canvases, 40);
-
-        // 4. Convert to blob
-        var compositeBlob = await this._canvasToBlob(composite);
-
-        // 5. Copy composite to clipboard
-        var copied = false;
-        onProgress('Copying to clipboard...');
-        copied = await this._copyImageBlobsToClipboard([compositeBlob]);
-
-        // 6. Upload and open / download
-        var hostedUrl = null;
-        var opened = false;
-
+        // 3. In Discord, open download URLs for each uploaded image
+        var opened = 0;
         if (this._isDiscord()) {
-            // Upload composite to Cloudflare Worker
-            onProgress('Uploading composite image...');
-            var result = await this._uploadImage(compositeBlob);
-            if (result && result.url) {
-                hostedUrl = result.url;
-                // Open single URL with ?dl=1 to trigger browser download
-                var downloadUrl = hostedUrl + '?dl=1';
-                onProgress('Opening download in browser...');
-                var sdk = window.discordIntegration && window.discordIntegration.discordSDK;
+            var sdk = window.discordIntegration && window.discordIntegration.discordSDK;
+            var images = this._pendingImages;
+
+            for (var j = 0; j < images.length; j++) {
+                if (!images[j].hostedUrl) continue;
+                var downloadUrl = images[j].hostedUrl + '?dl=1';
+                onProgress('Opening download ' + (j + 1) + ' of ' + images.length + '...');
                 try {
                     if (sdk && sdk.commands && sdk.commands.openExternalLink) {
                         await sdk.commands.openExternalLink({ url: downloadUrl });
-                        opened = true;
+                        opened++;
                     } else {
                         var win = window.open(downloadUrl, '_blank');
-                        if (win) opened = true;
+                        if (win) opened++;
+                    }
+                    if (j < images.length - 1) {
+                        await this._delay(300);
                     }
                 } catch (err) {
-                    console.warn('Failed to open composite image:', err);
+                    console.warn('Failed to open image ' + (j + 1) + ':', err);
                 }
             }
-
-            // If clipboard copy failed, fall back to URL text copy
-            if (!copied && hostedUrl) {
-                try {
-                    if (navigator.clipboard && navigator.clipboard.writeText) {
-                        await navigator.clipboard.writeText(hostedUrl);
-                        copied = true;
-                    }
-                } catch (_) { /* ignore */ }
-                if (!copied) copied = this._execCopy(hostedUrl);
-            }
-            // If all clipboard methods failed, show manual copy modal
-            if (!copied && hostedUrl) {
-                this._showUrlCopyFallback([hostedUrl]);
-            }
-        } else {
-            // Non-Discord: direct download via anchor tag
-            onProgress('Downloading composite image...');
-            var timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);
-            var link = document.createElement('a');
-            link.download = 'Crusade_Composite_' + timestamp + '.png';
-            link.href = composite.toDataURL('image/png');
-            link.click();
-            opened = true;
         }
 
-        // 7. Clear pending images
+        // 4. Clear pending images
+        var count = this._pendingImages.length;
         this._pendingImages = [];
 
-        return { copied: copied, opened: opened, hostedUrl: hostedUrl };
+        return { opened: opened, count: count };
     },
 
     /**
@@ -907,6 +873,55 @@ const PNGExporter = {
             textarea.focus();
             textarea.select();
         }, 100);
+    },
+
+    /**
+     * Show a simple info popup confirming PNGs have been saved.
+     * @param {number} count - Number of PNGs saved
+     */
+    _showSaveConfirmation(count) {
+        // Remove any existing fallback overlay
+        var existing = document.getElementById('png-url-fallback-overlay');
+        if (existing) existing.remove();
+
+        var overlay = document.createElement('div');
+        overlay.id = 'png-url-fallback-overlay';
+        overlay.className = 'modal-overlay';
+        overlay.style.display = 'flex';
+
+        var modal = document.createElement('div');
+        modal.className = 'modal-content';
+        modal.style.maxWidth = '400px';
+
+        var title = document.createElement('h3');
+        title.style.cssText = 'text-align:center;color:#20c020;border-bottom:1px solid #3d4c3d;padding-bottom:10px;margin-top:0;text-transform:uppercase;letter-spacing:2px;text-shadow:0 0 8px #20c020;';
+        title.textContent = 'EXPORT COMPLETE';
+        modal.appendChild(title);
+
+        var msg = document.createElement('p');
+        msg.style.cssText = 'text-align:center;color:#80cc80;font-size:16px;margin:12px 0;line-height:1.4;';
+        msg.textContent = count + ' PNG' + (count !== 1 ? 's have' : ' has') + ' been saved.';
+        modal.appendChild(msg);
+
+        var btnContainer = document.createElement('div');
+        btnContainer.style.cssText = 'display:flex;justify-content:center;margin-top:12px;';
+
+        var closeBtn = document.createElement('button');
+        closeBtn.className = 'btn btn-primary';
+        closeBtn.textContent = 'OK';
+        closeBtn.addEventListener('click', function() {
+            overlay.remove();
+        });
+
+        btnContainer.appendChild(closeBtn);
+        modal.appendChild(btnContainer);
+        overlay.appendChild(modal);
+
+        overlay.addEventListener('click', function(e) {
+            if (e.target === overlay) overlay.remove();
+        });
+
+        document.body.appendChild(overlay);
     },
 
     // ========================================================================
