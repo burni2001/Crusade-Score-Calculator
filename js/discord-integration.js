@@ -77,8 +77,10 @@ class DiscordIntegration {
 
                 console.log('✅ Discord SDK initialized');
 
-                // Authenticate user
-                await this.authenticate();
+                // Skip authentication - app doesn't require user identity
+                // Authentication would require a backend token exchange endpoint
+                // which is not available on GitHub Pages static hosting
+                console.log('ℹ️ Skipping Discord auth (not required for score calculation)');
 
                 // Setup Discord-specific features
                 this.setupDiscordFeatures();
