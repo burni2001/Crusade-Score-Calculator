@@ -1,0 +1,22 @@
+# ============================================================================
+# Wrangler config for the Crusade Score Calculator image host worker
+#
+# Setup:
+#   1. Create KV namespace:  wrangler kv namespace create IMAGE_STORE
+#   2. Copy the namespace ID into the [[kv_namespaces]] section below
+#   3. Deploy:               wrangler deploy
+#
+# Discord URL Mapping (Developer Portal → Activities → URL Mappings):
+#   Prefix: /image-host  →  Target: crusade-image-host.<your-subdomain>.workers.dev
+# ============================================================================
+
+name = "crusade-image-host"
+main = "image-host-worker.js"
+compatibility_date = "2024-01-01"
+
+# KV namespace for temporary image storage (24h auto-expiry)
+# Run: wrangler kv namespace create IMAGE_STORE
+# Then paste the id below:
+[[kv_namespaces]]
+binding = "IMAGE_STORE"
+id = "YOUR_KV_NAMESPACE_ID_HERE"
