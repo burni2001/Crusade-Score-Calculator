@@ -1,6 +1,6 @@
 // ============================================================================
 // CRUSADE SCORE CALCULATOR - Main Application Script
-// Version: 7.7
+// Version: 7.71
 // 
 // A complete scoring system for Warhammer 40K Space Marine 2 missions
 // with OCR capabilities, data persistence, and export functionality
