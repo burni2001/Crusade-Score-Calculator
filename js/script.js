@@ -2733,9 +2733,8 @@ async function recordAllDataScreens() {
             }, 2000);
         }
 
-        // In Discord, images are opened directly in browser tab (via _downloadCanvas).
-        // showExportModal() is only a fallback if window.open() was blocked.
-        // No explicit call needed here.
+        // In Discord, the last export (exportAggregatedScreen → _exportScreen)
+        // shows the modal with all captured images and "Open in Browser" buttons.
 
     } catch (error) {
         console.error('Error recording data screens:', error);
@@ -2743,6 +2742,10 @@ async function recordAllDataScreens() {
         if (statusEl) {
             statusEl.textContent = 'Error capturing screens. Please try again.';
             statusEl.style.color = '#cc4444';
+        }
+        // If some images were captured before the error, still show the modal
+        if (PNGExporter._pendingImages.length > 0) {
+            PNGExporter.showExportModal();
         }
     }
 }

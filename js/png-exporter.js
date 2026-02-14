@@ -2,6 +2,9 @@
 // PNG EXPORT MODULE
 // Handles screenshot generation for mission data and aggregated statistics
 // Uses html2canvas to capture DOM sections and export as downloadable images
+//
+// Discord flow: PNG → upload to Cloudflare Worker → short URL → open in browser
+// Web flow:     PNG → direct download via anchor tag
 // ============================================================================
 
 "use strict";
@@ -12,7 +15,7 @@ const PNGExporter = {
     // Width consistency: All exports use captureWidth (1100px) as the standard
     // container width to ensure identical PNG dimensions regardless of content.
     // ========================================================================
-    
+
     config: {
         captureWidth: 1100,        // Standard container width for all PNG exports
         bodyWidth: 1120,           // Temporary body width during capture
@@ -20,6 +23,14 @@ const PNGExporter = {
         scale: 2,                  // Image quality multiplier (2x for quality)
         backgroundColor: '#000000', // Background color for canvas
         settleDelay: 150           // ms to wait for DOM settling after modifications
+    },
+
+    // Cloudflare Worker image host URLs
+    // Direct URL is used for non-Discord and returned in upload responses
+    // Proxy path is used inside Discord Activity iframe (CSP-safe same-origin)
+    imageHost: {
+        workerUrl: "https://crusade-image-host.burni2001.workers.dev",
+        discordProxyPath: "/.proxy/image-host"
     },
 
     // Pending images collected in Discord mode (programmatic downloads don't work in iframe)
@@ -37,11 +48,11 @@ const PNGExporter = {
     async exportMissionScreen(buttonSelector = null) {
         return this._exportScreen({
             sectionSelectors: [
-                { 
+                {
                     containerSelector: '#page-2 .section',
                     titleMatch: 'SQUAD PERFORMANCE MATRIX'
                 },
-                { 
+                {
                     containerSelector: '#page-2 .section',
                     titleMatch: 'ADDITIONAL STATISTICS'
                 }
@@ -161,9 +172,9 @@ const PNGExporter = {
                 logging: false
             });
 
-            // 12. Download
+            // 12. Download (awaits upload in Discord mode)
             const safeName = (slot.name || 'mission').replace(/[^a-z0-9]/gi, '_').toLowerCase();
-            this._downloadCanvas(canvas, `Run_${index + 1}_${safeName}`);
+            await this._downloadCanvas(canvas, `Run_${index + 1}_${safeName}`);
 
         } catch (err) {
             this._handleError(err, `PNG Export Mission ${index + 1}`);
@@ -181,11 +192,11 @@ const PNGExporter = {
     async exportAggregatedScreen(buttonSelector = '#btn-record-png') {
         return this._exportScreen({
             sectionSelectors: [
-                { 
+                {
                     containerSelector: '#page-3 .section',
                     titleMatch: 'AGGREGATED SQUAD MATRIX'
                 },
-                { 
+                {
                     containerSelector: '#page-3 .section',
                     titleMatch: 'AGGREGATED STATISTICS'
                 }
@@ -209,17 +220,10 @@ const PNGExporter = {
     /**
      * Core screenshot export logic (DRY - used by both public methods)
      * @private
-     * @param {Object} options - Export configuration
-     * @param {Array} options.sectionSelectors - Array of {containerSelector, titleMatch}
-     * @param {string} options.filenamePrefix - Prefix for downloaded file
-     * @param {string} options.buttonSelector - CSS selector for feedback button
-     * @param {Object} options.buttonText - Button text states
-     * @param {boolean} options.useStandardWidth - Force standard width (default: false)
-     * @returns {Promise<void>}
      */
     async _exportScreen(options) {
         const { sectionSelectors, filenamePrefix, buttonSelector, buttonText, useStandardWidth = false } = options;
-        
+
         let btn = null;
         let originalText = "";
         let captureContainer = null;
@@ -227,15 +231,15 @@ const PNGExporter = {
 
         try {
             // 1. Setup button feedback
-            btn = document.querySelector(buttonSelector) || 
+            btn = document.querySelector(buttonSelector) ||
                   document.getElementById('export-png-btn');
-            
+
             originalText = btn ? btn.innerText : buttonText.fallback;
             if (btn) btn.innerText = buttonText.processing;
 
             // 2. Find target sections
             const sections = this._findSections(sectionSelectors);
-            
+
             if (sections.length !== sectionSelectors.length) {
                 throw new Error(`Required sections not found. Found ${sections.length}/${sectionSelectors.length}`);
             }
@@ -265,10 +269,15 @@ const PNGExporter = {
                 logging: false
             });
 
-            // 8. Download image
-            this._downloadCanvas(canvas, filenamePrefix);
+            // 8. Download image (awaits upload in Discord mode)
+            await this._downloadCanvas(canvas, filenamePrefix);
 
-            // 9. Success feedback
+            // 9. Show modal in Discord (after upload is complete)
+            if (this._isDiscord() && this._pendingImages.length > 0) {
+                this.showExportModal();
+            }
+
+            // 10. Success feedback
             if (btn) {
                 btn.innerText = buttonText.success;
                 setTimeout(() => {
@@ -281,7 +290,7 @@ const PNGExporter = {
             this._handleError(err, 'PNG Export');
             alert("Failed to capture screen. Please try again or check your browser permissions.");
             if (btn) btn.innerText = originalText || buttonText.fallback;
-            
+
         } finally {
             // Cleanup
             this._cleanup(captureContainer, originalBodyWidth);
@@ -295,15 +304,13 @@ const PNGExporter = {
     /**
      * Find DOM sections matching the provided selectors
      * @private
-     * @param {Array} sectionSelectors - Array of {containerSelector, titleMatch}
-     * @returns {Array<Element>} - Array of found DOM elements
      */
     _findSections(sectionSelectors) {
         const foundSections = [];
 
         sectionSelectors.forEach(({ containerSelector, titleMatch }) => {
             const allSections = document.querySelectorAll(containerSelector);
-            
+
             for (const section of allSections) {
                 const header = section.querySelector('.section-header');
                 if (header && header.textContent.includes(titleMatch)) {
@@ -318,23 +325,11 @@ const PNGExporter = {
 
     /**
      * Create temporary container for capturing sections
-     * 
-     * This method clones DOM sections and places them in a temporary container
-     * for html2canvas capture. When useStandardWidth=true, it normalizes all
-     * width-affecting styles to ensure consistent PNG dimensions.
-     * 
-     * Width consistency fix: Cloned sections have their padding removed to prevent
-     * double-padding issues (container already has padding: 20px). This ensures
-     * both Mission Summary and Aggregated Data exports produce identical widths.
-     * 
      * @private
-     * @param {Array<Element>} sections - DOM elements to capture
-     * @param {boolean} useStandardWidth - Force standard width normalization
-     * @returns {Element} - Container element ready for capture
      */
     _createCaptureContainer(sections, useStandardWidth = false) {
         const container = document.createElement('div');
-        
+
         // Force exact width for consistency
         if (useStandardWidth) {
             container.style.cssText = `
@@ -365,35 +360,31 @@ const PNGExporter = {
         // Clone sections and add to container
         sections.forEach((section, index) => {
             const cloned = section.cloneNode(true);
-            
+
             // Force table to fill container width when using standard width
             if (useStandardWidth) {
-                // Normalize cloned section padding to prevent width calculation differences
-                // The container already has padding, so we remove section padding for consistency
                 cloned.style.padding = '0';
                 cloned.style.margin = index === 0 ? '0 0 0 0' : '15px 0 0 0';
-                
+
                 const tables = cloned.querySelectorAll('table');
                 tables.forEach(table => {
                     table.style.width = '100%';
                     table.style.tableLayout = 'fixed';
                 });
-                
-                // Also normalize any nested containers that might affect width
+
                 const tableContainers = cloned.querySelectorAll('.score-table-container');
                 tableContainers.forEach(container => {
                     container.style.width = '100%';
                     container.style.overflow = 'visible';
                 });
             } else {
-                // When not using standard width, only adjust spacing
                 if (index === 0) {
                     cloned.style.marginBottom = '0';
                 } else {
                     cloned.style.marginTop = '15px';
                 }
             }
-            
+
             container.appendChild(cloned);
         });
 
@@ -401,10 +392,14 @@ const PNGExporter = {
     },
 
     /**
-     * Download canvas as PNG file
+     * Download canvas as PNG file.
+     * - Web: direct download via anchor tag
+     * - Discord: upload to Cloudflare Worker for short URL, store in _pendingImages
+     *   Returns a Promise so callers can await the upload before showing the modal.
      * @private
      * @param {HTMLCanvasElement} canvas - Canvas to download
      * @param {string} filenamePrefix - Prefix for filename
+     * @returns {Promise<void>|undefined}
      */
     _downloadCanvas(canvas, filenamePrefix) {
         const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);
@@ -412,16 +407,37 @@ const PNGExporter = {
         const dataUrl = canvas.toDataURL('image/png');
 
         if (this._isDiscord()) {
-            // Convert canvas to blob (CSP-safe, no fetch needed)
-            canvas.toBlob((blob) => {
-                // Store both blob and dataUrl for flexibility
-                this._pendingImages.push({ 
-                    dataUrl: dataUrl,  // For displaying the image
-                    blob: blob,        // For sharing/copying
-                    filename: filename 
-                });
-                this.showExportModal();
-            }, 'image/png');
+            var self = this;
+            // Return a Promise that resolves after upload completes (or fails).
+            // The caller is responsible for calling showExportModal() when ready.
+            return new Promise(function(resolve) {
+                canvas.toBlob(function(blob) {
+                    var image = {
+                        dataUrl: dataUrl,      // For thumbnail preview in modal
+                        blob: blob,            // For Web Share API fallback
+                        filename: filename,
+                        hostedUrl: null,       // Will be set after upload
+                        uploadFailed: false
+                    };
+                    self._pendingImages.push(image);
+
+                    // Upload to Cloudflare Worker, then resolve
+                    self._uploadImage(blob).then(function(result) {
+                        if (result && result.url) {
+                            image.hostedUrl = result.url;
+                            console.log('Image hosted at:', result.url);
+                        } else {
+                            image.uploadFailed = true;
+                            console.warn('Image upload failed, will use fallback sharing');
+                        }
+                        resolve();
+                    }).catch(function(err) {
+                        image.uploadFailed = true;
+                        console.warn('Image upload error:', err);
+                        resolve(); // Resolve even on error so the flow continues
+                    });
+                }, 'image/png');
+            });
         } else {
             const link = document.createElement('a');
             link.download = filename;
@@ -430,9 +446,70 @@ const PNGExporter = {
         }
     },
 
+    // ========================================================================
+    // IMAGE HOST (CLOUDFLARE WORKER)
+    // ========================================================================
+
+    /**
+     * Get the upload URL for the image host.
+     * In Discord Activity: use proxy path (same-origin, CSP-safe).
+     * Outside Discord: use direct Worker URL.
+     * @private
+     * @returns {string} Upload endpoint URL
+     */
+    _getImageHostUploadUrl() {
+        if (this._isDiscord()) {
+            // In Discord, try proxy first (configured in URL Mappings)
+            return this.imageHost.discordProxyPath + "/upload";
+        }
+        return this.imageHost.workerUrl + "/upload";
+    },
+
+    /**
+     * Upload a PNG blob to the Cloudflare Worker image host.
+     * Returns the hosted URL (direct Worker URL, not proxy) or null on failure.
+     * Tries Discord proxy first, then direct Worker URL as fallback.
+     * @private
+     * @param {Blob} blob - PNG image blob
+     * @returns {Promise<{url: string, id: string}|null>}
+     */
+    async _uploadImage(blob) {
+        const urls = this._isDiscord()
+            ? [this.imageHost.discordProxyPath + "/upload", this.imageHost.workerUrl + "/upload"]
+            : [this.imageHost.workerUrl + "/upload"];
+
+        for (const uploadUrl of urls) {
+            try {
+                const response = await fetch(uploadUrl, {
+                    method: "POST",
+                    headers: { "Content-Type": "image/png" },
+                    body: blob
+                });
+
+                if (!response.ok) {
+                    console.warn('Image host returned HTTP ' + response.status + ' from ' + uploadUrl);
+                    continue;
+                }
+
+                const result = await response.json();
+                if (result && result.url) {
+                    return result;
+                }
+            } catch (err) {
+                console.warn('Image upload to ' + uploadUrl + ' failed:', err.message);
+                continue;
+            }
+        }
+
+        return null;
+    },
+
+    // ========================================================================
+    // DISCORD DETECTION
+    // ========================================================================
+
     /**
      * Check if running inside Discord's embedded webview
-     * Uses multiple detection methods for better reliability across Discord Desktop/iOS/browser
      * @private
      * @returns {boolean}
      */
@@ -465,9 +542,7 @@ const PNGExporter = {
         // Method 5: Check for cross-origin iframe (Discord Activities are always cross-origin)
         try {
             if (window.self !== window.top) {
-                // Accessing parent will throw SecurityError if cross-origin
                 void window.top.location.href;
-                // If we get here, same-origin - check if parent is Discord
                 try {
                     if (window.parent && window.parent.location) {
                         const parentHref = window.parent.location.href;
@@ -478,8 +553,6 @@ const PNGExporter = {
                 } catch (_) { /* ignore */ }
             }
         } catch (_) {
-            // Cross-origin iframe detected - likely Discord
-            // Additional check: user agent patterns common in Discord apps
             const ua = navigator.userAgent;
             if (ua.includes('Discord') || ua.includes('Mobile')) {
                 return true;
@@ -489,11 +562,14 @@ const PNGExporter = {
         return false;
     },
 
+    // ========================================================================
+    // EXPORT MODAL (DISCORD)
+    // ========================================================================
+
     /**
-     * Show a modal with all pending export images.
-     * Used in Discord where programmatic downloads don't work.
-     * Provides multiple ways to save: direct download, copy to clipboard, and open in new tab.
-     * No-op if there are no pending images (i.e., not in Discord or nothing captured).
+     * Show the export modal with "Open in Browser" buttons.
+     * Primary path: openExternalLink with hosted URL (opens in user's browser).
+     * Fallback: Web Share API / clipboard copy.
      */
     showExportModal() {
         if (this._pendingImages.length === 0) return;
@@ -508,41 +584,57 @@ const PNGExporter = {
 
         const images = this._pendingImages;
         const total = images.length;
-        const isDiscord = this._isDiscord();
         const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+
+        // Check if any images have hosted URLs (upload succeeded)
+        const anyHosted = images.some(function(img) { return img.hostedUrl; });
+        const anyFailed = images.some(function(img) { return img.uploadFailed; });
 
         let imagesHtml = '';
         images.forEach((img, idx) => {
             const escapedFilename = this._escapeHtml(img.filename);
+            const hasUrl = !!img.hostedUrl;
+
             imagesHtml += `
                 <div class="png-export-item">
                     <div class="png-export-item-header">
                         <span class="png-export-counter">${idx + 1} / ${total}</span>
                         <span class="png-export-filename">${escapedFilename}</span>
                     </div>
-                    <img src="${img.dataUrl}" alt="${escapedFilename}" class="png-export-image" id="png-img-${idx}" />
+                    <img src="${img.dataUrl}" alt="${escapedFilename}" class="png-export-image" />
                     <div class="png-export-item-actions">
-                        <button class="btn btn-primary btn-sm btn-share-image" data-index="${idx}">Share ↗</button>
+                        ${hasUrl
+                            ? `<button class="btn btn-primary btn-sm btn-open-browser" data-index="${idx}">Open in Browser</button>`
+                            : `<button class="btn btn-primary btn-sm btn-share-image" data-index="${idx}">Share</button>`
+                        }
                         <span class="png-copy-feedback" data-feedback-index="${idx}"></span>
                     </div>
                 </div>
             `;
         });
 
+        // Instruction text based on what's available
         let instructionText;
-        if (isDiscord) {
-            if (isMobile) {
-                instructionText = `${total} image${total !== 1 ? 's' : ''} captured. Tap Share to save or send.`;
-            } else {
-                instructionText = `${total} image${total !== 1 ? 's' : ''} captured. Click Share to copy or download.`;
-            }
+        if (anyHosted) {
+            instructionText = `${total} image${total !== 1 ? 's' : ''} captured. ` +
+                (isMobile
+                    ? 'Tap "Open in Browser" to view and save.'
+                    : 'Click "Open in Browser" to view full-size and save.');
+        } else if (anyFailed) {
+            instructionText = `${total} image${total !== 1 ? 's' : ''} captured. ` +
+                (isMobile
+                    ? 'Tap "Share" to save or send.'
+                    : 'Click "Share" to copy or download.');
         } else {
-            if (isMobile) {
-                instructionText = `${total} image${total !== 1 ? 's' : ''} captured. Tap "Download" to save, or tap "Copy Image" to copy.`;
-            } else {
-                instructionText = `${total} image${total !== 1 ? 's' : ''} captured. Click "Download" to save, or click "Copy Image" to copy.`;
-            }
+            // Still uploading
+            instructionText = `${total} image${total !== 1 ? 's' : ''} captured. Uploading...`;
         }
+
+        // "Open All in Browser" button if multiple images all have URLs
+        const allHosted = images.every(function(img) { return img.hostedUrl; });
+        const openAllBtn = (allHosted && total > 1)
+            ? `<button id="btn-open-all-browser" class="btn btn-primary" style="margin-right:auto;">Open All in Browser</button>`
+            : '';
 
         modal.innerHTML = `
             <div class="modal-content png-export-modal-content">
@@ -554,137 +646,136 @@ const PNGExporter = {
                     ${imagesHtml}
                 </div>
                 <div class="modal-buttons">
+                    ${openAllBtn}
                     <button id="btn-close-png-modal" class="btn btn-danger">Close</button>
                 </div>
             </div>
         `;
 
-        // Bind per-image buttons
+        // Bind event handlers
         const self = this;
-        
-        // "Download" button - tries multiple methods to download the image
-        modal.querySelectorAll('.btn-download').forEach(function(btn) {
+
+        // "Open in Browser" — uses Discord SDK openExternalLink to open hosted URL
+        modal.querySelectorAll('.btn-open-browser').forEach(function(btn) {
             btn.addEventListener('click', async function() {
                 const idx = parseInt(btn.getAttribute('data-index'), 10);
                 const image = images[idx];
-                const feedbackEl = document.querySelector(`[data-feedback-index="${idx}"]`);
-                
-                const showFeedback = function(message, success) {
-                    if (feedbackEl) {
-                        feedbackEl.textContent = message;
-                        feedbackEl.className = 'png-copy-feedback ' + (success ? 'feedback-success' : 'feedback-error');
-                        setTimeout(() => {
-                            feedbackEl.textContent = '';
-                            feedbackEl.className = 'png-copy-feedback';
-                        }, 3000);
-                    }
-                };
+                const feedbackEl = document.querySelector('[data-feedback-index="' + idx + '"]');
 
-                // Try method 1: Create blob URL and use anchor download
-                try {
-                    const blob = await (await fetch(image.dataUrl)).blob();
-                    const blobUrl = URL.createObjectURL(blob);
-                    const link = document.createElement('a');
-                    link.href = blobUrl;
-                    link.download = image.filename;
-                    document.body.appendChild(link);
-                    link.click();
-                    document.body.removeChild(link);
-                    URL.revokeObjectURL(blobUrl);
-                    showFeedback(isDiscord ? 'Downloaded! Attach to Discord' : 'Downloaded!', true);
-                    return;
-                } catch (e) {
-                    console.warn('Download method 1 failed:', e);
-                }
+                if (!image.hostedUrl) return;
 
-                // Try method 2: Direct data URL download
                 try {
-                    const link = document.createElement('a');
-                    link.href = image.dataUrl;
-                    link.download = image.filename;
-                    document.body.appendChild(link);
-                    link.click();
-                    document.body.removeChild(link);
-                    showFeedback(isDiscord ? 'Downloaded! Attach to Discord' : 'Downloaded!', true);
-                    return;
-                } catch (e) {
-                    console.warn('Download method 2 failed:', e);
-                }
-
-                // Try method 3: Clipboard copy as fallback
-                try {
-                    const blob = await (await fetch(image.dataUrl)).blob();
-                    if (navigator.clipboard && typeof ClipboardItem !== 'undefined') {
-                        await navigator.clipboard.write([
-                            new ClipboardItem({ 'image/png': blob })
-                        ]);
-                        showFeedback(isDiscord ? 'Copied! Paste in chat' : 'Copied to clipboard!', true);
+                    // Try Discord SDK openExternalLink first
+                    const sdk = window.discordIntegration && window.discordIntegration.discordSDK;
+                    if (sdk && sdk.commands && sdk.commands.openExternalLink) {
+                        await sdk.commands.openExternalLink({ url: image.hostedUrl });
+                        self._showFeedback(feedbackEl, 'Opened!', true);
                         return;
                     }
-                } catch (e) {
-                    console.warn('Download method 3 failed:', e);
-                }
 
-                // All methods failed - instruct user to use screenshot
-                showFeedback('Long-press image to save', false);
+                    // Fallback: window.open (may work in some contexts)
+                    var win = window.open(image.hostedUrl, '_blank');
+                    if (win) {
+                        self._showFeedback(feedbackEl, 'Opened!', true);
+                        return;
+                    }
+
+                    // Last resort: copy URL to clipboard
+                    if (navigator.clipboard && navigator.clipboard.writeText) {
+                        await navigator.clipboard.writeText(image.hostedUrl);
+                        self._showFeedback(feedbackEl, 'URL copied! Paste in browser', true);
+                        return;
+                    }
+
+                    self._showFeedback(feedbackEl, 'Could not open link', false);
+                } catch (err) {
+                    console.warn('Open in browser failed:', err);
+                    // Try clipboard as last resort
+                    try {
+                        if (navigator.clipboard && navigator.clipboard.writeText) {
+                            await navigator.clipboard.writeText(image.hostedUrl);
+                            self._showFeedback(feedbackEl, 'URL copied! Paste in browser', true);
+                            return;
+                        }
+                    } catch (_) { /* ignore */ }
+                    self._showFeedback(feedbackEl, 'Could not open link', false);
+                }
             });
         });
 
-        // "Share" button handler - Web Share API like Wordle
+        // "Share" fallback — Web Share API (when upload failed)
         modal.querySelectorAll('.btn-share-image').forEach(function(btn) {
             btn.addEventListener('click', async function() {
                 const idx = parseInt(btn.getAttribute('data-index'), 10);
                 const image = images[idx];
-                const feedbackEl = document.querySelector(`[data-feedback-index="${idx}"]`);
-
-                const showFeedback = function(message, success) {
-                    if (feedbackEl) {
-                        feedbackEl.textContent = message;
-                        feedbackEl.className = 'png-copy-feedback ' + (success ? 'feedback-success' : 'feedback-error');
-                        setTimeout(function() {
-                            feedbackEl.textContent = '';
-                            feedbackEl.className = 'png-copy-feedback';
-                        }, 3000);
-                    }
-                };
+                const feedbackEl = document.querySelector('[data-feedback-index="' + idx + '"]');
 
                 try {
-                    const blob = image.blob;  // Use stored blob instead of fetch
-                    const file = new File([blob], image.filename, { type: 'image/png' });
+                    var blob = image.blob;
+                    var file = new File([blob], image.filename, { type: 'image/png' });
 
-                    // Method 1: Web Share API with file (like Wordle)
+                    // Method 1: Web Share API with file
                     if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
                         await navigator.share({ files: [file], title: 'Crusade Score' });
-                        showFeedback('Shared!', true);
+                        self._showFeedback(feedbackEl, 'Shared!', true);
                         return;
                     }
 
-                    // Method 2: Web Share API text only
-                    if (navigator.share) {
-                        await navigator.share({ title: 'Crusade Score', text: image.filename });
-                        showFeedback('Shared!', true);
-                        return;
-                    }
-
-                    // Method 3: Clipboard copy
+                    // Method 2: Clipboard copy
                     if (navigator.clipboard && typeof ClipboardItem !== 'undefined') {
                         await navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })]);
-                        showFeedback('Copied! Paste in chat', true);
+                        self._showFeedback(feedbackEl, 'Copied! Paste in chat', true);
                         return;
                     }
 
-                    showFeedback('📸 Screenshot to save', false);
+                    self._showFeedback(feedbackEl, 'Long-press image to save', false);
                 } catch (err) {
                     if (err.name === 'AbortError') {
-                        showFeedback('Cancelled', false);
+                        self._showFeedback(feedbackEl, 'Cancelled', false);
                     } else {
                         console.warn('Share failed:', err);
-                        showFeedback('📸 Screenshot to save', false);
+                        self._showFeedback(feedbackEl, 'Long-press image to save', false);
                     }
                 }
             });
         });
 
+        // "Open All in Browser" — opens each image sequentially via openExternalLink
+        var openAllBtnEl = modal.querySelector('#btn-open-all-browser');
+        if (openAllBtnEl) {
+            openAllBtnEl.addEventListener('click', async function() {
+                var sdk = window.discordIntegration && window.discordIntegration.discordSDK;
+                var opened = 0;
+
+                for (var i = 0; i < images.length; i++) {
+                    var img = images[i];
+                    if (!img.hostedUrl) continue;
+
+                    try {
+                        if (sdk && sdk.commands && sdk.commands.openExternalLink) {
+                            await sdk.commands.openExternalLink({ url: img.hostedUrl });
+                            opened++;
+                        } else {
+                            window.open(img.hostedUrl, '_blank');
+                            opened++;
+                        }
+                        // Small delay between opens to avoid rate limiting
+                        if (i < images.length - 1) {
+                            await self._delay(300);
+                        }
+                    } catch (err) {
+                        console.warn('Failed to open image ' + (i + 1) + ':', err);
+                    }
+                }
+
+                openAllBtnEl.textContent = opened + ' opened!';
+                setTimeout(function() {
+                    openAllBtnEl.textContent = 'Open All in Browser';
+                }, 2000);
+            });
+        }
+
+        // Close modal
         modal.querySelector('#btn-close-png-modal').addEventListener('click', function() {
             modal.classList.remove('active');
             self._pendingImages = [];
@@ -701,61 +792,26 @@ const PNGExporter = {
     },
 
     /**
-     * Copy a PNG data URL to clipboard as an image blob.
-     * Falls back to selecting the image element if Clipboard API is unavailable.
+     * Show feedback text next to a button
      * @private
-     * @param {string} dataUrl - PNG data URL
-     * @param {number} index - Image index (for feedback element)
      */
-    async _copyImageToClipboard(dataUrl, index) {
-        const feedbackEl = document.querySelector(`[data-feedback-index="${index}"]`);
-        const btnEl = document.querySelector(`.btn-copy-image[data-index="${index}"]`);
-        const isDiscord = this._isDiscord();
-
-        const showFeedback = function(message, success) {
-            if (feedbackEl) {
-                feedbackEl.textContent = message;
-                feedbackEl.className = 'png-copy-feedback ' + (success ? 'feedback-success' : 'feedback-error');
-                setTimeout(function() {
-                    feedbackEl.textContent = '';
-                    feedbackEl.className = 'png-copy-feedback';
-                }, 3000);
-            }
-        };
-
-        try {
-            // Convert data URL to blob
-            const response = await fetch(dataUrl);
-            const blob = await response.blob();
-
-            // Try Clipboard API with ClipboardItem
-            if (navigator.clipboard && typeof ClipboardItem !== 'undefined') {
-                await navigator.clipboard.write([
-                    new ClipboardItem({ 'image/png': blob })
-                ]);
-                showFeedback(isDiscord ? 'Copied! Paste in chat' : 'Copied!', true);
-                return;
-            }
-
-            // Fallback: try copying the data URL as text (can be pasted in some apps)
-            if (navigator.clipboard && navigator.clipboard.writeText) {
-                await navigator.clipboard.writeText(dataUrl);
-                showFeedback('URL copied (paste in browser)', true);
-                return;
-            }
-
-            showFeedback(isDiscord ? 'Copy not supported here' : 'Long-press image to save', false);
-        } catch (err) {
-            console.warn('Image copy failed:', err);
-            showFeedback(isDiscord ? 'Copy not supported here' : 'Long-press image to save', false);
-        }
+    _showFeedback(feedbackEl, message, success) {
+        if (!feedbackEl) return;
+        feedbackEl.textContent = message;
+        feedbackEl.className = 'png-copy-feedback ' + (success ? 'feedback-success' : 'feedback-error');
+        setTimeout(function() {
+            feedbackEl.textContent = '';
+            feedbackEl.className = 'png-copy-feedback';
+        }, 3000);
     },
+
+    // ========================================================================
+    // DOM / UTILITY HELPERS
+    // ========================================================================
 
     /**
      * Cleanup temporary DOM modifications
      * @private
-     * @param {Element} container - Temporary container to remove
-     * @param {string} originalBodyWidth - Original body width to restore
      */
     _cleanup(container, originalBodyWidth) {
         try {
@@ -771,8 +827,6 @@ const PNGExporter = {
     /**
      * Promise-based delay helper
      * @private
-     * @param {number} ms - Milliseconds to wait
-     * @returns {Promise<void>}
      */
     _delay(ms) {
         return new Promise(resolve => setTimeout(resolve, ms));
@@ -781,8 +835,6 @@ const PNGExporter = {
     /**
      * Parse mission parameters from CSV lines
      * @private
-     * @param {Array<string>} lines - CSV lines
-     * @returns {Object} - Mission parameters
      */
     _parseMissionParams(lines) {
         const params = { difficulty: '-', waves: '-', objective: '-', geneseed: '-', armoury: '-' };
@@ -802,15 +854,11 @@ const PNGExporter = {
     /**
      * Convert a CSV section into an HTML table string
      * @private
-     * @param {Array<string>} lines - All CSV lines
-     * @param {string} sectionTitle - Section title to find
-     * @returns {string} - HTML table string
      */
     _csvSectionToHtml(lines, sectionTitle) {
         const startIdx = lines.findIndex(line => line.includes(sectionTitle));
         if (startIdx === -1) return '<p>Data not found</p>';
 
-        // Table styling to match Page 2 live tables
         const cellBase = 'border:1px solid #1a331a;background-color:#0f1e0f;padding:4px;vertical-align:middle;';
         const headerBase = 'border:1px solid #1a331a;background-color:#000;padding:10px;vertical-align:middle;color:#20c020;font-size:0.9rem;line-height:1.1;';
 
@@ -839,7 +887,6 @@ const PNGExporter = {
             const isScoreRow = metricName.toLowerCase().includes('base score') || metricName.toLowerCase().includes('modifier score');
 
             html += '<tr>';
-            // Row label cell (matches .row-label styling)
             if (isFinalScore) {
                 html += `<td style="${cellBase}text-align:right;width:180px;font-weight:bold;padding-right:15px;background-color:#000;border-top:2px solid #20c020;border-bottom:2px double #20c020;font-size:1.5rem;color:#80cc80;text-shadow:0 0 8px #20c020;">${this._escapeHtml(metricName)}</td>`;
             } else {
@@ -866,9 +913,6 @@ const PNGExporter = {
     /**
      * Build a section element with header and table content
      * @private
-     * @param {string} title - Section title
-     * @param {string} tableHtml - HTML table string
-     * @returns {Element} - Section DOM element
      */
     _buildTableSection(title, tableHtml) {
         const section = document.createElement('div');
@@ -897,8 +941,6 @@ const PNGExporter = {
     /**
      * Escape HTML special characters
      * @private
-     * @param {string} str - String to escape
-     * @returns {string} - Escaped string
      */
     _escapeHtml(str) {
         const div = document.createElement('div');
@@ -909,8 +951,6 @@ const PNGExporter = {
     /**
      * Error handling wrapper
      * @private
-     * @param {Error} error - Error object
-     * @param {string} context - Context description
      */
     _handleError(error, context) {
         if (typeof ErrorHandler !== 'undefined') {
@@ -928,7 +968,7 @@ const PNGExporter = {
 // Browser / Global
 if (typeof window !== 'undefined') {
     window.PNGExporter = PNGExporter;
-    console.log('📸 PNG Exporter loaded');
+    console.log('PNG Exporter loaded');
 }
 
 // Node.js / CommonJS (for testing)
