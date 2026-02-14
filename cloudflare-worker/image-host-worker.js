@@ -19,8 +19,8 @@ const CORS_HEADERS = {
 // 24 hours in seconds
 const IMAGE_TTL = 86400;
 
-// Max image size: 4MB (generous for 2x-scale PNGs)
-const MAX_IMAGE_SIZE = 4 * 1024 * 1024;
+// Max image size: 8MB (accommodates composite images with multiple missions stitched together)
+const MAX_IMAGE_SIZE = 8 * 1024 * 1024;
 
 /**
  * Generate a short random ID (8 chars, URL-safe)
@@ -80,7 +80,7 @@ async function handleUpload(request, env, url) {
 /**
  * Handle GET /i/:id — serve a stored PNG image
  */
-async function handleServeImage(id, env) {
+async function handleServeImage(id, env, url) {
     const { value, metadata } = await env.IMAGE_STORE.getWithMetadata(id, { type: "arrayBuffer" });
 
     if (!value) {
@@ -90,12 +90,18 @@ async function handleServeImage(id, env) {
         });
     }
 
+    // ?dl=1 triggers a download (Content-Disposition: attachment) instead of inline display
+    const forceDownload = url.searchParams.get("dl") === "1";
+    const disposition = forceDownload
+        ? 'attachment; filename="crusade-data.png"'
+        : "inline";
+
     return new Response(value, {
         status: 200,
         headers: {
             "Content-Type": (metadata && metadata.contentType) || "image/png",
             "Cache-Control": "public, max-age=3600",
-            "Content-Disposition": "inline",
+            "Content-Disposition": disposition,
             ...CORS_HEADERS
         }
     });
@@ -142,7 +148,7 @@ export default {
                 return jsonResponse(400, { error: "Invalid image ID" });
             }
             try {
-                return await handleServeImage(id, env);
+                return await handleServeImage(id, env, url);
             } catch (err) {
                 return jsonResponse(500, { error: "Failed to retrieve image" });
             }
