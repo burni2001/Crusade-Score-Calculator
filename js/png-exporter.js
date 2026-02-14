@@ -608,7 +608,12 @@ const PNGExporter = {
             }
         }
 
-        // 3. Clear pending images
+        // 3. If all clipboard methods failed, show URLs for manual copy
+        if (!copied && urls.length > 0) {
+            this._showUrlCopyFallback(urls);
+        }
+
+        // 4. Clear pending images
         this._pendingImages = [];
 
         return { opened: opened, copied: copied, copiedImages: copiedImages, urls: urls };
@@ -673,6 +678,89 @@ const PNGExporter = {
         } catch (_) {
             return false;
         }
+    },
+
+    /**
+     * Show a modal with image URLs for manual copying.
+     * Used as a fallback when the Clipboard API is blocked (e.g. Discord iframe).
+     * The user can select the text and use Ctrl+C / Cmd+C to copy manually.
+     * @private
+     * @param {string[]} urls - Array of hosted image URLs
+     */
+    _showUrlCopyFallback(urls) {
+        if (!urls || urls.length === 0) return;
+
+        // Remove any existing fallback overlay
+        var existing = document.getElementById('png-url-fallback-overlay');
+        if (existing) existing.remove();
+
+        // Create modal overlay (reuse existing .modal-overlay / .modal-content classes)
+        var overlay = document.createElement('div');
+        overlay.id = 'png-url-fallback-overlay';
+        overlay.className = 'modal-overlay';
+        overlay.style.display = 'flex';
+
+        var modal = document.createElement('div');
+        modal.className = 'modal-content';
+        modal.style.maxWidth = '560px';
+
+        // Title
+        var title = document.createElement('h3');
+        title.style.cssText = 'text-align:center;color:#20c020;border-bottom:1px solid #3d4c3d;padding-bottom:10px;margin-top:0;text-transform:uppercase;letter-spacing:2px;text-shadow:0 0 8px #20c020;';
+        title.textContent = 'IMAGE URLS';
+        modal.appendChild(title);
+
+        // Instructions
+        var instructions = document.createElement('p');
+        instructions.style.cssText = 'text-align:center;color:#80cc80;font-size:14px;margin:0 0 12px 0;line-height:1.4;';
+        instructions.textContent = 'Clipboard is blocked in Discord. Select the URLs below and copy manually (Ctrl+C / Cmd+C), then paste into Discord chat \u2014 they will embed as images.';
+        modal.appendChild(instructions);
+
+        // Textarea with URLs
+        var textarea = document.createElement('textarea');
+        textarea.readOnly = true;
+        textarea.value = urls.join('\n');
+        textarea.rows = Math.min(urls.length + 1, 6);
+        textarea.style.cssText = 'background-color:#0a0f0a;color:#80cc80;font-family:"VT323",monospace;font-size:1.1rem;border:1px solid #3d4c3d;padding:10px;width:100%;box-sizing:border-box;resize:vertical;box-shadow:inset 0 0 10px rgba(0,0,0,0.5);white-space:pre-wrap;word-break:break-all;';
+        modal.appendChild(textarea);
+
+        // Button container
+        var btnContainer = document.createElement('div');
+        btnContainer.style.cssText = 'display:flex;gap:10px;justify-content:center;margin-top:12px;';
+
+        var selectBtn = document.createElement('button');
+        selectBtn.className = 'btn btn-primary';
+        selectBtn.textContent = 'Select All';
+        selectBtn.addEventListener('click', function() {
+            textarea.focus();
+            textarea.select();
+        });
+
+        var closeBtn = document.createElement('button');
+        closeBtn.className = 'btn btn-danger';
+        closeBtn.textContent = 'Close';
+        closeBtn.addEventListener('click', function() {
+            overlay.remove();
+        });
+
+        btnContainer.appendChild(selectBtn);
+        btnContainer.appendChild(closeBtn);
+        modal.appendChild(btnContainer);
+
+        overlay.appendChild(modal);
+
+        // Close on overlay background click
+        overlay.addEventListener('click', function(e) {
+            if (e.target === overlay) overlay.remove();
+        });
+
+        document.body.appendChild(overlay);
+
+        // Auto-select the textarea content
+        setTimeout(function() {
+            textarea.focus();
+            textarea.select();
+        }, 100);
     },
 
     // ========================================================================
