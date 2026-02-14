@@ -270,7 +270,7 @@ const PNGExporter = {
 
             for (var j = 0; j < images.length; j++) {
                 if (!images[j].hostedUrl) continue;
-                var downloadUrl = images[j].hostedUrl + '?dl=1';
+                var downloadUrl = images[j].hostedUrl + '?dl=1&fn=' + encodeURIComponent(images[j].filename);
                 onProgress('Opening download ' + (j + 1) + ' of ' + images.length + '...');
                 try {
                     if (sdk && sdk.commands && sdk.commands.openExternalLink) {

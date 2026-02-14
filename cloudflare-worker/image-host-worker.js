@@ -91,9 +91,14 @@ async function handleServeImage(id, env, url) {
     }
 
     // ?dl=1 triggers a download (Content-Disposition: attachment) instead of inline display
+    // ?fn=custom_name.png allows the client to specify a descriptive filename
     const forceDownload = url.searchParams.get("dl") === "1";
+    const customName = url.searchParams.get("fn");
+    const safeName = customName
+        ? customName.replace(/[^a-zA-Z0-9._-]/g, '_').slice(0, 100) || "crusade-data.png"
+        : "crusade-data.png";
     const disposition = forceDownload
-        ? 'attachment; filename="crusade-data.png"'
+        ? `attachment; filename="${safeName}"`
         : "inline";
 
     return new Response(value, {
