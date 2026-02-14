@@ -20,21 +20,22 @@ class DiscordIntegration {
     _detectDiscordEnvironment() {
         if (typeof window === 'undefined') return false;
 
-        // Signal 1: Discord SDK global exists (loaded successfully)
-        if (typeof DiscordSDK !== 'undefined') return true;
+        // Note: Do NOT check `typeof DiscordSDK !== 'undefined'` here.
+        // The SDK bundle is loaded unconditionally via <script> tag,
+        // so the global is always defined even in normal browsers.
 
-        // Signal 2: Discord Activity iframe query parameters
+        // Signal 1: Discord Activity iframe query parameters
         try {
             const params = new URLSearchParams(window.location.search);
             if (params.has('frame_id') && params.has('instance_id')) return true;
         } catch (_) { /* ignore */ }
 
-        // Signal 3: Discord Activity proxy hostname
+        // Signal 2: Discord Activity proxy hostname
         try {
             if (window.location.hostname.endsWith('.discordsays.com')) return true;
         } catch (_) { /* ignore */ }
 
-        // Signal 4: Cross-origin iframe (Discord Activities are always cross-origin)
+        // Signal 3: Cross-origin iframe (Discord Activities are always cross-origin)
         try {
             if (window.self !== window.top) {
                 // Accessing parent will throw SecurityError if cross-origin
@@ -92,9 +93,15 @@ class DiscordIntegration {
 
             return true;
         } catch (error) {
+            // If SDK timed out, we're not actually in Discord — the environment
+            // detection was a false positive (e.g. cross-origin iframe that isn't Discord).
+            if (error && error.message && error.message.includes('timeout')) {
+                console.log('📱 Discord SDK timed out - not in Discord environment');
+                this.isDiscordEnvironment = false;
+                return false;
+            }
+            // For non-timeout errors, SDK loaded but hit an issue — still in Discord
             console.error('❌ Discord SDK initialization failed:', error);
-            // Still mark as Discord environment even if SDK init fails
-            // (detection was positive, only SDK features are unavailable)
             console.log('🎮 Running in Discord without SDK features');
             setTimeout(() => this.fixDiscordInteractions(), 500);
             return true;

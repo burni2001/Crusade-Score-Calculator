@@ -515,16 +515,17 @@ const PNGExporter = {
      */
     _isDiscord() {
         // Method 1: Check DiscordIntegration flag (set during SDK initialization)
+        // This is the authoritative source — initialize() verifies the environment
+        // and resets the flag on timeout (i.e. not actually in Discord).
         if (window.discordIntegration && window.discordIntegration.isDiscordEnvironment) {
             return true;
         }
 
-        // Method 2: Check for Discord SDK global
-        if (typeof DiscordSDK !== 'undefined') {
-            return true;
-        }
+        // Note: Do NOT check `typeof DiscordSDK !== 'undefined'` here.
+        // The SDK bundle is loaded unconditionally via <script> tag,
+        // so the global is always defined even in normal browsers.
 
-        // Method 3: Check URL parameters (Discord Activity iframe)
+        // Method 2: Check URL parameters (Discord Activity iframe)
         try {
             const params = new URLSearchParams(window.location.search);
             if (params.has('frame_id') && params.has('instance_id')) {
@@ -532,32 +533,12 @@ const PNGExporter = {
             }
         } catch (_) { /* ignore */ }
 
-        // Method 4: Check Discord Activity proxy hostname
+        // Method 3: Check Discord Activity proxy hostname
         try {
             if (window.location.hostname.endsWith('.discordsays.com')) {
                 return true;
             }
         } catch (_) { /* ignore */ }
-
-        // Method 5: Check for cross-origin iframe (Discord Activities are always cross-origin)
-        try {
-            if (window.self !== window.top) {
-                void window.top.location.href;
-                try {
-                    if (window.parent && window.parent.location) {
-                        const parentHref = window.parent.location.href;
-                        if (parentHref && (parentHref.includes('discord') || parentHref.includes('discordsays'))) {
-                            return true;
-                        }
-                    }
-                } catch (_) { /* ignore */ }
-            }
-        } catch (_) {
-            const ua = navigator.userAgent;
-            if (ua.includes('Discord') || ua.includes('Mobile')) {
-                return true;
-            }
-        }
 
         return false;
     },
