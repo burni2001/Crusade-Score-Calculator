@@ -110,8 +110,7 @@ class DiscordIntegration {
                 state: "",
                 prompt: "none",
                 scope: [
-                    "identify",
-                    "guilds"
+                    "identify"
                 ],
             });
 
