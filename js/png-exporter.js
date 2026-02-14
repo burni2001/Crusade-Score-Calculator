@@ -3,7 +3,7 @@
 // Handles screenshot generation for mission data and aggregated statistics
 // Uses html2canvas to capture DOM sections and export as downloadable images
 //
-// Discord flow: PNG → upload to Cloudflare Worker → short URL → open in browser
+// Discord flow: PNG → upload to Cloudflare Worker → open directly in browser + copy URLs
 // Web flow:     PNG → direct download via anchor tag
 // ============================================================================
 
@@ -189,7 +189,7 @@ const PNGExporter = {
      * @param {string} buttonSelector - CSS selector for the export button (for feedback)
      * @returns {Promise<void>}
      */
-    async exportAggregatedScreen(buttonSelector = '#btn-record-png') {
+    async exportAggregatedScreen(buttonSelector = '#btn-record-png', options = {}) {
         return this._exportScreen({
             sectionSelectors: [
                 {
@@ -209,7 +209,8 @@ const PNGExporter = {
                 fallback: 'Record Aggregated Data'
             },
             // Match mission screen width for consistency
-            useStandardWidth: true
+            useStandardWidth: true,
+            skipModal: !!options.skipModal
         });
     },
 
@@ -222,7 +223,7 @@ const PNGExporter = {
      * @private
      */
     async _exportScreen(options) {
-        const { sectionSelectors, filenamePrefix, buttonSelector, buttonText, useStandardWidth = false } = options;
+        const { sectionSelectors, filenamePrefix, buttonSelector, buttonText, useStandardWidth = false, skipModal = false } = options;
 
         let btn = null;
         let originalText = "";
@@ -272,9 +273,9 @@ const PNGExporter = {
             // 8. Download image (awaits upload in Discord mode)
             await this._downloadCanvas(canvas, filenamePrefix);
 
-            // 9. Show modal in Discord (after upload is complete)
-            if (this._isDiscord() && this._pendingImages.length > 0) {
-                this.showExportModal();
+            // 9. In Discord standalone mode, open images directly in browser
+            if (!skipModal && this._isDiscord() && this._pendingImages.length > 0) {
+                await this.openAllDirectly();
             }
 
             // 10. Success feedback
@@ -409,12 +410,11 @@ const PNGExporter = {
         if (this._isDiscord()) {
             var self = this;
             // Return a Promise that resolves after upload completes (or fails).
-            // The caller is responsible for calling showExportModal() when ready.
             return new Promise(function(resolve) {
                 canvas.toBlob(function(blob) {
                     var image = {
-                        dataUrl: dataUrl,      // For thumbnail preview in modal
-                        blob: blob,            // For Web Share API fallback
+                        dataUrl: dataUrl,
+                        blob: blob,
                         filename: filename,
                         hostedUrl: null,       // Will be set after upload
                         uploadFailed: false
@@ -563,257 +563,62 @@ const PNGExporter = {
     },
 
     // ========================================================================
-    // EXPORT MODAL (DISCORD)
+    // DIRECT BROWSER OPEN (DISCORD)
     // ========================================================================
 
     /**
-     * Show the export modal with "Open in Browser" buttons.
-     * Primary path: openExternalLink with hosted URL (opens in user's browser).
-     * Fallback: Web Share API / clipboard copy.
+     * Open all pending images directly in the user's browser and copy URLs
+     * to clipboard. No modal — just opens them immediately.
+     * @returns {Promise<{opened: number, copied: boolean, urls: string[]}>}
      */
-    showExportModal() {
-        if (this._pendingImages.length === 0) return;
-
-        let modal = document.getElementById('png-export-modal');
-        if (!modal) {
-            modal = document.createElement('div');
-            modal.id = 'png-export-modal';
-            modal.className = 'modal-overlay';
-            document.body.appendChild(modal);
-        }
-
+    async openAllDirectly() {
         const images = this._pendingImages;
-        const total = images.length;
-        const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+        if (images.length === 0) return { opened: 0, copied: false, urls: [] };
 
-        // Check if any images have hosted URLs (upload succeeded)
-        const anyHosted = images.some(function(img) { return img.hostedUrl; });
-        const anyFailed = images.some(function(img) { return img.uploadFailed; });
+        const sdk = window.discordIntegration && window.discordIntegration.discordSDK;
+        const hostedImages = images.filter(function(img) { return img.hostedUrl; });
+        const urls = hostedImages.map(function(img) { return img.hostedUrl; });
+        var opened = 0;
 
-        let imagesHtml = '';
-        images.forEach((img, idx) => {
-            const escapedFilename = this._escapeHtml(img.filename);
-            const hasUrl = !!img.hostedUrl;
-
-            imagesHtml += `
-                <div class="png-export-item">
-                    <div class="png-export-item-header">
-                        <span class="png-export-counter">${idx + 1} / ${total}</span>
-                        <span class="png-export-filename">${escapedFilename}</span>
-                    </div>
-                    <img src="${img.dataUrl}" alt="${escapedFilename}" class="png-export-image" />
-                    <div class="png-export-item-actions">
-                        ${hasUrl
-                            ? `<button class="btn btn-primary btn-sm btn-open-browser" data-index="${idx}">Open in Browser</button>`
-                            : `<button class="btn btn-primary btn-sm btn-share-image" data-index="${idx}">Share</button>`
-                        }
-                        <span class="png-copy-feedback" data-feedback-index="${idx}"></span>
-                    </div>
-                </div>
-            `;
-        });
-
-        // Instruction text based on what's available
-        let instructionText;
-        if (anyHosted) {
-            instructionText = `${total} image${total !== 1 ? 's' : ''} captured. ` +
-                (isMobile
-                    ? 'Tap "Open in Browser" to view and save.'
-                    : 'Click "Open in Browser" to view full-size and save.');
-        } else if (anyFailed) {
-            instructionText = `${total} image${total !== 1 ? 's' : ''} captured. ` +
-                (isMobile
-                    ? 'Tap "Share" to save or send.'
-                    : 'Click "Share" to copy or download.');
-        } else {
-            // Still uploading
-            instructionText = `${total} image${total !== 1 ? 's' : ''} captured. Uploading...`;
-        }
-
-        // "Open All in Browser" button if multiple images all have URLs
-        const allHosted = images.every(function(img) { return img.hostedUrl; });
-        const openAllBtn = (allHosted && total > 1)
-            ? `<button id="btn-open-all-browser" class="btn btn-primary" style="margin-right:auto;">Open All in Browser</button>`
-            : '';
-
-        modal.innerHTML = `
-            <div class="modal-content png-export-modal-content">
-                <h3 class="text-center text-primary border-bottom pb-10 mt-0 uppercase letter-spacing-2 glow">
-                    CAPTURED DATA SCREENS
-                </h3>
-                <p class="png-export-instructions">${instructionText}</p>
-                <div class="png-export-gallery">
-                    ${imagesHtml}
-                </div>
-                <div class="modal-buttons">
-                    ${openAllBtn}
-                    <button id="btn-close-png-modal" class="btn btn-danger">Close</button>
-                </div>
-            </div>
-        `;
-
-        // Bind event handlers
-        const self = this;
-
-        // "Open in Browser" — uses Discord SDK openExternalLink to open hosted URL
-        modal.querySelectorAll('.btn-open-browser').forEach(function(btn) {
-            btn.addEventListener('click', async function() {
-                const idx = parseInt(btn.getAttribute('data-index'), 10);
-                const image = images[idx];
-                const feedbackEl = document.querySelector('[data-feedback-index="' + idx + '"]');
-
-                if (!image.hostedUrl) return;
-
-                try {
-                    // Try Discord SDK openExternalLink first
-                    const sdk = window.discordIntegration && window.discordIntegration.discordSDK;
-                    if (sdk && sdk.commands && sdk.commands.openExternalLink) {
-                        await sdk.commands.openExternalLink({ url: image.hostedUrl });
-                        self._showFeedback(feedbackEl, 'Opened!', true);
-                        return;
-                    }
-
-                    // Fallback: window.open (may work in some contexts)
-                    var win = window.open(image.hostedUrl, '_blank');
-                    if (win) {
-                        self._showFeedback(feedbackEl, 'Opened!', true);
-                        return;
-                    }
-
-                    // Fallback: copy URL using execCommand (works in sandboxed iframes)
-                    if (self._execCopy(image.hostedUrl)) {
-                        self._showFeedback(feedbackEl, 'URL copied! Paste in browser', true);
-                        return;
-                    }
-
-                    // Last resort: show URL as selectable text inline
-                    self._showUrlInline(btn, image.hostedUrl);
-                    self._showFeedback(feedbackEl, 'Select & copy the URL above', false);
-                } catch (err) {
-                    console.warn('Open in browser failed:', err);
-                    // Fallback: copy URL using execCommand
-                    if (self._execCopy(image.hostedUrl)) {
-                        self._showFeedback(feedbackEl, 'URL copied! Paste in browser', true);
-                        return;
-                    }
-                    // Last resort: show URL as selectable text inline
-                    self._showUrlInline(btn, image.hostedUrl);
-                    self._showFeedback(feedbackEl, 'Select & copy the URL above', false);
-                }
-            });
-        });
-
-        // "Share" fallback — Web Share API (when upload failed)
-        modal.querySelectorAll('.btn-share-image').forEach(function(btn) {
-            btn.addEventListener('click', async function() {
-                const idx = parseInt(btn.getAttribute('data-index'), 10);
-                const image = images[idx];
-                const feedbackEl = document.querySelector('[data-feedback-index="' + idx + '"]');
-
-                try {
-                    var blob = image.blob;
-                    var file = new File([blob], image.filename, { type: 'image/png' });
-
-                    // Method 1: Web Share API with file
-                    if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
-                        await navigator.share({ files: [file], title: 'Crusade Score' });
-                        self._showFeedback(feedbackEl, 'Shared!', true);
-                        return;
-                    }
-
-                    // Method 2: Clipboard copy
-                    if (navigator.clipboard && typeof ClipboardItem !== 'undefined') {
-                        await navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })]);
-                        self._showFeedback(feedbackEl, 'Copied! Paste in chat', true);
-                        return;
-                    }
-
-                    self._showFeedback(feedbackEl, 'Long-press image to save', false);
-                } catch (err) {
-                    if (err.name === 'AbortError') {
-                        self._showFeedback(feedbackEl, 'Cancelled', false);
-                    } else {
-                        console.warn('Share failed:', err);
-                        self._showFeedback(feedbackEl, 'Long-press image to save', false);
-                    }
-                }
-            });
-        });
-
-        // "Open All in Browser" — opens each image sequentially via openExternalLink
-        var openAllBtnEl = modal.querySelector('#btn-open-all-browser');
-        if (openAllBtnEl) {
-            openAllBtnEl.addEventListener('click', async function() {
-                var sdk = window.discordIntegration && window.discordIntegration.discordSDK;
-                var opened = 0;
-
-                for (var i = 0; i < images.length; i++) {
-                    var img = images[i];
-                    if (!img.hostedUrl) continue;
-
-                    try {
-                        if (sdk && sdk.commands && sdk.commands.openExternalLink) {
-                            await sdk.commands.openExternalLink({ url: img.hostedUrl });
-                            opened++;
-                        } else {
-                            var win = window.open(img.hostedUrl, '_blank');
-                            if (win) opened++;
-                        }
-                        // Small delay between opens to avoid rate limiting
-                        if (i < images.length - 1) {
-                            await self._delay(300);
-                        }
-                    } catch (err) {
-                        console.warn('Failed to open image ' + (i + 1) + ':', err);
-                    }
-                }
-
-                if (opened > 0) {
-                    openAllBtnEl.textContent = opened + ' opened!';
+        // 1. Open each image in the browser
+        for (var i = 0; i < hostedImages.length; i++) {
+            try {
+                if (sdk && sdk.commands && sdk.commands.openExternalLink) {
+                    await sdk.commands.openExternalLink({ url: hostedImages[i].hostedUrl });
+                    opened++;
                 } else {
-                    // SDK and window.open both failed — copy all URLs
-                    var allUrls = images.filter(function(img) { return img.hostedUrl; })
-                        .map(function(img) { return img.hostedUrl; }).join('\n');
-                    if (self._execCopy(allUrls)) {
-                        openAllBtnEl.textContent = 'All URLs copied!';
-                    } else {
-                        openAllBtnEl.textContent = 'Copy URLs from each image';
-                    }
+                    var win = window.open(hostedImages[i].hostedUrl, '_blank');
+                    if (win) opened++;
                 }
-                setTimeout(function() {
-                    openAllBtnEl.textContent = 'Open All in Browser';
-                }, 3000);
-            });
+                // Small delay between opens to avoid rate limiting
+                if (i < hostedImages.length - 1) {
+                    await this._delay(300);
+                }
+            } catch (err) {
+                console.warn('Failed to open image ' + (i + 1) + ':', err);
+            }
         }
 
-        // Close modal
-        modal.querySelector('#btn-close-png-modal').addEventListener('click', function() {
-            modal.classList.remove('active');
-            self._pendingImages = [];
-        });
+        // 2. Copy all URLs to clipboard
+        var copied = false;
+        if (urls.length > 0) {
+            var allUrls = urls.join('\n');
+            try {
+                if (navigator.clipboard && navigator.clipboard.writeText) {
+                    await navigator.clipboard.writeText(allUrls);
+                    copied = true;
+                }
+            } catch (_) { /* ignore */ }
 
-        modal.addEventListener('click', function(e) {
-            if (e.target === modal) {
-                modal.classList.remove('active');
-                self._pendingImages = [];
+            if (!copied) {
+                copied = this._execCopy(allUrls);
             }
-        });
+        }
 
-        requestAnimationFrame(function() { modal.classList.add('active'); });
-    },
+        // 3. Clear pending images
+        this._pendingImages = [];
 
-    /**
-     * Show feedback text next to a button
-     * @private
-     */
-    _showFeedback(feedbackEl, message, success) {
-        if (!feedbackEl) return;
-        feedbackEl.textContent = message;
-        feedbackEl.className = 'png-copy-feedback ' + (success ? 'feedback-success' : 'feedback-error');
-        setTimeout(function() {
-            feedbackEl.textContent = '';
-            feedbackEl.className = 'png-copy-feedback';
-        }, 3000);
+        return { opened: opened, copied: copied, urls: urls };
     },
 
     /**
@@ -837,30 +642,6 @@ const PNGExporter = {
         } catch (_) {
             return false;
         }
-    },
-
-    /**
-     * Show a selectable URL input next to a button so the user can manually copy it.
-     * @private
-     * @param {HTMLElement} btn - The button element to insert the URL near
-     * @param {string} url - The URL to display
-     */
-    _showUrlInline(btn, url) {
-        var container = btn.parentElement;
-        // Don't add multiple URL inputs
-        if (container.querySelector('.png-url-display')) return;
-
-        var input = document.createElement('input');
-        input.type = 'text';
-        input.readOnly = true;
-        input.value = url;
-        input.className = 'png-url-display';
-        input.style.cssText = 'width:100%;font-size:11px;padding:4px 6px;margin-top:6px;background:#111;color:#0f0;border:1px solid #0f0;font-family:monospace;cursor:text;';
-        input.addEventListener('click', function() { this.select(); });
-        container.appendChild(input);
-        // Auto-select the URL text
-        input.focus();
-        input.select();
     },
 
     // ========================================================================

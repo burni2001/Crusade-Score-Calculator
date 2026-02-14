@@ -2534,12 +2534,6 @@ document.addEventListener('keydown', function(event) {
             creditsModal.classList.remove('active');
         }
 
-        const pngModal = document.getElementById('png-export-modal');
-        if (pngModal && pngModal.classList.contains('active')) {
-            pngModal.classList.remove('active');
-            PNGExporter._pendingImages = [];
-        }
-
         closeEventMenu();
     }
 });
@@ -2717,24 +2711,49 @@ async function recordAllDataScreens() {
         }
         if (btn) btn.innerText = 'CAPTURING AGGREGATED...';
 
-        await PNGExporter.exportAggregatedScreen();
+        await PNGExporter.exportAggregatedScreen('#btn-record-png', { skipModal: true });
 
-        if (statusEl) {
-            statusEl.textContent = `${savedSlots.length} mission(s) + aggregated data captured!`;
-            statusEl.style.color = '#80cc80';
-            setTimeout(() => {
-                statusEl.textContent = '';
-            }, 3000);
-        }
-        if (btn) {
-            btn.innerText = '✓ CAPTURED';
-            setTimeout(() => {
-                if (btn) btn.innerText = originalText;
-            }, 2000);
-        }
+        // In Discord, open all images directly in the browser (no modal)
+        if (PNGExporter._isDiscord() && PNGExporter._pendingImages.length > 0) {
+            if (statusEl) {
+                statusEl.textContent = 'Opening images in browser...';
+                statusEl.style.color = 'var(--pip-green)';
+            }
+            if (btn) btn.innerText = 'OPENING IN BROWSER...';
 
-        // In Discord, the last export (exportAggregatedScreen → _exportScreen)
-        // shows the modal with all captured images and "Open in Browser" buttons.
+            const result = await PNGExporter.openAllDirectly();
+
+            // Build status message
+            let msg = '';
+            if (result.opened > 0) {
+                msg = `${result.opened} image${result.opened !== 1 ? 's' : ''} opened in browser`;
+            }
+            if (result.copied) {
+                msg += msg ? ' — URLs copied to clipboard!' : 'URLs copied to clipboard!';
+            } else if (result.opened === 0 && result.urls.length > 0) {
+                msg = 'Could not open images. Try copying the URLs manually.';
+            }
+
+            if (statusEl) {
+                statusEl.textContent = msg || `${savedSlots.length} mission(s) + aggregated data captured!`;
+                statusEl.style.color = '#80cc80';
+                setTimeout(() => { statusEl.textContent = ''; }, 5000);
+            }
+            if (btn) {
+                btn.innerText = '✓ OPENED';
+                setTimeout(() => { if (btn) btn.innerText = originalText; }, 3000);
+            }
+        } else {
+            if (statusEl) {
+                statusEl.textContent = `${savedSlots.length} mission(s) + aggregated data captured!`;
+                statusEl.style.color = '#80cc80';
+                setTimeout(() => { statusEl.textContent = ''; }, 3000);
+            }
+            if (btn) {
+                btn.innerText = '✓ CAPTURED';
+                setTimeout(() => { if (btn) btn.innerText = originalText; }, 2000);
+            }
+        }
 
     } catch (error) {
         console.error('Error recording data screens:', error);
@@ -2743,9 +2762,9 @@ async function recordAllDataScreens() {
             statusEl.textContent = 'Error capturing screens. Please try again.';
             statusEl.style.color = '#cc4444';
         }
-        // If some images were captured before the error, still show the modal
+        // If some images were captured before the error, try to open them directly
         if (PNGExporter._pendingImages.length > 0) {
-            PNGExporter.showExportModal();
+            PNGExporter.openAllDirectly();
         }
     }
 }
