@@ -599,9 +599,21 @@ const PNGExporter = {
             }
         }
 
-        // 2. Copy all URLs to clipboard
+        // 2. Copy PNG images to clipboard (prefer actual image blobs over URLs)
         var copied = false;
-        if (urls.length > 0) {
+        var copiedImages = false;
+
+        // Collect blobs from all pending images (includes non-hosted ones)
+        var blobs = images.filter(function(img) { return img.blob; })
+                          .map(function(img) { return img.blob; });
+
+        if (blobs.length > 0) {
+            copiedImages = await this._copyImageBlobsToClipboard(blobs);
+            copied = copiedImages;
+        }
+
+        // Fall back to URL text copy if image blob copy failed
+        if (!copied && urls.length > 0) {
             var allUrls = urls.join('\n');
             try {
                 if (navigator.clipboard && navigator.clipboard.writeText) {
@@ -618,7 +630,45 @@ const PNGExporter = {
         // 3. Clear pending images
         this._pendingImages = [];
 
-        return { opened: opened, copied: copied, urls: urls };
+        return { opened: opened, copied: copied, copiedImages: copiedImages, urls: urls };
+    },
+
+    /**
+     * Copy PNG image blobs to clipboard using the Clipboard API.
+     * Tries all blobs first, then falls back to just the first image.
+     * @private
+     * @param {Blob[]} blobs - Array of PNG blobs to copy
+     * @returns {Promise<boolean>} true if at least one image was copied
+     */
+    async _copyImageBlobsToClipboard(blobs) {
+        if (!blobs || blobs.length === 0) return false;
+
+        // Check for ClipboardItem and clipboard.write support
+        if (!navigator.clipboard || !navigator.clipboard.write || typeof ClipboardItem === 'undefined') {
+            console.warn('Clipboard image API not available');
+            return false;
+        }
+
+        // Try copying all images as ClipboardItems
+        try {
+            var items = blobs.map(function(blob) {
+                return new ClipboardItem({ 'image/png': blob });
+            });
+            await navigator.clipboard.write(items);
+            return true;
+        } catch (err) {
+            console.warn('Failed to copy multiple images to clipboard:', err);
+        }
+
+        // Fall back to copying just the first image
+        try {
+            var item = new ClipboardItem({ 'image/png': blobs[0] });
+            await navigator.clipboard.write([item]);
+            return true;
+        } catch (err2) {
+            console.warn('Failed to copy single image to clipboard:', err2);
+            return false;
+        }
     },
 
     /**

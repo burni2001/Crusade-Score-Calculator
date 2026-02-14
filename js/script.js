@@ -2728,8 +2728,10 @@ async function recordAllDataScreens() {
             if (result.opened > 0) {
                 msg = `${result.opened} image${result.opened !== 1 ? 's' : ''} opened in browser`;
             }
-            if (result.copied) {
-                msg += msg ? ' — URLs copied to clipboard!' : 'URLs copied to clipboard!';
+            if (result.copiedImages) {
+                msg += msg ? ' — PNGs copied to clipboard!' : 'PNGs copied to clipboard!';
+            } else if (result.copied) {
+                msg += msg ? ' — URLs copied to clipboard' : 'URLs copied to clipboard';
             } else if (result.opened === 0 && result.urls.length > 0) {
                 msg = 'Could not open images. Try copying the URLs manually.';
             }
