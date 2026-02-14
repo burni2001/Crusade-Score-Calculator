@@ -12,6 +12,7 @@ const urlsToCache = [
     "./js/csv-handler.js",
     "./js/calculation-engine.js",
     "./js/lib/html2canvas.min.js",
+    "./js/lib/discord-sdk.js",
     "./js/png-exporter.js",
     "./js/discord-integration.js",
     "./fonts/vt323/VT323-Regular.ttf",

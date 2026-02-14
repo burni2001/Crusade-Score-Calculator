@@ -680,25 +680,25 @@ const PNGExporter = {
                         return;
                     }
 
-                    // Last resort: copy URL to clipboard
-                    if (navigator.clipboard && navigator.clipboard.writeText) {
-                        await navigator.clipboard.writeText(image.hostedUrl);
+                    // Fallback: copy URL using execCommand (works in sandboxed iframes)
+                    if (self._execCopy(image.hostedUrl)) {
                         self._showFeedback(feedbackEl, 'URL copied! Paste in browser', true);
                         return;
                     }
 
-                    self._showFeedback(feedbackEl, 'Could not open link', false);
+                    // Last resort: show URL as selectable text inline
+                    self._showUrlInline(btn, image.hostedUrl);
+                    self._showFeedback(feedbackEl, 'Select & copy the URL above', false);
                 } catch (err) {
                     console.warn('Open in browser failed:', err);
-                    // Try clipboard as last resort
-                    try {
-                        if (navigator.clipboard && navigator.clipboard.writeText) {
-                            await navigator.clipboard.writeText(image.hostedUrl);
-                            self._showFeedback(feedbackEl, 'URL copied! Paste in browser', true);
-                            return;
-                        }
-                    } catch (_) { /* ignore */ }
-                    self._showFeedback(feedbackEl, 'Could not open link', false);
+                    // Fallback: copy URL using execCommand
+                    if (self._execCopy(image.hostedUrl)) {
+                        self._showFeedback(feedbackEl, 'URL copied! Paste in browser', true);
+                        return;
+                    }
+                    // Last resort: show URL as selectable text inline
+                    self._showUrlInline(btn, image.hostedUrl);
+                    self._showFeedback(feedbackEl, 'Select & copy the URL above', false);
                 }
             });
         });
@@ -756,8 +756,8 @@ const PNGExporter = {
                             await sdk.commands.openExternalLink({ url: img.hostedUrl });
                             opened++;
                         } else {
-                            window.open(img.hostedUrl, '_blank');
-                            opened++;
+                            var win = window.open(img.hostedUrl, '_blank');
+                            if (win) opened++;
                         }
                         // Small delay between opens to avoid rate limiting
                         if (i < images.length - 1) {
@@ -768,10 +768,21 @@ const PNGExporter = {
                     }
                 }
 
-                openAllBtnEl.textContent = opened + ' opened!';
+                if (opened > 0) {
+                    openAllBtnEl.textContent = opened + ' opened!';
+                } else {
+                    // SDK and window.open both failed — copy all URLs
+                    var allUrls = images.filter(function(img) { return img.hostedUrl; })
+                        .map(function(img) { return img.hostedUrl; }).join('\n');
+                    if (self._execCopy(allUrls)) {
+                        openAllBtnEl.textContent = 'All URLs copied!';
+                    } else {
+                        openAllBtnEl.textContent = 'Copy URLs from each image';
+                    }
+                }
                 setTimeout(function() {
                     openAllBtnEl.textContent = 'Open All in Browser';
-                }, 2000);
+                }, 3000);
             });
         }
 
@@ -803,6 +814,53 @@ const PNGExporter = {
             feedbackEl.textContent = '';
             feedbackEl.className = 'png-copy-feedback';
         }, 3000);
+    },
+
+    /**
+     * Copy text using the legacy execCommand API (works in sandboxed iframes
+     * where the Clipboard API and window.open are both blocked).
+     * @private
+     * @param {string} text
+     * @returns {boolean} true if copy succeeded
+     */
+    _execCopy(text) {
+        try {
+            var ta = document.createElement('textarea');
+            ta.value = text;
+            ta.style.cssText = 'position:fixed;left:-9999px;top:-9999px;opacity:0;';
+            document.body.appendChild(ta);
+            ta.focus();
+            ta.select();
+            var ok = document.execCommand('copy');
+            document.body.removeChild(ta);
+            return ok;
+        } catch (_) {
+            return false;
+        }
+    },
+
+    /**
+     * Show a selectable URL input next to a button so the user can manually copy it.
+     * @private
+     * @param {HTMLElement} btn - The button element to insert the URL near
+     * @param {string} url - The URL to display
+     */
+    _showUrlInline(btn, url) {
+        var container = btn.parentElement;
+        // Don't add multiple URL inputs
+        if (container.querySelector('.png-url-display')) return;
+
+        var input = document.createElement('input');
+        input.type = 'text';
+        input.readOnly = true;
+        input.value = url;
+        input.className = 'png-url-display';
+        input.style.cssText = 'width:100%;font-size:11px;padding:4px 6px;margin-top:6px;background:#111;color:#0f0;border:1px solid #0f0;font-family:monospace;cursor:text;';
+        input.addEventListener('click', function() { this.select(); });
+        container.appendChild(input);
+        // Auto-select the URL text
+        input.focus();
+        input.select();
     },
 
     // ========================================================================
