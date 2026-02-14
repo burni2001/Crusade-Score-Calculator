@@ -71,8 +71,8 @@ async function handleUpload(request, env, url) {
         metadata: { contentType: "image/png", size: imageData.byteLength }
     });
 
-    // Build the public URL for this image
-    const imageUrl = `${url.origin}/i/${id}`;
+    // Build the public URL for this image (with .png extension for Discord embeds)
+    const imageUrl = `${url.origin}/i/${id}.png`;
 
     return jsonResponse(200, { url: imageUrl, id: id, expiresIn: IMAGE_TTL });
 }
@@ -133,9 +133,11 @@ export default {
             }
         }
 
-        // GET /i/:id — serve stored image
+        // GET /i/:id or /i/:id.png — serve stored image
         if (request.method === "GET" && url.pathname.startsWith("/i/")) {
-            const id = url.pathname.slice(3); // strip "/i/"
+            let id = url.pathname.slice(3); // strip "/i/"
+            // Strip .png extension if present (allows Discord-friendly URLs like /i/abc123.png)
+            if (id.endsWith('.png')) id = id.slice(0, -4);
             if (!id || id.length < 6) {
                 return jsonResponse(400, { error: "Invalid image ID" });
             }

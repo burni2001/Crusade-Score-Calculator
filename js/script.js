@@ -2734,6 +2734,8 @@ async function recordAllDataScreens() {
                 msg += msg ? ' — URLs copied to clipboard' : 'URLs copied to clipboard';
             } else if (result.opened === 0 && result.urls.length > 0) {
                 msg = 'Could not open images. Try copying the URLs manually.';
+            } else if (result.urls.length > 0) {
+                msg += msg ? ' — copy URLs from popup' : 'Copy URLs from popup';
             }
 
             if (statusEl) {
