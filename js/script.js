@@ -792,7 +792,7 @@ function calculate() {
 }
 
 async function clearData() {
-    if (!await showConfirmModal("Clear all mission data? (Modifiers will be kept)")) return;
+    if (!await showConfirmModal("Clear all mission data?")) return;
 
     const fieldsToClear = [
         "mission-name", "mission-difficulty", "global-objective", "global-geneseed",
