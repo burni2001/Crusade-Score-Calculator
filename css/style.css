@@ -903,15 +903,19 @@ select option {
     order: 1;
 }
 
-/* Page 3: side-by-side on widescreen mobile (record left, message right) */
-@media (min-width: 500px) {
-    #page-3 .export-buttons-container .btn-primary {
-        order: 1;
-        flex: 1 1 auto;
+/* Page 3: side-by-side on widescreen (purge left, record middle, message right) */
+@media (min-width: 769px) {
+    #page-3 .export-buttons-container .btn-danger {
+        order: -1;
     }
 
     #page-3 .export-buttons-container .btn:not(.btn-primary):not(.btn-danger) {
         order: 0;
+        flex: 1 1 auto;
+    }
+
+    #page-3 .export-buttons-container .btn-primary {
+        order: 1;
         flex: 1 1 auto;
     }
 }
