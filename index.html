@@ -506,6 +506,17 @@
         </div>
     </div>
 
+    <!-- Custom Confirm/Alert Modal (replaces native dialogs blocked in Discord Activity iframes) -->
+    <div id="custom-confirm-modal" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="confirm-modal-message">
+        <div class="modal-content" style="max-width: 420px; text-align: center;">
+            <p id="confirm-modal-message" style="white-space: pre-line; margin: 0 0 20px 0; color: var(--pip-green); font-size: 1rem;"></p>
+            <div class="modal-buttons" id="confirm-modal-buttons">
+                <button id="btn-confirm-ok" class="btn btn-danger">Confirm</button>
+                <button id="btn-confirm-cancel" class="btn">Cancel</button>
+            </div>
+        </div>
+    </div>
+
     <!-- ========== SCRIPTS ========== -->
     <!-- html2canvas: bundled locally so it loads under Discord Activity CSP -->
     <script src="js/lib/html2canvas.min.js"></script>

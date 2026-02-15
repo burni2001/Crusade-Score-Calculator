@@ -435,7 +435,11 @@ const InputValidator = {
 
         // Show alert with all errors
         const errorMessage = 'Please complete the following required fields:\n\n• ' + errors.join('\n• ');
-        alert(errorMessage);
+        if (typeof showAlertModal === 'function') {
+            showAlertModal(errorMessage);
+        } else {
+            alert(errorMessage);
+        }
 
         // Scroll to first invalid field
         if (invalidFields.length > 0) {

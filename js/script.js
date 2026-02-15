@@ -61,6 +61,99 @@ function escapeHtml(str) {
 }
 
 // ============================================================================
+// SECTION 1.5: CUSTOM MODAL DIALOGS (replaces native confirm/alert blocked in Discord iframes)
+// ============================================================================
+
+/**
+ * Shows a custom confirm modal and returns a Promise that resolves to true/false.
+ * Native confirm() is silently blocked in cross-origin iframes (Discord Activities),
+ * always returning false. This custom modal works in any context.
+ * @param {string} message - The confirmation message to display
+ * @returns {Promise<boolean>}
+ */
+function showConfirmModal(message) {
+    return new Promise(function(resolve) {
+        var modal = document.getElementById('custom-confirm-modal');
+        var msgEl = document.getElementById('confirm-modal-message');
+        var okBtn = document.getElementById('btn-confirm-ok');
+        var cancelBtn = document.getElementById('btn-confirm-cancel');
+
+        if (!modal || !msgEl || !okBtn || !cancelBtn) {
+            // Fallback: try native confirm (works outside Discord)
+            resolve(confirm(message));
+            return;
+        }
+
+        msgEl.textContent = message;
+        okBtn.style.display = '';
+        cancelBtn.style.display = '';
+        okBtn.textContent = 'Confirm';
+
+        function cleanup() {
+            modal.classList.remove('active');
+            okBtn.removeEventListener('click', onConfirm);
+            cancelBtn.removeEventListener('click', onCancel);
+            modal.removeEventListener('click', onBackdrop);
+        }
+
+        function onConfirm() { cleanup(); resolve(true); }
+        function onCancel() { cleanup(); resolve(false); }
+        function onBackdrop(e) {
+            if (e.target === modal) { cleanup(); resolve(false); }
+        }
+
+        okBtn.addEventListener('click', onConfirm);
+        cancelBtn.addEventListener('click', onCancel);
+        modal.addEventListener('click', onBackdrop);
+
+        modal.classList.add('active');
+    });
+}
+
+/**
+ * Shows a custom alert modal (single OK button).
+ * Native alert() is silently suppressed in cross-origin iframes (Discord Activities).
+ * @param {string} message - The alert message to display
+ * @returns {Promise<void>}
+ */
+function showAlertModal(message) {
+    return new Promise(function(resolve) {
+        var modal = document.getElementById('custom-confirm-modal');
+        var msgEl = document.getElementById('confirm-modal-message');
+        var okBtn = document.getElementById('btn-confirm-ok');
+        var cancelBtn = document.getElementById('btn-confirm-cancel');
+
+        if (!modal || !msgEl || !okBtn) {
+            alert(message);
+            resolve();
+            return;
+        }
+
+        msgEl.textContent = message;
+        cancelBtn.style.display = 'none';
+        okBtn.textContent = 'OK';
+        okBtn.className = 'btn btn-primary';
+
+        function cleanup() {
+            modal.classList.remove('active');
+            okBtn.removeEventListener('click', onOk);
+            modal.removeEventListener('click', onBackdrop);
+            okBtn.className = 'btn btn-danger';
+        }
+
+        function onOk() { cleanup(); resolve(); }
+        function onBackdrop(e) {
+            if (e.target === modal) { cleanup(); resolve(); }
+        }
+
+        okBtn.addEventListener('click', onOk);
+        modal.addEventListener('click', onBackdrop);
+
+        modal.classList.add('active');
+    });
+}
+
+// ============================================================================
 // SECTION 2: ERROR HANDLING SYSTEM
 // ============================================================================
 
@@ -698,8 +791,8 @@ function calculate() {
     }
 }
 
-function clearData() {
-    if (!confirm("Clear all mission data? (Modifiers will be kept)")) return;
+async function clearData() {
+    if (!await showConfirmModal("Clear all mission data? (Modifiers will be kept)")) return;
 
     const fieldsToClear = [
         "mission-name", "mission-difficulty", "global-objective", "global-geneseed",
@@ -1010,7 +1103,7 @@ async function saveData() {
     } catch (e) {
         ErrorHandler.handle(e, 'Save Data', false);
         if (e.name === 'QuotaExceededError') {
-            alert('Storage full. Please clear old mission data.');
+            showAlertModal('Storage full. Please clear old mission data.');
         } else {
             console.error("saveData failed:", e.message);
         }
@@ -1183,8 +1276,8 @@ function forceLoad() {
     }
 }
 
-function clearSavedData() {
-    if (confirm('Clear all saved data?')) {
+async function clearSavedData() {
+    if (await showConfirmModal('Clear all saved data?')) {
         localStorage.removeItem(STORAGE_KEY);
         console.log('✅ Cleared');
         location.reload();
@@ -1227,7 +1320,7 @@ function saveMissionInternal() {
     let savedSlots = JSON.parse(localStorage.getItem("cogitator_saved_missions") || "[]");
 
     if (savedSlots.length >= 4) {
-        alert("Memory Banks Full! Delete a Data Slate to make room.");
+        showAlertModal("Memory Banks Full! Delete a Data Slate to make room.");
         return;
     }
 
@@ -1708,8 +1801,8 @@ function downloadSlotCSV(index) {
     }
 }
 
-function deleteSlot(index) {
-    if (!confirm("Purge this Data Slate from memory?")) return;
+async function deleteSlot(index) {
+    if (!await showConfirmModal("Purge this Data Slate from memory?")) return;
     
     let savedSlots = JSON.parse(localStorage.getItem("cogitator_saved_missions") || "[]");
     savedSlots.splice(index, 1);
@@ -1846,8 +1939,8 @@ if (csvUploadInput) {
     });
 }
 
-function resetImport() {
-    if (!confirm("WARNING: This will purge ALL aggregated data and wipe the internal memory banks. \n\nAre you sure?")) {
+async function resetImport() {
+    if (!await showConfirmModal("WARNING: This will purge ALL aggregated data and wipe the internal memory banks. \n\nAre you sure?")) {
         return;
     }
 
@@ -2112,7 +2205,7 @@ function _showCopyFeedback(btn, originalText, success) {
 function downloadTransmissionLog() {
     var text = document.getElementById('copy-text').value;
     if (!text) {
-        alert("No transmission data to save.");
+        showAlertModal("No transmission data to save.");
         return;
     }
 
