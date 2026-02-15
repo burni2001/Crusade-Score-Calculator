@@ -401,7 +401,11 @@ const PNGExporter = {
         } catch (err) {
             // Error handling
             this._handleError(err, 'PNG Export');
-            alert("Failed to capture screen. Please try again or check your browser permissions.");
+            if (typeof showAlertModal === 'function') {
+                showAlertModal("Failed to capture screen. Please try again or check your browser permissions.");
+            } else {
+                alert("Failed to capture screen. Please try again or check your browser permissions.");
+            }
             if (btn) btn.innerText = originalText || buttonText.fallback;
 
         } finally {
