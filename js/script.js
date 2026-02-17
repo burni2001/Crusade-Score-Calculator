@@ -65,6 +65,15 @@ function escapeHtml(str) {
 // ============================================================================
 
 /**
+ * Removes 'active' class from a modal and detaches all provided event listeners.
+ * Shared by showConfirmModal and showAlertModal to avoid duplicate cleanup logic.
+ */
+function cleanupModal(modal, listeners) {
+    modal.classList.remove('active');
+    listeners.forEach(([el, evt, fn]) => el.removeEventListener(evt, fn));
+}
+
+/**
  * Shows a custom confirm modal and returns a Promise that resolves to true/false.
  * Native confirm() is silently blocked in cross-origin iframes (Discord Activities),
  * always returning false. This custom modal works in any context.
@@ -72,11 +81,11 @@ function escapeHtml(str) {
  * @returns {Promise<boolean>}
  */
 function showConfirmModal(message) {
-    return new Promise(function(resolve) {
-        var modal = document.getElementById('custom-confirm-modal');
-        var msgEl = document.getElementById('confirm-modal-message');
-        var okBtn = document.getElementById('btn-confirm-ok');
-        var cancelBtn = document.getElementById('btn-confirm-cancel');
+    return new Promise((resolve) => {
+        const modal = document.getElementById('custom-confirm-modal');
+        const msgEl = document.getElementById('confirm-modal-message');
+        const okBtn = document.getElementById('btn-confirm-ok');
+        const cancelBtn = document.getElementById('btn-confirm-cancel');
 
         if (!modal || !msgEl || !okBtn || !cancelBtn) {
             // Fallback: try native confirm (works outside Discord)
@@ -90,10 +99,11 @@ function showConfirmModal(message) {
         okBtn.textContent = 'Confirm';
 
         function cleanup() {
-            modal.classList.remove('active');
-            okBtn.removeEventListener('click', onConfirm);
-            cancelBtn.removeEventListener('click', onCancel);
-            modal.removeEventListener('click', onBackdrop);
+            cleanupModal(modal, [
+                [okBtn, 'click', onConfirm],
+                [cancelBtn, 'click', onCancel],
+                [modal, 'click', onBackdrop]
+            ]);
         }
 
         function onConfirm() { cleanup(); resolve(true); }
@@ -117,11 +127,11 @@ function showConfirmModal(message) {
  * @returns {Promise<void>}
  */
 function showAlertModal(message) {
-    return new Promise(function(resolve) {
-        var modal = document.getElementById('custom-confirm-modal');
-        var msgEl = document.getElementById('confirm-modal-message');
-        var okBtn = document.getElementById('btn-confirm-ok');
-        var cancelBtn = document.getElementById('btn-confirm-cancel');
+    return new Promise((resolve) => {
+        const modal = document.getElementById('custom-confirm-modal');
+        const msgEl = document.getElementById('confirm-modal-message');
+        const okBtn = document.getElementById('btn-confirm-ok');
+        const cancelBtn = document.getElementById('btn-confirm-cancel');
 
         if (!modal || !msgEl || !okBtn) {
             alert(message);
@@ -135,9 +145,10 @@ function showAlertModal(message) {
         okBtn.className = 'btn btn-primary';
 
         function cleanup() {
-            modal.classList.remove('active');
-            okBtn.removeEventListener('click', onOk);
-            modal.removeEventListener('click', onBackdrop);
+            cleanupModal(modal, [
+                [okBtn, 'click', onOk],
+                [modal, 'click', onBackdrop]
+            ]);
             okBtn.className = 'btn btn-danger';
         }
 
@@ -317,18 +328,13 @@ function mapToMissionDropdown(detectedName) {
     return { selectValue: 'Custom', customValue: detectedName };
 }
 
-function showOCRModal() {
-    const modal = document.getElementById('ocr-modal-overlay');
-    const grid = document.getElementById('ocr-detected-grid');
-    const rawText = document.getElementById('ocr-raw-text');
-    
-    if (!modal || !grid) return;
-
-    rawText.textContent = rawOCRText;
-    
+/**
+ * Build the HTML for the OCR review grid (mission params + 3 player sections).
+ */
+function buildOCRGridHTML() {
     const createRow = (id, type, label) => {
         let inputHtml = "";
-        
+
         if (type === "yesno") {
             inputHtml = `<select data-target-id="${id}"><option value="0">No</option><option value="1">Yes</option></select>`;
         } else if (type === "mission") {
@@ -410,15 +416,24 @@ function showOCRModal() {
         html += `</div>`;
     }
 
-    grid.innerHTML = html;
+    return html;
+}
+
+function showOCRModal() {
+    const modal = document.getElementById('ocr-modal-overlay');
+    const grid = document.getElementById('ocr-detected-grid');
+    const rawText = document.getElementById('ocr-raw-text');
+
+    if (!modal || !grid) return;
+
+    rawText.textContent = rawOCRText;
+    grid.innerHTML = buildOCRGridHTML();
 
     // Fill detected values
-    const inputs = grid.querySelectorAll('input, select');
-    inputs.forEach(input => {
+    grid.querySelectorAll('input, select').forEach(input => {
         const id = input.dataset.targetId;
         if (id && pendingOCRResults[id] !== undefined) {
             if (id === 'mission-name') {
-                // Map OCR text to dropdown value
                 const mapped = mapToMissionDropdown(String(pendingOCRResults[id]));
                 input.value = mapped.selectValue;
             } else {
@@ -428,6 +443,70 @@ function showOCRModal() {
     });
 
     modal.classList.add('active');
+}
+
+/**
+ * Select the appropriate InputValidator method for a given field ID.
+ */
+function getValidatorForField(targetId, value) {
+    if (targetId.includes('name') && targetId.startsWith('p')) {
+        return InputValidator.validatePlayerName(value);
+    }
+    if (targetId === 'mission-name') {
+        const result = InputValidator.validateMissionName(value);
+        if (result.valid) {
+            const mapped = mapToMissionDropdown(result.value);
+            result.value = mapped.selectValue;
+            if (mapped.selectValue === 'Custom') {
+                const customEl = document.getElementById('mission-name-custom');
+                if (customEl) customEl.value = mapped.customValue;
+            }
+        }
+        return result;
+    }
+    if (targetId.includes('damage') || targetId.includes('melee') || targetId.includes('ranged')) {
+        return InputValidator.validateDamage(value);
+    }
+    if (targetId.includes('class')) {
+        return InputValidator.validateClass(value);
+    }
+    if (targetId === 'mission-difficulty') {
+        return InputValidator.validateDifficulty(value);
+    }
+    if (targetId.includes('objective') || targetId.includes('geneseed')) {
+        if (targetId.includes('geneseed')) {
+            const geneseedEl = document.getElementById(targetId);
+            if (geneseedEl && geneseedEl.disabled) {
+                return { valid: false, value: '', skip: true };
+            }
+        }
+        return InputValidator.validateYesNo(value);
+    }
+    if (targetId.includes('armoury')) {
+        return InputValidator.validateArmouryData(value);
+    }
+    if (targetId.includes('waves')) {
+        return InputValidator.validateWaves(value);
+    }
+    return InputValidator.validateStat(value);
+}
+
+/**
+ * Apply a validated value to its target form field with visual feedback.
+ */
+function applyValueToField(targetId, result) {
+    const mainField = document.getElementById(targetId);
+    if (!mainField) return false;
+
+    mainField.value = result.value;
+
+    // Green flash feedback
+    mainField.style.transition = "background-color 0.5s";
+    const originalBg = mainField.style.backgroundColor;
+    mainField.style.backgroundColor = "#1a331a";
+    setTimeout(() => mainField.style.backgroundColor = originalBg, 500);
+
+    return true;
 }
 
 function applyOCRResults() {
@@ -442,99 +521,36 @@ function applyOCRResults() {
         inputs.forEach((input) => {
             const targetId = input.dataset.targetId;
             const newValue = input.value;
+            if (!targetId || newValue === undefined) return;
 
-            if (targetId && newValue !== undefined) {
-                // Validate based on field type
-                let result;
-                if (targetId.includes('name') && targetId.startsWith('p')) {
-                    result = InputValidator.validatePlayerName(newValue);
-                } else if (targetId === 'mission-name') {
-                    result = InputValidator.validateMissionName(newValue);
-                    if (result.valid) {
-                        // Map OCR-detected mission name to dropdown value
-                        const mapped = mapToMissionDropdown(result.value);
-                        result.value = mapped.selectValue;
-                        // If custom, populate the custom field
-                        if (mapped.selectValue === 'Custom') {
-                            const customEl = document.getElementById('mission-name-custom');
-                            if (customEl) customEl.value = mapped.customValue;
-                        }
-                        // UI updates will be triggered by handleMissionSelect after apply
-                    }
-                } else if (targetId.includes('damage') || targetId.includes('melee') || targetId.includes('ranged')) {
-                    result = InputValidator.validateDamage(newValue);
-                } else if (targetId.includes('class')) {
-                    result = InputValidator.validateClass(newValue);
-                } else if (targetId === 'mission-difficulty') {
-                    result = InputValidator.validateDifficulty(newValue);
-                } else if (targetId.includes('objective') || targetId.includes('geneseed')) {
-                    // Check if geneseed field is disabled (Siege mode)
-                    if (targetId.includes('geneseed')) {
-                        const geneseedEl = document.getElementById(targetId);
-                        if (geneseedEl && geneseedEl.disabled) {
-                            // Skip geneseed for Siege missions - don't validate or apply
-                            result = { valid: false, value: '', skip: true };
-                        } else {
-                            result = InputValidator.validateYesNo(newValue);
-                        }
-                    } else {
-                        result = InputValidator.validateYesNo(newValue);
-                    }
-                } else if (targetId.includes('armoury')) {
-                    result = InputValidator.validateArmouryData(newValue);
-                } else if (targetId.includes('waves')) {
-                    result = InputValidator.validateWaves(newValue);
-                } else {
-                    result = InputValidator.validateStat(newValue);
-                }
+            const result = getValidatorForField(targetId, newValue);
 
-                // Only apply if result is valid and not marked to skip
-                if (result && result.valid && !result.skip) {
-                    const mainField = document.getElementById(targetId);
-                    if (mainField) {
-                        mainField.value = result.value;
-                        
-                        // Visual feedback
-                        mainField.style.transition = "background-color 0.5s";
-                        const originalBg = mainField.style.backgroundColor;
-                        mainField.style.backgroundColor = "#1a331a";
-                        setTimeout(() => mainField.style.backgroundColor = originalBg, 500);
-
-                        appliedCount++;
-                    }
-                } else if (result && !result.valid && !result.skip) {
-                    errorCount++;
-                    console.warn(`Validation failed for ${targetId}: ${result.error}`);
-                }
+            if (result && result.valid && !result.skip) {
+                if (applyValueToField(targetId, result)) appliedCount++;
+            } else if (result && !result.valid && !result.skip) {
+                errorCount++;
+                console.warn(`Validation failed for ${targetId}: ${result.error}`);
             }
         });
 
         const statusDiv = document.getElementById("upload-status");
         if (statusDiv) {
-            if (errorCount > 0) {
-                statusDiv.textContent = `Applied ${appliedCount} values (${errorCount} corrected due to validation)`;
-            } else {
-                statusDiv.textContent = `Successfully applied ${appliedCount} values.`;
-            }
+            statusDiv.textContent = errorCount > 0
+                ? `Applied ${appliedCount} values (${errorCount} corrected due to validation)`
+                : `Successfully applied ${appliedCount} values.`;
             statusDiv.style.color = "#80cc80";
         }
 
         try {
-            // Update mission-dependent UI (custom row, waves/tasks, difficulty, geneseed)
             if (typeof handleMissionSelect === 'function') handleMissionSelect();
             calculate();
             saveData();
-            if (typeof updateAdditionalStatsHeaders === "function") {
-                updateAdditionalStatsHeaders();
-            }
+            if (typeof updateAdditionalStatsHeaders === "function") updateAdditionalStatsHeaders();
         } catch (calcError) {
             ErrorHandler.handle(calcError, 'Calculation after OCR apply', false);
         }
 
-        // Navigate to Page 2 after applying OCR results
-        if (typeof navigateToPage === 'function') {
-            navigateToPage(2);
-        }
+        if (typeof navigateToPage === 'function') navigateToPage(2);
 
     } catch (e) {
         ErrorHandler.handle(e, 'Apply OCR Results', true);
@@ -1284,11 +1300,13 @@ async function clearSavedData() {
     }
 }
 
-// Expose helpers
-window.debugStorage = debugStorage;
-window.forceSave = forceSave;
-window.forceLoad = forceLoad;
-window.clearSavedData = clearSavedData;
+// Expose debug helpers only when DEBUG_MODE is enabled
+if (window.DEBUG_MODE) {
+    window.debugStorage = debugStorage;
+    window.forceSave = forceSave;
+    window.forceLoad = forceLoad;
+    window.clearSavedData = clearSavedData;
+}
 
 // ============================================================================
 // SECTION 8: INTERNAL DATA BANK (Mission Slots)
@@ -1389,7 +1407,7 @@ function renderSlotsToContainer(container, savedSlots) {
             // Slot content wrapper (clickable area)
             const contentWrapper = document.createElement('span');
             contentWrapper.className = 'slot-content';
-            contentWrapper.onclick = function() { openSlotOverlay(i); };
+            contentWrapper.addEventListener('click', () => openSlotOverlay(i));
 
             const nameSpan = document.createElement('span');
             nameSpan.className = 'slot-name';
@@ -1407,10 +1425,10 @@ function renderSlotsToContainer(container, savedSlots) {
             const deleteBtn = document.createElement('button');
             deleteBtn.className = 'delete-slot-btn';
             deleteBtn.textContent = 'X';
-            deleteBtn.onclick = function(e) {
+            deleteBtn.addEventListener('click', (e) => {
                 e.stopPropagation();
                 deleteSlot(i);
-            };
+            });
             slotEl.appendChild(deleteBtn);
 
             // Drag-and-drop event listeners
@@ -1446,13 +1464,28 @@ function renderSlotsToContainer(container, savedSlots) {
 // DRAG-AND-DROP REORDERING FOR MISSION SLOTS
 // ============================================================================
 
-let dragSrcIndex = null;
+const dragState = {
+    srcIndex: null,          // desktop drag source index
+    touchSrcIndex: null,     // touch drag source index
+    touchElement: null,      // element being touch-dragged
+    touchClone: null,        // floating visual clone
+    touchStartX: 0,
+    touchStartY: 0,
+    reset() {
+        this.srcIndex = null;
+        this.touchSrcIndex = null;
+        this.touchElement = null;
+        this.touchClone = null;
+        this.touchStartX = 0;
+        this.touchStartY = 0;
+    }
+};
 
 function handleDragStart(e) {
-    dragSrcIndex = parseInt(this.dataset.slotIndex);
+    dragState.srcIndex = parseInt(this.dataset.slotIndex);
     this.classList.add('dragging');
     e.dataTransfer.effectAllowed = 'move';
-    e.dataTransfer.setData('text/plain', dragSrcIndex);
+    e.dataTransfer.setData('text/plain', dragState.srcIndex);
 }
 
 function handleDragEnd(e) {
@@ -1461,7 +1494,7 @@ function handleDragEnd(e) {
     document.querySelectorAll('.data-slot').forEach(el => {
         el.classList.remove('drag-over');
     });
-    dragSrcIndex = null;
+    dragState.srcIndex = null;
 }
 
 function handleDragOver(e) {
@@ -1472,7 +1505,7 @@ function handleDragOver(e) {
 function handleDragEnter(e) {
     e.preventDefault();
     const targetIndex = parseInt(this.dataset.slotIndex);
-    if (dragSrcIndex !== null && targetIndex !== dragSrcIndex) {
+    if (dragState.srcIndex !== null && targetIndex !== dragState.srcIndex) {
         this.classList.add('drag-over');
     }
 }
@@ -1513,21 +1546,14 @@ function handleDrop(e) {
     renderDataBankUI();
 }
 
-// Touch-based drag-and-drop for mobile
-let touchDragSrcIndex = null;
-let touchDragElement = null;
-let touchClone = null;
-let touchStartY = 0;
-let touchStartX = 0;
-
 /**
  * Clean up any in-progress touch drag state.
  * Called on page navigation, render, and touchcancel to prevent ghost clones.
  */
 function cleanupTouchDrag() {
     // Remove the floating clone from document.body
-    if (touchClone && touchClone.parentNode) {
-        touchClone.parentNode.removeChild(touchClone);
+    if (dragState.touchClone && dragState.touchClone.parentNode) {
+        dragState.touchClone.parentNode.removeChild(dragState.touchClone);
     }
     // Also remove any orphaned clones (safety net)
     document.querySelectorAll('.touch-drag-clone').forEach(el => el.remove());
@@ -1545,11 +1571,8 @@ function cleanupTouchDrag() {
         }
     });
 
-    // Reset state variables
-    touchDragSrcIndex = null;
-    touchDragElement = null;
-    touchClone = null;
-    dragSrcIndex = null;
+    // Reset all drag state
+    dragState.reset();
 
     // Remove document-level listeners (safe to call even if not attached)
     document.removeEventListener('touchmove', handleTouchMove);
@@ -1567,19 +1590,19 @@ function handleTouchStart(e) {
     // Only start drag if holding for a moment (long press)
     const slot = this;
     const touch = e.touches[0];
-    touchStartX = touch.clientX;
-    touchStartY = touch.clientY;
+    dragState.touchStartX = touch.clientX;
+    dragState.touchStartY = touch.clientY;
 
     slot._longPressTimer = setTimeout(() => {
         e.preventDefault();
-        touchDragSrcIndex = parseInt(slot.dataset.slotIndex);
-        touchDragElement = slot;
+        dragState.touchSrcIndex = parseInt(slot.dataset.slotIndex);
+        dragState.touchElement = slot;
         slot.classList.add('dragging');
 
         // Create a visual clone for dragging
-        touchClone = slot.cloneNode(true);
-        touchClone.classList.add('touch-drag-clone');
-        touchClone.style.cssText = `
+        dragState.touchClone = slot.cloneNode(true);
+        dragState.touchClone.classList.add('touch-drag-clone');
+        dragState.touchClone.style.cssText = `
             position: fixed;
             top: ${touch.clientY - 20}px;
             left: ${touch.clientX - 20}px;
@@ -1588,7 +1611,7 @@ function handleTouchStart(e) {
             pointer-events: none;
             opacity: 0.8;
         `;
-        document.body.appendChild(touchClone);
+        document.body.appendChild(dragState.touchClone);
 
         document.addEventListener('touchmove', handleTouchMove, { passive: false });
         document.addEventListener('touchend', handleTouchEnd);
@@ -1597,8 +1620,8 @@ function handleTouchStart(e) {
     slot.addEventListener('touchend', cancelLongPress);
     slot.addEventListener('touchmove', function moveCheck(ev) {
         const t = ev.touches[0];
-        const dx = Math.abs(t.clientX - touchStartX);
-        const dy = Math.abs(t.clientY - touchStartY);
+        const dx = Math.abs(t.clientX - dragState.touchStartX);
+        const dy = Math.abs(t.clientY - dragState.touchStartY);
         if (dx > 10 || dy > 10) {
             cancelLongPress.call(slot);
             slot.removeEventListener('touchmove', moveCheck);
@@ -1614,13 +1637,13 @@ function cancelLongPress() {
 }
 
 function handleTouchMove(e) {
-    if (touchDragSrcIndex === null) return;
+    if (dragState.touchSrcIndex === null) return;
     e.preventDefault();
 
     const touch = e.touches[0];
-    if (touchClone) {
-        touchClone.style.top = `${touch.clientY - 20}px`;
-        touchClone.style.left = `${touch.clientX - 20}px`;
+    if (dragState.touchClone) {
+        dragState.touchClone.style.top = `${touch.clientY - 20}px`;
+        dragState.touchClone.style.left = `${touch.clientX - 20}px`;
     }
 
     // Highlight drop target
@@ -1630,7 +1653,7 @@ function handleTouchMove(e) {
         if (touch.clientX >= rect.left && touch.clientX <= rect.right &&
             touch.clientY >= rect.top && touch.clientY <= rect.bottom) {
             const targetIndex = parseInt(el.dataset.slotIndex);
-            if (targetIndex !== touchDragSrcIndex) {
+            if (targetIndex !== dragState.touchSrcIndex) {
                 el.classList.add('drag-over');
             }
         }
@@ -1638,7 +1661,7 @@ function handleTouchMove(e) {
 }
 
 function handleTouchEnd(e) {
-    if (touchDragSrcIndex === null) return;
+    if (dragState.touchSrcIndex === null) return;
 
     const touch = e.changedTouches[0];
     let dropTarget = null;
@@ -1654,13 +1677,13 @@ function handleTouchEnd(e) {
 
     if (dropTarget) {
         const destIndex = parseInt(dropTarget.dataset.slotIndex);
-        if (!isNaN(destIndex) && destIndex !== touchDragSrcIndex) {
+        if (!isNaN(destIndex) && destIndex !== dragState.touchSrcIndex) {
             let savedSlots = JSON.parse(localStorage.getItem("cogitator_saved_missions") || "[]");
-            while (savedSlots.length <= Math.max(touchDragSrcIndex, destIndex)) {
+            while (savedSlots.length <= Math.max(dragState.touchSrcIndex, destIndex)) {
                 savedSlots.push(null);
             }
             // Remove from source and insert at destination (displaces subsequent slots)
-            const [movedSlot] = savedSlots.splice(touchDragSrcIndex, 1);
+            const [movedSlot] = savedSlots.splice(dragState.touchSrcIndex, 1);
             savedSlots.splice(destIndex, 0, movedSlot);
             while (savedSlots.length > 0 && savedSlots[savedSlots.length - 1] === null) {
                 savedSlots.pop();
@@ -1671,11 +1694,9 @@ function handleTouchEnd(e) {
     }
 
     // Cleanup
-    if (touchDragElement) touchDragElement.classList.remove('dragging');
-    if (touchClone && touchClone.parentNode) touchClone.parentNode.removeChild(touchClone);
-    touchDragSrcIndex = null;
-    touchDragElement = null;
-    touchClone = null;
+    if (dragState.touchElement) dragState.touchElement.classList.remove('dragging');
+    if (dragState.touchClone && dragState.touchClone.parentNode) dragState.touchClone.parentNode.removeChild(dragState.touchClone);
+    dragState.reset();
 
     document.removeEventListener('touchmove', handleTouchMove);
     document.removeEventListener('touchend', handleTouchEnd);
@@ -1683,8 +1704,8 @@ function handleTouchEnd(e) {
 
 // Handle touchcancel (system gesture, notification, browser interruption)
 // Without this, the clone stays in document.body when the browser cancels the touch
-document.addEventListener('touchcancel', function() {
-    if (touchDragSrcIndex !== null) {
+document.addEventListener('touchcancel', () => {
+    if (dragState.touchSrcIndex !== null) {
         cleanupTouchDrag();
     }
 });
@@ -1830,13 +1851,7 @@ function aggregateInternalData() {
     }
 
     // Reset Global State
-    importAppState = {
-        mission: { name:'-', diff:'-', waves:'-', obj:'-', gene:'-', arm:'-' },
-        modifiers: { kills:'-', specials:'-', incaps:'-', dmg:'-', gene:'-', arm:'-', obj:'-', waves:'-', tasks:'-' },
-        players: {},      
-        playerOrder: [],  
-        matrixTotals: {}  
-    };
+    importAppState = createEmptyImportState();
 
     let successCount = 0;
     let corruptedCount = 0;
@@ -1857,7 +1872,7 @@ function aggregateInternalData() {
             successCount++;
             
         } catch (err) {
-            console.error(`Slot ${index+1} Corrupted:`, err);
+            ErrorHandler.handle(err, `Process slot ${index + 1}`, false);
             corruptedCount++;
         }
     });
@@ -1889,13 +1904,17 @@ function aggregateInternalData() {
 // SECTION 9: DATA IMPORT & AGGREGATION SYSTEM
 // ============================================================================
 
-let importAppState = {
-    mission: { name:'-', diff:'-', waves:'-', obj:'-', gene:'-', arm:'-' },
-    modifiers: { kills:'-', specials:'-', incaps:'-', dmg:'-', gene:'-', arm:'-', obj:'-', waves:'-', tasks:'-' },
-    players: {},      
-    playerOrder: [],  
-    matrixTotals: {}  
-};
+function createEmptyImportState() {
+    return {
+        mission: { name: '-', diff: '-', waves: '-', obj: '-', gene: '-', arm: '-' },
+        modifiers: { kills: '-', specials: '-', incaps: '-', dmg: '-', gene: '-', arm: '-', obj: '-', waves: '-', tasks: '-' },
+        players: {},
+        playerOrder: [],
+        matrixTotals: {}
+    };
+}
+
+let importAppState = createEmptyImportState();
 
 const MATRIX_KEYS = [
     "Kills", "Special Kills", "Incapacitations", 
@@ -1912,13 +1931,7 @@ if (csvUploadInput) {
         const files = Array.from(e.target.files).slice(0, 3);
         if (!files.length) return;
 
-        importAppState = {
-            mission: { name:'-', diff:'-', waves:'-', obj:'-', gene:'-', arm:'-' },
-            modifiers: { kills:'-', specials:'-', incaps:'-', dmg:'-', gene:'-', arm:'-', obj:'-', waves:'-', tasks:'-' },
-            players: {},
-            playerOrder: [],  
-            matrixTotals: {}  
-        };
+        importAppState = createEmptyImportState();
 
         try {
             for (const file of files) {
@@ -1931,7 +1944,7 @@ if (csvUploadInput) {
             statusEl.textContent = `PROCESSED ${files.length} FILES SUCCESSFULLY`;
             statusEl.style.color = "var(--pip-green)";
         } catch (err) {
-            console.error(err);
+            ErrorHandler.handle(err, 'CSV Upload', false);
             const statusEl = document.getElementById('import-status');
             statusEl.textContent = "ERROR READING FILES";
             statusEl.style.color = "#cc4444";
@@ -1953,14 +1966,8 @@ async function resetImport() {
     const status = document.getElementById('import-status');
     if (status) status.textContent = "MEMORY BANKS FLUSHED.";
 
-    importAppState = {
-        mission: { name:'-', diff:'-', waves:'-', obj:'-', gene:'-', arm:'-' },
-        modifiers: { kills:'-', specials:'-', incaps:'-', dmg:'-', gene:'-', arm:'-', obj:'-', waves:'-', tasks:'-' },
-        players: {},      
-        playerOrder: [],  
-        matrixTotals: {}  
-    };
-    
+    importAppState = createEmptyImportState();
+
     localStorage.removeItem("cogitator_saved_missions");
     localStorage.removeItem(AGGREGATED_STATE_KEY);
     renderDataBankUI();
@@ -2154,18 +2161,18 @@ function openCopyModal() {
 }
 
 function copySummaryText() {
-    var el = document.getElementById('copy-text');
-    var btn = document.getElementById('btn-copy-summary');
-    var originalText = btn ? btn.innerText : '';
+    const el = document.getElementById('copy-text');
+    const btn = document.getElementById('btn-copy-summary');
+    const originalText = btn ? btn.innerText : '';
     el.select();
     el.setSelectionRange(0, 99999);
 
     // Try Clipboard API first, then execCommand fallback
-    var copied = false;
+    let copied = false;
     if (navigator.clipboard && navigator.clipboard.writeText) {
-        navigator.clipboard.writeText(el.value).then(function() {
+        navigator.clipboard.writeText(el.value).then(() => {
             _showCopyFeedback(btn, originalText, true);
-        }).catch(function() {
+        }).catch(() => {
             copied = _execCommandCopyFallback(el);
             _showCopyFeedback(btn, originalText, copied);
         });
@@ -2187,23 +2194,23 @@ function _execCommandCopyFallback(el) {
 }
 
 function _showCopyFeedback(btn, originalText, success) {
-    var isDiscord = !!(window.discordIntegration && window.discordIntegration.isDiscordEnvironment);
+    const isDiscord = !!(window.discordIntegration && window.discordIntegration.isDiscordEnvironment);
     if (success) {
         if (btn) {
             btn.innerText = isDiscord ? 'Copied! Paste in chat' : 'Copied!';
-            setTimeout(function() { btn.innerText = originalText; }, 3000);
+            setTimeout(() => { btn.innerText = originalText; }, 3000);
         }
     } else {
         // Text is already selected — prompt user to copy manually
         if (btn) {
             btn.innerText = 'Select All + Copy manually';
-            setTimeout(function() { btn.innerText = originalText; }, 3000);
+            setTimeout(() => { btn.innerText = originalText; }, 3000);
         }
     }
 }
 
 function downloadTransmissionLog() {
-    var text = document.getElementById('copy-text').value;
+    const text = document.getElementById('copy-text').value;
     if (!text) {
         showAlertModal("No transmission data to save.");
         return;
@@ -2211,11 +2218,11 @@ function downloadTransmissionLog() {
 
     // Standard browser: download as file
     // (In Discord mode, this button is hidden via CSS — clipboard copy is handled by btn-copy-summary)
-    var timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);
-    var filename = "Transmission_Log_" + timestamp + ".txt";
+    const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);
+    const filename = "Transmission_Log_" + timestamp + ".txt";
 
-    var blob = new Blob([text], { type: 'text/plain' });
-    var link = document.createElement('a');
+    const blob = new Blob([text], { type: 'text/plain' });
+    const link = document.createElement('a');
     link.href = URL.createObjectURL(blob);
     link.download = filename;
 
@@ -2461,7 +2468,7 @@ async function fetchEventList() {
             }
 
             // Add click handler to toggle
-            header.onclick = function() {
+            header.addEventListener('click', () => {
                 eventsContainer.classList.toggle('expanded');
                 indicator.classList.toggle('expanded');
 
@@ -2470,7 +2477,7 @@ async function fetchEventList() {
                 } else {
                     indicator.innerHTML = '&#9664;'; // Left-pointing triangle
                 }
-            };
+            });
 
             cycle.events.forEach(event => {
                 event.cycleName = cycle.name;
@@ -2480,10 +2487,10 @@ async function fetchEventList() {
                 const item = document.createElement('div');
                 item.className = 'event-item';
                 item.innerText = event.name;
-                item.onclick = function(e) {
+                item.addEventListener('click', (e) => {
                     e.stopPropagation(); // Prevent header toggle
                     selectEvent(event.id);
-                };
+                });
 
                 eventsContainer.appendChild(item);
             });
@@ -2501,7 +2508,7 @@ async function fetchEventList() {
         }
 
     } catch (error) {
-        console.error("Fetch error:", error);
+        ErrorHandler.handle(error, 'Fetch Event List', false);
         container.innerHTML = `<div class="p-10 text-dim text-center" style="color:#cc4444;">Connection Failed.<br>Data not found.</div>`;
         status.innerText = "";
     }
@@ -2672,38 +2679,14 @@ function getCurrentPage() {
 let isPageTransitioning = false;
 
 /**
- * Navigate to a specific page (1, 2, or 3) with slide animation
- * @param {number} pageNum - The page number to navigate to
+ * Perform the slide animation between two pages.
+ * @param {HTMLElement} oldPage - The page element sliding out
+ * @param {HTMLElement} targetPage - The page element sliding in
+ * @param {string} direction - 'left' or 'right'
+ * @param {number} duration - Animation duration in ms
+ * @param {Function} onComplete - Callback when animation finishes
  */
-function navigateToPage(pageNum) {
-    if (pageNum < 1 || pageNum > 3) return;
-    if (pageNum === currentPage) return;
-    if (isPageTransitioning) return;
-
-    // Clean up any in-progress touch drag to prevent ghost clones on page switch
-    cleanupTouchDrag();
-
-    const oldPage = document.getElementById(`page-${currentPage}`);
-    const targetPage = document.getElementById(`page-${pageNum}`);
-    if (!targetPage) return;
-
-    const direction = pageNum > currentPage ? 'left' : 'right';
-    const animDuration = 350; // matches CSS 0.35s
-
-    // If there's no old page visible (initial load), just show directly
-    if (!oldPage || !oldPage.classList.contains('active')) {
-        document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-        targetPage.classList.add('active');
-        currentPage = pageNum;
-        localStorage.setItem('cogitator_last_page', pageNum);
-        document.querySelector('.cogitator-frame').scrollTo({ top: 0, behavior: 'smooth' });
-        if (pageNum === 2 || pageNum === 3) renderDataBankUI();
-        console.log(`📄 Navigated to Page ${pageNum}`);
-        return;
-    }
-
-    isPageTransitioning = true;
-
+function animatePageTransition(oldPage, targetPage, direction, duration, onComplete) {
     // Scroll to top instantly before animation starts
     document.querySelector('.cogitator-frame').scrollTo({ top: 0, behavior: 'instant' });
 
@@ -2724,23 +2707,55 @@ function navigateToPage(pageNum) {
     // Animate new page in
     targetPage.classList.add(direction === 'left' ? 'slide-in-right' : 'slide-in-left');
 
-    currentPage = pageNum;
-    localStorage.setItem('cogitator_last_page', pageNum);
-
-    // Update data bank UI during animation so it's ready when visible
-    if (pageNum === 2 || pageNum === 3) {
-        renderDataBankUI();
-    }
-
     // Clean up after animation completes
     setTimeout(() => {
         oldPage.classList.remove('slide-out-left', 'slide-out-right');
         targetPage.classList.remove('slide-in-left', 'slide-in-right');
         targetPage.classList.add('active');
         pageContainer.style.minHeight = '';
+        onComplete();
+    }, duration);
+}
+
+/**
+ * Navigate to a specific page (1, 2, or 3) with slide animation
+ * @param {number} pageNum - The page number to navigate to
+ */
+function navigateToPage(pageNum) {
+    if (pageNum < 1 || pageNum > 3) return;
+    if (pageNum === currentPage) return;
+    if (isPageTransitioning) return;
+
+    // Clean up any in-progress touch drag to prevent ghost clones on page switch
+    cleanupTouchDrag();
+
+    const oldPage = document.getElementById(`page-${currentPage}`);
+    const targetPage = document.getElementById(`page-${pageNum}`);
+    if (!targetPage) return;
+
+    const direction = pageNum > currentPage ? 'left' : 'right';
+
+    // If there's no old page visible (initial load), just show directly
+    if (!oldPage || !oldPage.classList.contains('active')) {
+        document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+        targetPage.classList.add('active');
+        currentPage = pageNum;
+        localStorage.setItem('cogitator_last_page', pageNum);
+        document.querySelector('.cogitator-frame').scrollTo({ top: 0, behavior: 'smooth' });
+        if (pageNum === 2 || pageNum === 3) renderDataBankUI();
+        return;
+    }
+
+    isPageTransitioning = true;
+    currentPage = pageNum;
+    localStorage.setItem('cogitator_last_page', pageNum);
+
+    // Update data bank UI during animation so it's ready when visible
+    if (pageNum === 2 || pageNum === 3) renderDataBankUI();
+
+    animatePageTransition(oldPage, targetPage, direction, 350, () => {
         isPageTransitioning = false;
-        console.log(`📄 Navigated to Page ${pageNum}`);
-    }, animDuration);
+    });
 }
 
 /**
@@ -2794,7 +2809,7 @@ async function recordAllDataScreens() {
         });
 
         // Show simple info popup
-        var missionCount = savedSlots.filter(function(s) { return s && s.csv; }).length;
+        const missionCount = savedSlots.filter((s) => s && s.csv).length;
         PNGExporter._showSaveConfirmation(missionCount + 1); // +1 for aggregated
 
         if (statusEl) {
@@ -2806,7 +2821,7 @@ async function recordAllDataScreens() {
         }
 
     } catch (error) {
-        console.error('Error recording data screens:', error);
+        ErrorHandler.handle(error, 'Record Data Screens', true);
         const statusEl = document.getElementById('import-status');
         if (statusEl) {
             statusEl.textContent = 'Error capturing screens. Please try again.';
@@ -2831,84 +2846,84 @@ function initializeEventHandlers() {
     }
 
     // ====== PAGE 1: NAVIGATION & CONFIG ======
-    bindClick('btn-event-menu', function() { toggleEventMenu(); });
-    document.getElementById('label-event-menu').addEventListener('click', function() { toggleEventMenu(); });
-    bindClick('btn-enter-manually', function() { navigateToPage(2); });
+    bindClick('btn-event-menu', () => toggleEventMenu());
+    document.getElementById('label-event-menu').addEventListener('click', () => toggleEventMenu());
+    bindClick('btn-enter-manually', () => navigateToPage(2));
 
     // Custom rules toggle
-    bindClick('btn-custom-rules', function() { toggleCustomRules(); });
+    bindClick('btn-custom-rules', () => toggleCustomRules());
 
     // ====== PAGE 2: NAVIGATION ======
-    bindClick('btn-back-to-page1', function() { navigateToPage(1); });
-    bindClick('btn-next-to-page3', function() { navigateToPage(3); });
+    bindClick('btn-back-to-page1', () => navigateToPage(1));
+    bindClick('btn-next-to-page3', () => navigateToPage(3));
 
     // ====== PAGE 2: ACTION BUTTONS ======
-    bindClick('btn-save-mission', function() { saveMissionInternal(); });
-    bindClick('btn-purge-mission', function() { clearData(); });
+    bindClick('btn-save-mission', () => saveMissionInternal());
+    bindClick('btn-purge-mission', () => clearData());
 
     // ====== PAGE 3: NAVIGATION & ACTIONS ======
-    bindClick('btn-back-to-page2', function() { navigateToPage(2); });
-    bindClick('btn-aggregate', function() { aggregateInternalData(); });
-    bindClick('btn-copy-modal', function() { openCopyModal(); });
-    bindClick('btn-record-png', function() { recordAllDataScreens(); });
-    bindClick('btn-purge-aggregate', function() { resetImport(); });
+    bindClick('btn-back-to-page2', () => navigateToPage(2));
+    bindClick('btn-aggregate', () => aggregateInternalData());
+    bindClick('btn-copy-modal', () => openCopyModal());
+    bindClick('btn-record-png', () => recordAllDataScreens());
+    bindClick('btn-purge-aggregate', () => resetImport());
 
     // ====== CREDITS MODAL ======
-    bindClick('btn-credits', function() { toggleCreditsModal(); });
-    document.getElementById('credits-modal').addEventListener('click', function(e) { closeCreditsOnBackdrop(e); });
-    bindClick('btn-close-credits', function() { toggleCreditsModal(); });
+    bindClick('btn-credits', () => toggleCreditsModal());
+    document.getElementById('credits-modal').addEventListener('click', (e) => closeCreditsOnBackdrop(e));
+    bindClick('btn-close-credits', () => toggleCreditsModal());
 
     // ====== OCR MODAL ======
-    bindClick('btn-apply-ocr', function() { applyOCRResults(); });
-    bindClick('btn-export-debug', function() { exportOCRDebug(); });
-    bindClick('btn-close-ocr', function() { closeOCRModal(); });
+    bindClick('btn-apply-ocr', () => applyOCRResults());
+    bindClick('btn-export-debug', () => exportOCRDebug());
+    bindClick('btn-close-ocr', () => closeOCRModal());
 
     // ====== COPY/TRANSMISSION LOG MODAL ======
-    bindClick('btn-copy-summary', function() { copySummaryText(); });
-    bindClick('btn-download-log', function() { downloadTransmissionLog(); });
-    bindClick('btn-close-copy-modal', function() {
+    bindClick('btn-copy-summary', () => copySummaryText());
+    bindClick('btn-download-log', () => downloadTransmissionLog());
+    bindClick('btn-close-copy-modal', () => {
         document.getElementById('copy-modal').classList.remove('active');
     });
 
     // ====== MODIFIER INPUTS (onchange) ======
-    var modifierIds = ['mod-kills', 'mod-elite', 'mod-tasks', 'mod-death',
-                       'mod-damage', 'mod-gene', 'mod-armoury', 'mod-obj', 'mod-waves'];
-    modifierIds.forEach(function(id) {
-        var el = document.getElementById(id);
-        if (el) el.addEventListener('change', function() { calculate(); saveData(); checkCustomModifiers(); });
+    const modifierIds = ['mod-kills', 'mod-elite', 'mod-tasks', 'mod-death',
+                         'mod-damage', 'mod-gene', 'mod-armoury', 'mod-obj', 'mod-waves'];
+    modifierIds.forEach((id) => {
+        const el = document.getElementById(id);
+        if (el) el.addEventListener('change', () => { calculate(); saveData(); checkCustomModifiers(); });
     });
 
     // ====== MISSION PARAMETER INPUTS (onchange) ======
-    document.getElementById('mission-name').addEventListener('change', function() { handleMissionSelect(); saveData(); });
-    document.getElementById('mission-name-custom').addEventListener('change', function() { saveData(); });
-    document.getElementById('mission-difficulty').addEventListener('change', function() { calculate(); saveData(); });
-    document.getElementById('global-objective').addEventListener('change', function() { calculate(); saveData(); });
-    document.getElementById('global-geneseed').addEventListener('change', function() { calculate(); saveData(); });
-    document.getElementById('global-armoury').addEventListener('change', function() { calculate(); saveData(); });
-    document.getElementById('global-waves').addEventListener('change', function() { calculate(); saveData(); });
+    document.getElementById('mission-name').addEventListener('change', () => { handleMissionSelect(); saveData(); });
+    document.getElementById('mission-name-custom').addEventListener('change', () => saveData());
+    document.getElementById('mission-difficulty').addEventListener('change', () => { calculate(); saveData(); });
+    document.getElementById('global-objective').addEventListener('change', () => { calculate(); saveData(); });
+    document.getElementById('global-geneseed').addEventListener('change', () => { calculate(); saveData(); });
+    document.getElementById('global-armoury').addEventListener('change', () => { calculate(); saveData(); });
+    document.getElementById('global-waves').addEventListener('change', () => { calculate(); saveData(); });
 
     // ====== PLAYER NAME INPUTS (onchange + oninput) ======
-    ['p1-name', 'p2-name', 'p3-name'].forEach(function(id) {
-        var el = document.getElementById(id);
+    ['p1-name', 'p2-name', 'p3-name'].forEach((id) => {
+        const el = document.getElementById(id);
         if (el) {
-            el.addEventListener('change', function() { saveData(); updateAdditionalStatsHeaders(); });
-            el.addEventListener('input', function() { updateAdditionalStatsHeaders(); });
+            el.addEventListener('change', () => { saveData(); updateAdditionalStatsHeaders(); });
+            el.addEventListener('input', () => { updateAdditionalStatsHeaders(); });
         }
     });
 
     // ====== PLAYER CLASS SELECTS (onchange) ======
-    ['p1-class', 'p2-class', 'p3-class'].forEach(function(id) {
-        var el = document.getElementById(id);
-        if (el) el.addEventListener('change', function() { saveData(); });
+    ['p1-class', 'p2-class', 'p3-class'].forEach((id) => {
+        const el = document.getElementById(id);
+        if (el) el.addEventListener('change', () => { saveData(); });
     });
 
     // ====== PLAYER STAT INPUTS (onchange) ======
-    var statTypes = ['kills', 'elite', 'death', 'damage', 'tasks', 'melee', 'ranged', 'items', 'revived'];
-    var players = ['p1', 'p2', 'p3'];
-    statTypes.forEach(function(stat) {
-        players.forEach(function(player) {
-            var el = document.getElementById(player + '-' + stat);
-            if (el) el.addEventListener('change', function() { calculate(); saveData(); });
+    const statTypes = ['kills', 'elite', 'death', 'damage', 'tasks', 'melee', 'ranged', 'items', 'revived'];
+    const players = ['p1', 'p2', 'p3'];
+    statTypes.forEach((stat) => {
+        players.forEach((player) => {
+            const el = document.getElementById(player + '-' + stat);
+            if (el) el.addEventListener('change', () => { calculate(); saveData(); });
         });
     });
 }
@@ -2983,7 +2998,9 @@ window.addEventListener('beforeunload', function() {
     }
 });
 
-console.log('💡 Debug Commands: debugStorage(), forceSave(), forceLoad(), clearSavedData()');
+if (window.DEBUG_MODE) {
+    console.log('Debug Commands: debugStorage(), forceSave(), forceLoad(), clearSavedData()');
+}
 
 // ============================================================================
 // SECTION 15: CREDITS MODAL
