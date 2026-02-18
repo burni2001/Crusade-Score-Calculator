@@ -84,16 +84,27 @@ function detectMissionName(upperSingleLine, upperText) {
         'EXTRACTION', 'ATHENA'
     ];
 
-    // Try pattern matching first
-    const match = upperSingleLine.match(/MISSION\s*[:\-=]?\s*([A-Z][A-Z\s\-']{2,30})/);
-    if (match) {
+    // Strategy 1: Look for "MISSION: <known mission>" as a paired pattern.
+    // Searching each known mission specifically avoids false positives from
+    // location/objective names that contain mission words (e.g. "Reclamation Centre").
+    for (const mission of knownMissions) {
+        const missionPattern = new RegExp(`MISSION\\s*[:\\-=]?\\s*${mission}\\b`);
+        if (missionPattern.test(upperText)) {
+            return mission.charAt(0) + mission.slice(1).toLowerCase();
+        }
+    }
+
+    // Strategy 2: Try all MISSION: occurrences via global match (handles unknown mission names).
+    const regex = /MISSION\s*[:\-=]?\s*([A-Z][A-Z\s\-']{2,30})/g;
+    let match;
+    while ((match = regex.exec(upperSingleLine)) !== null) {
         let name = match[1].trim().replace(/\s*STATUS.*$/i, '').trim();
         if (name.length > 2) {
             return name.charAt(0) + name.slice(1).toLowerCase();
         }
     }
 
-    // Fallback: search for known missions
+    // Strategy 3: Fallback - search for known missions anywhere in text
     for (const mission of knownMissions) {
         if (upperText.includes(mission)) {
             return mission.charAt(0) + mission.slice(1).toLowerCase();
@@ -348,6 +359,32 @@ function extractPlayerName(line) {
 }
 
 /**
+ * Extract gaming usernames that may start with lowercase or contain many digits.
+ * Used as a fallback when extractPlayerName fails, only in contexts where a
+ * nearby class line has already been confirmed (Strategies 4 and 6).
+ */
+function extractGamingUsername(line) {
+    const cleanLine = line.replace(/\[.*?\]/g, '').trim();
+
+    if (/^\[?(LEFT|RIGHT)\]?$/i.test(cleanLine)) return null;
+
+    // Match: starts with any letter, followed by letters/digits (min 3 chars total)
+    const match = cleanLine.match(/\b([a-zA-Z][a-zA-Z0-9]{2,})\b/);
+    if (!match) return null;
+
+    const candidate = match[1];
+
+    const gameTerms = /^(Kills|Special|Melee|Ranged|Damage|Items|Total|Score|Next|Status|Mission|Rewards|Character|Progress|Primary|Secondary|Objectives|Found|Taken|Revived|Incap|Success|Assault|Vanguard|Bulwark|Tactical|Sniper|Heavy|Techmarine|TRUER|SYREN)$/i;
+    if (gameTerms.test(candidate)) return null;
+
+    // Require at least 2 letters so pure digit-prefixed tokens are rejected
+    const letterCount = (candidate.match(/[a-zA-ZäöüÄÖÜß\u00C0-\u00FF]/g) || []).length;
+    if (letterCount < 2) return null;
+
+    return candidate;
+}
+
+/**
  * Detect players using multiple strategies
  */
 function detectPlayers(lines) {
@@ -494,11 +531,11 @@ function detectPlayers(lines) {
                     if (classAlreadyFound) continue;
                     
                     for (let j = i - 1; j >= Math.max(0, i - 6); j--) {
-                        const name = extractPlayerName(lines[j]);
+                        const name = extractPlayerName(lines[j]) || extractGamingUsername(lines[j]);
                         if (name && !foundPlayers.some(p => p.name === name)) {
-                            foundPlayers.push({ 
-                                name: name, 
-                                class: formatClass(matchedClass) 
+                            foundPlayers.push({
+                                name: name,
+                                class: formatClass(matchedClass)
                             });
                             break;
                         }
@@ -508,7 +545,7 @@ function detectPlayers(lines) {
             }
         }
     }
-    
+
     // Strategy 5: CLASS MAX pattern
     if (foundPlayers.length < 3) {
         for (let i = 0; i < lines.length && foundPlayers.length < 3; i++) {
@@ -587,17 +624,17 @@ function detectPlayers(lines) {
                 );
                 if (classAlreadyFound) continue;
                 
-                const name = extractPlayerName(line);
+                const name = extractPlayerName(line) || extractGamingUsername(line);
                 if (name && name.length >= 3 && !foundPlayers.some(p => p.name === name)) {
-                    foundPlayers.push({ 
-                        name: name, 
-                        class: formatClass(matchedClass) 
+                    foundPlayers.push({
+                        name: name,
+                        class: formatClass(matchedClass)
                     });
                 }
             }
         }
     }
-    
+
     return foundPlayers;
 }
 
