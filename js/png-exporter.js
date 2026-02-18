@@ -4,7 +4,7 @@
 // Uses html2canvas to capture DOM sections and export as downloadable images
 //
 // Discord flow: separate PNGs → upload each to Cloudflare Worker → open download URLs + copy to clipboard
-// Web flow:     separate PNGs → direct download via anchor tag + copy to clipboard
+// Web flow:     separate PNGs → direct download via anchor tag
 // ============================================================================
 
 "use strict";
@@ -33,7 +33,9 @@ const PNGExporter = {
         discordProxyPath: "/.proxy/image-host"
     },
 
-    // Pending images collected in Discord mode (programmatic downloads don't work in iframe)
+    // Pending images collected in Discord mode (programmatic downloads don't work in iframe).
+    // NOTE: Module-level state — concurrent exports are not supported. Each export resets
+    // this array. UI buttons should be disabled during export to prevent overlap.
     _pendingImages: [],
 
     // ========================================================================
@@ -42,10 +44,12 @@ const PNGExporter = {
 
     /**
      * Export mission data screen (Squad Performance Matrix + Additional Statistics)
-     * @param {string} buttonSelector - CSS selector for the export button (for feedback)
+     * @param {string} [buttonSelector=null] - CSS selector for the export button (for feedback)
+     * @param {Object} [options={}]
+     * @param {boolean} [options.skipModal=false] - If true, suppresses the post-capture modal in Discord
      * @returns {Promise<void>}
      */
-    async exportMissionScreen(buttonSelector = null) {
+    async exportMissionScreen(buttonSelector = null, options = {}) {
         return this._exportScreen({
             sectionSelectors: [
                 {
@@ -65,106 +69,9 @@ const PNGExporter = {
                 fallback: 'Export Mission (PNG)'
             },
             // Match aggregated screen width for consistency
-            useStandardWidth: true
+            useStandardWidth: true,
+            skipModal: !!options.skipModal
         });
-    },
-
-    /**
-     * Capture a single mission's data as an HTMLCanvasElement (without downloading).
-     * Builds off-screen DOM with mission parameters and tables, then captures via html2canvas.
-     * @param {Object} slot - Mission slot object {name, difficulty, csv, ...}
-     * @param {number} index - Mission index (for header label)
-     * @returns {Promise<HTMLCanvasElement>}
-     */
-    async _captureMissionCanvas(slot, index) {
-        let captureContainer = null;
-        let originalBodyWidth = "";
-
-        try {
-            const lines = slot.csv.split('\n');
-            const missionParams = this._parseMissionParams(lines);
-            const matrixHtml = this._csvSectionToHtml(lines, "SQUAD PERFORMANCE MATRIX");
-            const statsHtml = this._csvSectionToHtml(lines, "ADDITIONAL STATISTICS");
-
-            captureContainer = document.createElement('div');
-            captureContainer.style.cssText = `
-                position: fixed;
-                top: -9999px;
-                left: -9999px;
-                width: ${this.config.captureWidth}px;
-                min-width: ${this.config.captureWidth}px;
-                max-width: ${this.config.captureWidth}px;
-                background-color: #050a05;
-                border: 4px solid #3d4c3d;
-                padding: 20px;
-                box-sizing: border-box;
-                font-family: 'VT323', monospace;
-                color: #80cc80;
-            `;
-
-            const header = document.createElement('div');
-            header.style.cssText = `
-                background-color: #040a04;
-                color: #20c020;
-                padding: 8px;
-                font-weight: bold;
-                text-align: center;
-                margin-bottom: 12px;
-                border: 1px solid #20c020;
-                font-size: 18px;
-            `;
-            header.textContent = `RUN ${index + 1}: ${(slot.name || 'Unknown Mission').toUpperCase()}`;
-            captureContainer.appendChild(header);
-
-            const paramsDiv = document.createElement('div');
-            paramsDiv.style.cssText = `
-                margin-bottom: 15px;
-                padding: 8px 12px;
-                border: 1px solid #3d4c3d;
-                background-color: #0a140a;
-                font-size: 14px;
-                line-height: 1.6;
-            `;
-            paramsDiv.innerHTML = `
-                <span style="color:#20c020;">Difficulty:</span> ${this._escapeHtml(missionParams.difficulty)} &nbsp;|&nbsp;
-                <span style="color:#20c020;">Waves:</span> ${this._escapeHtml(missionParams.waves)} &nbsp;|&nbsp;
-                <span style="color:#20c020;">Objective:</span> ${this._escapeHtml(missionParams.objective)} &nbsp;|&nbsp;
-                <span style="color:#20c020;">Geneseed:</span> ${this._escapeHtml(missionParams.geneseed)} &nbsp;|&nbsp;
-                <span style="color:#20c020;">Armoury:</span> ${this._escapeHtml(missionParams.armoury)}
-            `;
-            captureContainer.appendChild(paramsDiv);
-
-            const matrixSection = this._buildTableSection('SQUAD PERFORMANCE MATRIX', matrixHtml);
-            captureContainer.appendChild(matrixSection);
-
-            const statsSection = this._buildTableSection('ADDITIONAL STATISTICS', statsHtml);
-            statsSection.style.marginTop = '15px';
-            captureContainer.appendChild(statsSection);
-
-            document.body.appendChild(captureContainer);
-
-            originalBodyWidth = document.body.style.width;
-            document.body.style.width = `${this.config.bodyWidth}px`;
-
-            await this._delay(this.config.settleDelay);
-
-            if (typeof html2canvas === 'undefined') {
-                throw new Error('Screenshot library not loaded. Please refresh the page.');
-            }
-
-            const canvas = await html2canvas(captureContainer, {
-                scale: this.config.scale,
-                backgroundColor: this.config.backgroundColor,
-                windowWidth: this.config.windowWidth,
-                useCORS: true,
-                logging: false
-            });
-
-            return canvas;
-
-        } finally {
-            this._cleanup(captureContainer, originalBodyWidth);
-        }
     },
 
     /**
@@ -186,119 +93,74 @@ const PNGExporter = {
     },
 
     /**
-     * Capture the aggregated data screen as an HTMLCanvasElement (without downloading).
-     * Targets AGGREGATED SQUAD MATRIX and AGGREGATED STATISTICS on page 3.
-     * @returns {Promise<HTMLCanvasElement>}
-     */
-    async _captureAggregatedCanvas() {
-        let captureContainer = null;
-        let originalBodyWidth = "";
-
-        try {
-            const sectionSelectors = [
-                { containerSelector: '#page-3 .section', titleMatch: 'AGGREGATED SQUAD MATRIX' },
-                { containerSelector: '#page-3 .section', titleMatch: 'AGGREGATED STATISTICS' }
-            ];
-
-            const sections = this._findSections(sectionSelectors);
-            if (sections.length !== sectionSelectors.length) {
-                throw new Error('Aggregated sections not found. Found ' + sections.length + '/2');
-            }
-
-            captureContainer = this._createCaptureContainer(sections, true);
-            document.body.appendChild(captureContainer);
-
-            originalBodyWidth = document.body.style.width;
-            document.body.style.width = `${this.config.bodyWidth}px`;
-
-            await this._delay(this.config.settleDelay);
-
-            if (typeof html2canvas === 'undefined') {
-                throw new Error('Screenshot library not loaded. Please refresh the page.');
-            }
-
-            const canvas = await html2canvas(captureContainer, {
-                scale: this.config.scale,
-                backgroundColor: this.config.backgroundColor,
-                windowWidth: this.config.windowWidth,
-                useCORS: true,
-                logging: false
-            });
-
-            return canvas;
-
-        } finally {
-            this._cleanup(captureContainer, originalBodyWidth);
-        }
-    },
-
-    /**
      * Export all saved missions + aggregated data as separate PNGs.
      * Each mission and the aggregated screen are saved as individual files.
      * Discord: uploads each PNG to Cloudflare Worker, opens download URLs.
      * Web: direct download via anchor tags.
      * @param {Object[]} savedSlots - Array of mission slot objects from localStorage
-     * @param {Object} [callbacks] - Optional progress callbacks
+     * @param {Object} [callbacks={}] - Optional progress callbacks
      * @param {function} [callbacks.onProgress] - Called with (message) for status updates
      * @returns {Promise<{opened: number, count: number}>}
      */
-    async exportAllAsSeparate(savedSlots, callbacks) {
-        var onProgress = (callbacks && callbacks.onProgress) || function() {};
+    async exportAllAsSeparate(savedSlots, callbacks = {}) {
+        const { onProgress = () => {} } = callbacks;
         this._pendingImages = [];
 
         // 1. Capture and save each mission as a separate PNG
-        for (var i = 0; i < savedSlots.length; i++) {
-            var slot = savedSlots[i];
+        for (let i = 0; i < savedSlots.length; i++) {
+            const slot = savedSlots[i];
             if (!slot || !slot.csv) continue;
 
-            onProgress('Capturing Run ' + (i + 1) + ' of ' + savedSlots.length + '...');
-            var canvas = await this._captureMissionCanvas(slot, i);
-            var safeName = (slot.name || 'mission').replace(/[^a-z0-9]/gi, '_').toLowerCase();
-            await this._downloadCanvas(canvas, 'Run_' + (i + 1) + '_' + safeName);
+            onProgress(`Capturing Run ${i + 1} of ${savedSlots.length}...`);
+            const canvas = await this._captureMissionCanvas(slot, i);
+            const safeName = (slot.name || 'mission').replace(/[^a-z0-9]/gi, '_').toLowerCase();
+            await this._downloadCanvas(canvas, `Run_${i + 1}_${safeName}`);
         }
 
         // 2. Capture and save aggregated data as a separate PNG
         onProgress('Capturing aggregated data...');
-        var aggCanvas = await this._captureAggregatedCanvas();
+        const aggCanvas = await this._captureAggregatedCanvas();
         await this._downloadCanvas(aggCanvas, 'Aggregated_Data');
 
         // 3. In Discord, open download URLs for each uploaded image
-        var opened = 0;
+        let opened = 0;
         if (this._isDiscord()) {
-            var sdk = window.discordIntegration && window.discordIntegration.discordSDK;
-            var images = this._pendingImages;
+            const sdk = window.discordIntegration && window.discordIntegration.discordSDK;
+            const images = this._pendingImages;
 
-            for (var j = 0; j < images.length; j++) {
+            for (let j = 0; j < images.length; j++) {
                 if (!images[j].hostedUrl) continue;
-                var downloadUrl = images[j].hostedUrl + '?dl=1&fn=' + encodeURIComponent(images[j].filename);
-                onProgress('Opening download ' + (j + 1) + ' of ' + images.length + '...');
+                const downloadUrl = `${images[j].hostedUrl}?dl=1&fn=${encodeURIComponent(images[j].filename)}`;
+                onProgress(`Opening download ${j + 1} of ${images.length}...`);
                 try {
                     if (sdk && sdk.commands && sdk.commands.openExternalLink) {
                         await sdk.commands.openExternalLink({ url: downloadUrl });
                         opened++;
                     } else {
-                        var win = window.open(downloadUrl, '_blank');
+                        const win = window.open(downloadUrl, '_blank');
                         if (win) opened++;
                     }
                     if (j < images.length - 1) {
                         await this._delay(300);
                     }
                 } catch (err) {
-                    console.warn('Failed to open image ' + (j + 1) + ':', err);
+                    console.warn(`Failed to open image ${j + 1}:`, err);
                 }
             }
         }
 
         // 4. Clear pending images
-        var count = this._pendingImages.length;
+        const count = this._pendingImages.length;
         this._pendingImages = [];
 
-        return { opened: opened, count: count };
+        return { opened, count };
     },
 
     /**
      * Export aggregated data screen (Aggregated Squad Matrix + Aggregated Statistics)
-     * @param {string} buttonSelector - CSS selector for the export button (for feedback)
+     * @param {string} [buttonSelector='#btn-record-png'] - CSS selector for the export button (for feedback)
+     * @param {Object} [options={}]
+     * @param {boolean} [options.skipModal=false] - If true, suppresses the post-capture modal in Discord
      * @returns {Promise<void>}
      */
     async exportAggregatedScreen(buttonSelector = '#btn-record-png', options = {}) {
@@ -447,31 +309,21 @@ const PNGExporter = {
     _createCaptureContainer(sections, useStandardWidth = false) {
         const container = document.createElement('div');
 
-        // Force exact width for consistency
+        container.style.cssText = `
+            position: fixed;
+            top: -9999px;
+            left: -9999px;
+            width: ${this.config.captureWidth}px;
+            background-color: #050a05;
+            border: 4px solid #3d4c3d;
+            padding: 20px;
+            box-sizing: border-box;
+        `;
+
+        // Lock width exactly when all sections must render at the same pixel width
         if (useStandardWidth) {
-            container.style.cssText = `
-                position: fixed;
-                top: -9999px;
-                left: -9999px;
-                width: ${this.config.captureWidth}px;
-                min-width: ${this.config.captureWidth}px;
-                max-width: ${this.config.captureWidth}px;
-                background-color: #050a05;
-                border: 4px solid #3d4c3d;
-                padding: 20px;
-                box-sizing: border-box;
-            `;
-        } else {
-            container.style.cssText = `
-                position: fixed;
-                top: -9999px;
-                left: -9999px;
-                width: ${this.config.captureWidth}px;
-                background-color: #050a05;
-                border: 4px solid #3d4c3d;
-                padding: 20px;
-                box-sizing: border-box;
-            `;
+            container.style.minWidth = `${this.config.captureWidth}px`;
+            container.style.maxWidth = `${this.config.captureWidth}px`;
         }
 
         // Clone sections and add to container
@@ -509,77 +361,196 @@ const PNGExporter = {
     },
 
     /**
+     * Capture a single mission's data as an HTMLCanvasElement (without downloading).
+     * Builds off-screen DOM with mission parameters and tables, then captures via html2canvas.
+     * @private
+     * @param {Object} slot - Mission slot object {name, difficulty, csv, ...}
+     * @param {number} index - Mission index (for header label)
+     * @returns {Promise<HTMLCanvasElement>}
+     */
+    async _captureMissionCanvas(slot, index) {
+        let captureContainer = null;
+        let originalBodyWidth = "";
+
+        try {
+            const lines = slot.csv.split('\n');
+            const missionParams = this._parseMissionParams(lines);
+            const matrixHtml = this._csvSectionToHtml(lines, "SQUAD PERFORMANCE MATRIX");
+            const statsHtml = this._csvSectionToHtml(lines, "ADDITIONAL STATISTICS");
+
+            captureContainer = document.createElement('div');
+            captureContainer.style.cssText = `
+                position: fixed;
+                top: -9999px;
+                left: -9999px;
+                width: ${this.config.captureWidth}px;
+                min-width: ${this.config.captureWidth}px;
+                max-width: ${this.config.captureWidth}px;
+                background-color: #050a05;
+                border: 4px solid #3d4c3d;
+                padding: 20px;
+                box-sizing: border-box;
+                font-family: 'VT323', monospace;
+                color: #80cc80;
+            `;
+
+            const header = document.createElement('div');
+            header.style.cssText = `
+                background-color: #040a04;
+                color: #20c020;
+                padding: 8px;
+                font-weight: bold;
+                text-align: center;
+                margin-bottom: 12px;
+                border: 1px solid #20c020;
+                font-size: 18px;
+            `;
+            header.textContent = `RUN ${index + 1}: ${(slot.name || 'Unknown Mission').toUpperCase()}`;
+            captureContainer.appendChild(header);
+
+            const paramsDiv = document.createElement('div');
+            paramsDiv.style.cssText = `
+                margin-bottom: 15px;
+                padding: 8px 12px;
+                border: 1px solid #3d4c3d;
+                background-color: #0a140a;
+                font-size: 14px;
+                line-height: 1.6;
+            `;
+            paramsDiv.innerHTML = `
+                <span style="color:#20c020;">Difficulty:</span> ${this._escapeHtml(missionParams.difficulty)} &nbsp;|&nbsp;
+                <span style="color:#20c020;">Waves:</span> ${this._escapeHtml(missionParams.waves)} &nbsp;|&nbsp;
+                <span style="color:#20c020;">Objective:</span> ${this._escapeHtml(missionParams.objective)} &nbsp;|&nbsp;
+                <span style="color:#20c020;">Geneseed:</span> ${this._escapeHtml(missionParams.geneseed)} &nbsp;|&nbsp;
+                <span style="color:#20c020;">Armoury:</span> ${this._escapeHtml(missionParams.armoury)}
+            `;
+            captureContainer.appendChild(paramsDiv);
+
+            const matrixSection = this._buildTableSection('SQUAD PERFORMANCE MATRIX', matrixHtml);
+            captureContainer.appendChild(matrixSection);
+
+            const statsSection = this._buildTableSection('ADDITIONAL STATISTICS', statsHtml);
+            statsSection.style.marginTop = '15px';
+            captureContainer.appendChild(statsSection);
+
+            document.body.appendChild(captureContainer);
+
+            originalBodyWidth = document.body.style.width;
+            document.body.style.width = `${this.config.bodyWidth}px`;
+
+            await this._delay(this.config.settleDelay);
+
+            if (typeof html2canvas === 'undefined') {
+                throw new Error('Screenshot library not loaded. Please refresh the page.');
+            }
+
+            const canvas = await html2canvas(captureContainer, {
+                scale: this.config.scale,
+                backgroundColor: this.config.backgroundColor,
+                windowWidth: this.config.windowWidth,
+                useCORS: true,
+                logging: false
+            });
+
+            return canvas;
+
+        } finally {
+            this._cleanup(captureContainer, originalBodyWidth);
+        }
+    },
+
+    /**
+     * Capture the aggregated data screen as an HTMLCanvasElement (without downloading).
+     * Targets AGGREGATED SQUAD MATRIX and AGGREGATED STATISTICS on page 3.
+     * @private
+     * @returns {Promise<HTMLCanvasElement>}
+     */
+    async _captureAggregatedCanvas() {
+        let captureContainer = null;
+        let originalBodyWidth = "";
+
+        try {
+            const sectionSelectors = [
+                { containerSelector: '#page-3 .section', titleMatch: 'AGGREGATED SQUAD MATRIX' },
+                { containerSelector: '#page-3 .section', titleMatch: 'AGGREGATED STATISTICS' }
+            ];
+
+            const sections = this._findSections(sectionSelectors);
+            if (sections.length !== sectionSelectors.length) {
+                throw new Error('Aggregated sections not found. Found ' + sections.length + '/2');
+            }
+
+            captureContainer = this._createCaptureContainer(sections, true);
+            document.body.appendChild(captureContainer);
+
+            originalBodyWidth = document.body.style.width;
+            document.body.style.width = `${this.config.bodyWidth}px`;
+
+            await this._delay(this.config.settleDelay);
+
+            if (typeof html2canvas === 'undefined') {
+                throw new Error('Screenshot library not loaded. Please refresh the page.');
+            }
+
+            const canvas = await html2canvas(captureContainer, {
+                scale: this.config.scale,
+                backgroundColor: this.config.backgroundColor,
+                windowWidth: this.config.windowWidth,
+                useCORS: true,
+                logging: false
+            });
+
+            return canvas;
+
+        } finally {
+            this._cleanup(captureContainer, originalBodyWidth);
+        }
+    },
+
+    /**
      * Download canvas as PNG file.
      * - Web: direct download via anchor tag
-     * - Discord: upload to Cloudflare Worker for short URL, store in _pendingImages
-     *   Returns a Promise so callers can await the upload before showing the modal.
+     * - Discord: upload to Cloudflare Worker for hosted URL, store in _pendingImages
      * @private
      * @param {HTMLCanvasElement} canvas - Canvas to download
      * @param {string} filenamePrefix - Prefix for filename
-     * @returns {Promise<void>|undefined}
+     * @returns {Promise<void>}
      */
-    _downloadCanvas(canvas, filenamePrefix) {
+    async _downloadCanvas(canvas, filenamePrefix) {
         const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);
         const filename = `${filenamePrefix}_${timestamp}.png`;
         const dataUrl = canvas.toDataURL('image/png');
 
         if (this._isDiscord()) {
-            var self = this;
-            // Return a Promise that resolves after upload completes (or fails).
-            return new Promise(function(resolve) {
-                canvas.toBlob(function(blob) {
-                    var image = {
-                        dataUrl: dataUrl,
-                        blob: blob,
-                        filename: filename,
-                        hostedUrl: null,       // Will be set after upload
-                        uploadFailed: false
-                    };
-                    self._pendingImages.push(image);
+            const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/png'));
+            const image = { dataUrl, blob, filename, hostedUrl: null, uploadFailed: false };
+            this._pendingImages.push(image);
 
-                    // Upload to Cloudflare Worker, then resolve
-                    self._uploadImage(blob).then(function(result) {
-                        if (result && result.url) {
-                            image.hostedUrl = result.url;
-                            console.log('Image hosted at:', result.url);
-                        } else {
-                            image.uploadFailed = true;
-                            console.warn('Image upload failed, will use fallback sharing');
-                        }
-                        resolve();
-                    }).catch(function(err) {
-                        image.uploadFailed = true;
-                        console.warn('Image upload error:', err);
-                        resolve(); // Resolve even on error so the flow continues
-                    });
-                }, 'image/png');
-            });
-        } else {
-            const link = document.createElement('a');
-            link.download = filename;
-            link.href = dataUrl;
-            link.click();
+            try {
+                const result = await this._uploadImage(blob);
+                if (result && result.url) {
+                    image.hostedUrl = result.url;
+                    console.log('Image hosted at:', result.url);
+                } else {
+                    image.uploadFailed = true;
+                    console.warn('Image upload failed, will use fallback sharing');
+                }
+            } catch (err) {
+                image.uploadFailed = true;
+                console.warn('Image upload error:', err);
+            }
+            return;
         }
+
+        const link = document.createElement('a');
+        link.download = filename;
+        link.href = dataUrl;
+        link.click();
     },
 
     // ========================================================================
     // IMAGE HOST (CLOUDFLARE WORKER)
     // ========================================================================
-
-    /**
-     * Get the upload URL for the image host.
-     * In Discord Activity: use proxy path (same-origin, CSP-safe).
-     * Outside Discord: use direct Worker URL.
-     * @private
-     * @returns {string} Upload endpoint URL
-     */
-    _getImageHostUploadUrl() {
-        if (this._isDiscord()) {
-            // In Discord, try proxy first (configured in URL Mappings)
-            return this.imageHost.discordProxyPath + "/upload";
-        }
-        return this.imageHost.workerUrl + "/upload";
-    },
 
     /**
      * Upload a PNG blob to the Cloudflare Worker image host.
@@ -666,25 +637,25 @@ const PNGExporter = {
     /**
      * Open all pending images directly in the user's browser and copy URLs
      * to clipboard. No modal — just opens them immediately.
-     * @returns {Promise<{opened: number, copied: boolean, urls: string[]}>}
+     * @returns {Promise<{opened: number, copied: boolean, copiedImages: boolean, urls: string[]}>}
      */
     async openAllDirectly() {
         const images = this._pendingImages;
         if (images.length === 0) return { opened: 0, copied: false, urls: [] };
 
         const sdk = window.discordIntegration && window.discordIntegration.discordSDK;
-        const hostedImages = images.filter(function(img) { return img.hostedUrl; });
-        const urls = hostedImages.map(function(img) { return img.hostedUrl; });
-        var opened = 0;
+        const hostedImages = images.filter(img => img.hostedUrl);
+        const urls = hostedImages.map(img => img.hostedUrl);
+        let opened = 0;
 
         // 1. Open each image in the browser
-        for (var i = 0; i < hostedImages.length; i++) {
+        for (let i = 0; i < hostedImages.length; i++) {
             try {
                 if (sdk && sdk.commands && sdk.commands.openExternalLink) {
                     await sdk.commands.openExternalLink({ url: hostedImages[i].hostedUrl });
                     opened++;
                 } else {
-                    var win = window.open(hostedImages[i].hostedUrl, '_blank');
+                    const win = window.open(hostedImages[i].hostedUrl, '_blank');
                     if (win) opened++;
                 }
                 // Small delay between opens to avoid rate limiting
@@ -692,17 +663,16 @@ const PNGExporter = {
                     await this._delay(300);
                 }
             } catch (err) {
-                console.warn('Failed to open image ' + (i + 1) + ':', err);
+                console.warn(`Failed to open image ${i + 1}:`, err);
             }
         }
 
         // 2. Copy PNG images to clipboard (prefer actual image blobs over URLs)
-        var copied = false;
-        var copiedImages = false;
+        let copied = false;
+        let copiedImages = false;
 
         // Collect blobs from all pending images (includes non-hosted ones)
-        var blobs = images.filter(function(img) { return img.blob; })
-                          .map(function(img) { return img.blob; });
+        const blobs = images.filter(img => img.blob).map(img => img.blob);
 
         if (blobs.length > 0) {
             copiedImages = await this._copyImageBlobsToClipboard(blobs);
@@ -711,7 +681,7 @@ const PNGExporter = {
 
         // Fall back to URL text copy if image blob copy failed
         if (!copied && urls.length > 0) {
-            var allUrls = urls.join('\n');
+            const allUrls = urls.join('\n');
             try {
                 if (navigator.clipboard && navigator.clipboard.writeText) {
                     await navigator.clipboard.writeText(allUrls);
@@ -732,7 +702,7 @@ const PNGExporter = {
         // 4. Clear pending images
         this._pendingImages = [];
 
-        return { opened: opened, copied: copied, copiedImages: copiedImages, urls: urls };
+        return { opened, copied, copiedImages, urls };
     },
 
     /**
@@ -753,9 +723,7 @@ const PNGExporter = {
 
         // Try copying all images as ClipboardItems
         try {
-            var items = blobs.map(function(blob) {
-                return new ClipboardItem({ 'image/png': blob });
-            });
+            const items = blobs.map(blob => new ClipboardItem({ 'image/png': blob }));
             await navigator.clipboard.write(items);
             return true;
         } catch (err) {
@@ -764,7 +732,7 @@ const PNGExporter = {
 
         // Fall back to copying just the first image
         try {
-            var item = new ClipboardItem({ 'image/png': blobs[0] });
+            const item = new ClipboardItem({ 'image/png': blobs[0] });
             await navigator.clipboard.write([item]);
             return true;
         } catch (err2) {
@@ -782,13 +750,13 @@ const PNGExporter = {
      */
     _execCopy(text) {
         try {
-            var ta = document.createElement('textarea');
+            const ta = document.createElement('textarea');
             ta.value = text;
             ta.style.cssText = 'position:fixed;left:-9999px;top:-9999px;opacity:0;';
             document.body.appendChild(ta);
             ta.focus();
             ta.select();
-            var ok = document.execCommand('copy');
+            const ok = document.execCommand('copy');
             document.body.removeChild(ta);
             return ok;
         } catch (_) {
@@ -806,13 +774,14 @@ const PNGExporter = {
     _showUrlCopyFallback(urls) {
         if (!urls || urls.length === 0) return;
 
-        // Remove any existing fallback overlay
-        var existing = document.getElementById('png-url-fallback-overlay');
+        // Both this modal and _showSaveConfirmation share this overlay ID so they
+        // replace each other — only one export modal is ever shown at a time.
+        var existing = document.getElementById('png-exporter-overlay');
         if (existing) existing.remove();
 
         // Create modal overlay (reuse existing .modal-overlay / .modal-content classes)
         var overlay = document.createElement('div');
-        overlay.id = 'png-url-fallback-overlay';
+        overlay.id = 'png-exporter-overlay';
         overlay.className = 'modal-overlay';
         overlay.style.display = 'flex';
 
@@ -884,12 +853,12 @@ const PNGExporter = {
      * @param {number} count - Number of PNGs saved
      */
     _showSaveConfirmation(count) {
-        // Remove any existing fallback overlay
-        var existing = document.getElementById('png-url-fallback-overlay');
+        // Reuses the same overlay slot as _showUrlCopyFallback (mutually exclusive modals).
+        var existing = document.getElementById('png-exporter-overlay');
         if (existing) existing.remove();
 
         var overlay = document.createElement('div');
-        overlay.id = 'png-url-fallback-overlay';
+        overlay.id = 'png-exporter-overlay';
         overlay.className = 'modal-overlay';
         overlay.style.display = 'flex';
 
@@ -953,60 +922,6 @@ const PNGExporter = {
      */
     _delay(ms) {
         return new Promise(resolve => setTimeout(resolve, ms));
-    },
-
-    /**
-     * Promise wrapper around canvas.toBlob for async/await usage.
-     * @private
-     * @param {HTMLCanvasElement} canvas
-     * @returns {Promise<Blob>}
-     */
-    _canvasToBlob(canvas) {
-        return new Promise(function(resolve, reject) {
-            canvas.toBlob(function(blob) {
-                if (blob) resolve(blob);
-                else reject(new Error('Canvas toBlob returned null'));
-            }, 'image/png');
-        });
-    },
-
-    /**
-     * Stitch multiple canvases into a single vertically-stacked composite canvas.
-     * Each sub-image is drawn at its original resolution with a gap between them.
-     * @private
-     * @param {HTMLCanvasElement[]} canvases - Array of canvases to stitch
-     * @param {number} [gap=40] - Pixel gap between images
-     * @returns {HTMLCanvasElement} Composite canvas
-     */
-    _stitchCanvases(canvases, gap) {
-        if (typeof gap === 'undefined') gap = 40;
-        if (canvases.length === 0) return document.createElement('canvas');
-        if (canvases.length === 1) return canvases[0];
-
-        var maxWidth = 0;
-        var totalHeight = 0;
-        for (var i = 0; i < canvases.length; i++) {
-            if (canvases[i].width > maxWidth) maxWidth = canvases[i].width;
-            totalHeight += canvases[i].height;
-            if (i < canvases.length - 1) totalHeight += gap;
-        }
-
-        var composite = document.createElement('canvas');
-        composite.width = maxWidth;
-        composite.height = totalHeight;
-        var ctx = composite.getContext('2d');
-
-        ctx.fillStyle = this.config.backgroundColor;
-        ctx.fillRect(0, 0, maxWidth, totalHeight);
-
-        var y = 0;
-        for (var j = 0; j < canvases.length; j++) {
-            var x = Math.floor((maxWidth - canvases[j].width) / 2);
-            ctx.drawImage(canvases[j], x, y);
-            y += canvases[j].height + gap;
-        }
-
-        return composite;
     },
 
     /**
